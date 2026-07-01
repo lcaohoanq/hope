@@ -1,0 +1,33 @@
+name: Daily workout reminder
+
+on:
+  schedule:
+    - cron: "0 13 * * *"
+  workflow_dispatch:
+
+jobs:
+  remind:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Send reminder if needed
+        run: pnpm run reminder
+        env:
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          REMINDER_EMAIL: ${{ secrets.REMINDER_EMAIL }}
+          RESEND_FROM: ${{ secrets.RESEND_FROM }}
+          TIMEZONE: Asia/Ho_Chi_Minh

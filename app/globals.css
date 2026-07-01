@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+}
+
+body {
+  min-height: 100%;
+  margin: 0;
+  background: #f7f5f0;
+  color: #111111;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+::selection {
+  background: #dbe8dc;
+  color: #111111;
+}
+
+@keyframes onboarding-orbit {
+  0% {
+    opacity: 0.45;
+    transform: rotate(0deg) scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: rotate(180deg) scale(1.04);
+  }
+  100% {
+    opacity: 0.45;
+    transform: rotate(360deg) scale(1);
+  }
+}
+
+.onboarding-orbit {
+  animation: onboarding-orbit 18s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+.onboarding-orbit-delay {
+  animation-delay: -7s;
+}
