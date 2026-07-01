@@ -34,7 +34,17 @@ function getDataPath() {
 }
 
 function getLocalDataPath() {
-  return path.join(process.cwd(), "data", "workouts.json");
+  const dataPath = getDataPath();
+
+  if (path.isAbsolute(dataPath)) {
+    return dataPath;
+  }
+
+  const dataRelativePath = dataPath.startsWith("data/")
+    ? dataPath.slice("data/".length)
+    : dataPath;
+
+  return path.join(/*turbopackIgnore: true*/ process.cwd(), "data", dataRelativePath);
 }
 
 function getGitHubConfig(): GitHubConfig | null {
