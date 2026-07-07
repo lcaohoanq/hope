@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import type { Workout } from "@/lib/workout-types";
 import {
   createLifetimeHeatmapYears,
@@ -12,6 +15,17 @@ type ContributionHeatmapProps = {
 };
 
 const weekdayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const TOOLTIP_WIDTH = 256;
+const TOOLTIP_MARGIN = 16;
+
+type ActiveTooltip = {
+  date: string;
+  workouts: Workout[];
+  isTrackable: boolean;
+  left: number;
+  top: number;
+  placement: "above" | "below";
+};
 
 export function ContributionHeatmap({
   workouts,
@@ -25,6 +39,37 @@ export function ContributionHeatmap({
   });
   const descendingHeatmapYears = [...heatmapYears].reverse();
   const trackingStartYear = Number(TRACKING_START_DATE.slice(0, 4));
+  const [activeTooltip, setActiveTooltip] = useState<ActiveTooltip | null>(null);
+
+  function showTooltip({
+    element,
+    date,
+    workouts,
+    isTrackable,
+  }: {
+    element: HTMLElement;
+    date: string;
+    workouts: Workout[];
+    isTrackable: boolean;
+  }) {
+    const rect = element.getBoundingClientRect();
+    const minLeft = TOOLTIP_MARGIN + TOOLTIP_WIDTH / 2;
+    const maxLeft = window.innerWidth - TOOLTIP_MARGIN - TOOLTIP_WIDTH / 2;
+    const left = Math.min(
+      Math.max(rect.left + rect.width / 2, minLeft),
+      maxLeft,
+    );
+    const placement = rect.top < 180 ? "below" : "above";
+
+    setActiveTooltip({
+      date,
+      workouts,
+      isTrackable,
+      left,
+      top: placement === "above" ? rect.top - 8 : rect.bottom + 8,
+      placement,
+    });
+  }
 
   return (
     <section className="rounded-lg border border-stone-200 bg-white p-5 sm:p-6">
@@ -95,22 +140,34 @@ export function ContributionHeatmap({
                     return (
                       <button
                         aria-label={`${day.date}: ${label}`}
-                        className={`group relative z-0 h-2.5 w-2.5 rounded-[2px] outline-none ring-offset-2 ring-offset-white transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:z-[1000] hover:scale-150 focus:z-[1000] focus-visible:z-[1000] focus-visible:ring-2 focus-visible:ring-moss ${
+                        className={`relative z-0 h-2.5 w-2.5 rounded-[2px] outline-none ring-offset-2 ring-offset-white transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:z-10 hover:scale-150 focus:z-10 focus-visible:ring-2 focus-visible:ring-moss ${
                           hasWorkout
                             ? "bg-moss"
                             : isTrackable
                               ? "bg-stone-950 hover:bg-stone-800"
                               : "border border-stone-200 bg-stone-100"
                         }`}
+                        onBlur={() => setActiveTooltip(null)}
+                        onFocus={(event) =>
+                          showTooltip({
+                            element: event.currentTarget,
+                            date: day.date,
+                            workouts: day.workouts,
+                            isTrackable,
+                          })
+                        }
+                        onMouseEnter={(event) =>
+                          showTooltip({
+                            element: event.currentTarget,
+                            date: day.date,
+                            workouts: day.workouts,
+                            isTrackable,
+                          })
+                        }
+                        onMouseLeave={() => setActiveTooltip(null)}
                         key={day.date}
                         type="button"
-                      >
-                        <WorkoutTooltip
-                          date={day.date}
-                          isTrackable={isTrackable}
-                          workouts={day.workouts}
-                        />
-                      </button>
+                      />
                     );
                   }),
                 )}
@@ -123,6 +180,25 @@ export function ContributionHeatmap({
           </div>
         </div>
       </div>
+      {activeTooltip ? (
+        <div
+          className={`pointer-events-none fixed z-[9999] ${
+            activeTooltip.placement === "above"
+              ? "-translate-x-1/2 -translate-y-full"
+              : "-translate-x-1/2"
+          }`}
+          style={{
+            left: activeTooltip.left,
+            top: activeTooltip.top,
+          }}
+        >
+          <WorkoutTooltip
+            date={activeTooltip.date}
+            isTrackable={activeTooltip.isTrackable}
+            workouts={activeTooltip.workouts}
+          />
+        </div>
+      ) : null}
     </section>
   );
 }
