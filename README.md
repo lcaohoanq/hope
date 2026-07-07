@@ -10,6 +10,7 @@ The app records daily workouts, shows a GitHub-style lifetime heatmap, and can s
 - Lifetime heatmap from birth year to the current year.
 - Workout tracking starts at `2026-01-01`; earlier years render as no-data cells.
 - Workout form with server-side validation.
+- Workout image uploads optimized to AVIF with `sharp`.
 - `GET /api/workouts` and `POST /api/workouts`.
 - MVP storage in `data/workouts.json`.
 - Server-side GitHub Contents API commits for production writes.
@@ -25,6 +26,7 @@ The app records daily workouts, shows a GitHub-style lifetime heatmap, and can s
 - Vercel
 - GitHub Contents API
 - GitHub Actions
+- sharp
 - Resend
 
 ## Local Development
@@ -49,7 +51,7 @@ pnpm run dev
 
 Open `http://localhost:3000`.
 
-If GitHub env vars are not configured locally, API routes read and write `data/workouts.json` directly on the server. If GitHub env vars are configured, `POST /api/workouts` may commit to GitHub.
+If GitHub env vars are not configured locally, API routes read and write `data/workouts.json` directly on the server and write optimized images to `public/uploads`. If GitHub env vars are configured, `POST /api/workouts` may commit to GitHub.
 
 ## Environment Variables
 
@@ -93,14 +95,28 @@ RESEND_FROM=Fitness Tracker <onboarding@resend.dev>
 
 ## Submit Flow
 
-1. User submits workout type, date, start time, end time, and optional note.
-2. Frontend calls `POST /api/workouts`.
+1. User submits workout type, date, start time, end time, optional note, and up to 3 optional images.
+2. Frontend calls `POST /api/workouts` as JSON for no-image submits or `multipart/form-data` when images are selected.
 3. The API validates input server-side.
-4. The API calculates `durationMinutes`.
-5. In production, the API reads latest `data/workouts.json` through GitHub Contents API.
-6. The API appends the new workout and commits the updated JSON.
-7. If GitHub returns a conflict, the API reads again and retries once.
-8. The frontend refreshes workout data without a full page reload.
+4. The API validates image MIME type, then `sharp` decodes and optimizes each image to AVIF.
+5. The API calculates `durationMinutes`.
+6. In production, the API reads latest `data/workouts.json` through GitHub Contents API.
+7. The API appends the new workout and commits the updated JSON with optimized AVIF files.
+8. If GitHub returns a conflict, the API reads again and retries once.
+9. The frontend refreshes workout data without a full page reload.
+
+## Image Uploads
+
+- Images are processed server-side with `sharp`; `sharp` is never imported by client components.
+- Original uploads are never stored, committed, or written as base64 in JSON.
+- Optimized images are saved as AVIF under `public/uploads/YYYY/MM/`.
+- JSON stores public paths like `/uploads/2026/07/2026-07-07-workout-abcd1234.avif`.
+- HEIC/HEIF uploads are best-effort. If the server's `sharp`/libvips build cannot decode them, upload JPG, PNG, or WebP instead.
+- In local mode, optimized images are written to the working tree under `public/uploads`.
+- In GitHub-backed mode, optimized images and `data/workouts.json` are committed together where possible.
+- On Vercel, runtime writes to `public` are not persistent. Files committed to `public/uploads` through GitHub are not guaranteed to be available from `/uploads/...` until the app redeploys.
+- The UI tries `/uploads/...` first, then falls back to `/api/uploads/...` so newly committed GitHub-backed images can still render before a redeploy when the API can read the repository file.
+- `public/uploads` is intentionally trackable, so repo size will grow over time. Keep only optimized AVIF files there and never store originals.
 
 ## Reminder Flow
 
@@ -143,6 +159,15 @@ Workout record:
   "endTime": "07:10",
   "durationMinutes": 40,
   "note": "Morning walk",
+  "images": [
+    {
+      "src": "/uploads/2026/07/2026-07-01-workout-abcd1234.avif",
+      "format": "avif",
+      "width": 1200,
+      "height": 900,
+      "sizeBytes": 84321
+    }
+  ],
   "createdAt": "2026-07-01T00:10:00.000Z"
 }
 ```
@@ -160,6 +185,8 @@ REMINDER_DRY_RUN=1 pnpm run reminder
 
 - `POST /api/workouts` returns `Unable to save workout.`: check GitHub env vars, token permission, repo owner/name, branch, and `WORKOUT_DATA_PATH`.
 - Data saves locally but not in production: verify `GITHUB_TOKEN`, `GITHUB_OWNER`, `GITHUB_REPO`, and `GITHUB_BRANCH` in Vercel.
+- Uploaded image path returns 404 in production: redeploy the app so newly committed `public/uploads` assets are included in the deployed build.
+- HEIC/HEIF upload fails: the deployed `sharp`/libvips build may not support that format; upload JPG, PNG, or WebP.
 - Reminder workflow does not send: verify `RESEND_API_KEY`, `REMINDER_EMAIL`, and Resend sender/domain setup.
 - Reminder sends from `onboarding@resend.dev`: set `RESEND_FROM` to a verified sender for production.
 - Heatmap does not show onboarding again: click `Reset profile` in the dashboard to clear the local browser profile.

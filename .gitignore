@@ -3,6 +3,8 @@ node_modules/
 out/
 build/
 dist/
+.tmp/
+tmp/
 
 .env
 .env*.local

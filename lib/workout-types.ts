@@ -1,3 +1,11 @@
+export type WorkoutImage = {
+  src: string;
+  format: "avif";
+  width: number;
+  height: number;
+  sizeBytes: number;
+};
+
 export type Workout = {
   id: string;
   date: string;
@@ -6,6 +14,7 @@ export type Workout = {
   endTime: string;
   durationMinutes: number;
   note?: string;
+  images?: WorkoutImage[];
   createdAt: string;
 };
 
@@ -30,6 +39,7 @@ export type WorkoutInput = {
   startTime: string;
   endTime: string;
   note: string;
+  images?: File[];
 };
 
 export type UserProfile = {
