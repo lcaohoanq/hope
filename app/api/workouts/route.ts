@@ -8,17 +8,12 @@ import {
   readWorkoutGitHubFile,
   writeWorkoutDataLocally,
 } from "@/lib/github-json";
-import {
-  cleanupOptimizedWorkoutImagesLocally,
-  getWorkoutImageMetadata,
-  MAX_WORKOUT_IMAGES,
-  optimizeWorkoutImage,
-  type OptimizedWorkoutImage,
-  validateWorkoutImageUpload,
-  WorkoutImageValidationError,
-  writeOptimizedWorkoutImagesLocally,
-} from "@/lib/workout-images";
-import type { CreateWorkoutRequest, Workout } from "@/lib/workout-types";
+import type { OptimizedWorkoutImage } from "@/lib/workout-images";
+import type {
+  CreateWorkoutRequest,
+  Workout,
+  WorkoutImage,
+} from "@/lib/workout-types";
 import {
   appendWorkout,
   createWorkoutRecord,
@@ -81,7 +76,7 @@ export async function POST(request: Request) {
       validation.workoutInput.date,
     );
   } catch (error) {
-    if (error instanceof WorkoutImageValidationError) {
+    if (isWorkoutImageValidationError(error)) {
       return NextResponse.json(
         {
           success: false,
@@ -100,9 +95,16 @@ export async function POST(request: Request) {
     );
   }
 
+  let imageMetadata: WorkoutImage[] = [];
+
+  if (optimizedImages.length > 0) {
+    const { getWorkoutImageMetadata } = await import("@/lib/workout-images");
+    imageMetadata = optimizedImages.map(getWorkoutImageMetadata);
+  }
+
   const workout = createWorkoutRecord({
     ...validation.workoutInput,
-    images: optimizedImages.map(getWorkoutImageMetadata),
+    images: imageMetadata,
   });
 
   try {
@@ -111,10 +113,24 @@ export async function POST(request: Request) {
       const nextData = appendWorkout(data, workout);
 
       try {
-        await writeOptimizedWorkoutImagesLocally(optimizedImages);
+        if (optimizedImages.length > 0) {
+          const { writeOptimizedWorkoutImagesLocally } = await import(
+            "@/lib/workout-images"
+          );
+
+          await writeOptimizedWorkoutImagesLocally(optimizedImages);
+        }
+
         await writeWorkoutDataLocally(nextData);
       } catch (error) {
-        await cleanupOptimizedWorkoutImagesLocally(optimizedImages);
+        if (optimizedImages.length > 0) {
+          const { cleanupOptimizedWorkoutImagesLocally } = await import(
+            "@/lib/workout-images"
+          );
+
+          await cleanupOptimizedWorkoutImagesLocally(optimizedImages);
+        }
+
         throw error;
       }
 
@@ -175,6 +191,17 @@ async function prepareWorkoutImages(
   imageFiles: File[],
   workoutDate: string,
 ): Promise<OptimizedWorkoutImage[]> {
+  if (imageFiles.length === 0) {
+    return [];
+  }
+
+  const {
+    MAX_WORKOUT_IMAGES,
+    optimizeWorkoutImage,
+    validateWorkoutImageUpload,
+    WorkoutImageValidationError,
+  } = await import("@/lib/workout-images");
+
   if (imageFiles.length > MAX_WORKOUT_IMAGES) {
     throw new WorkoutImageValidationError(
       `Please upload no more than ${MAX_WORKOUT_IMAGES} images per workout.`,
@@ -200,6 +227,12 @@ async function prepareWorkoutImages(
   }
 
   return optimizedImages;
+}
+
+function isWorkoutImageValidationError(error: unknown): error is Error {
+  return (
+    error instanceof Error && error.name === "WorkoutImageValidationError"
+  );
 }
 
 async function appendAndCommitWorkout(

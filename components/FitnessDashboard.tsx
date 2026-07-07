@@ -48,7 +48,10 @@ export function FitnessDashboard() {
       const response = await fetch("/api/workouts", {
         cache: "no-store",
       });
-      const payload = (await response.json()) as WorkoutData | ApiErrorResponse;
+      const payload = await readApiJson<WorkoutData | ApiErrorResponse>(
+        response,
+        "Unable to load workouts.",
+      );
 
       if (!response.ok || "success" in payload) {
         throw new Error(
@@ -107,7 +110,10 @@ export function FitnessDashboard() {
         headers,
         body,
       });
-      const payload = (await response.json()) as CreateWorkoutResponse;
+      const payload = await readApiJson<CreateWorkoutResponse>(
+        response,
+        "Unable to save workout.",
+      );
 
       if (!response.ok || !payload.success) {
         throw new Error(
@@ -256,6 +262,20 @@ export function FitnessDashboard() {
       </div>
     </main>
   );
+}
+
+async function readApiJson<T>(response: Response, fallbackMessage: string) {
+  const contentType = response.headers.get("content-type") ?? "";
+
+  if (!contentType.includes("application/json")) {
+    throw new Error(`${fallbackMessage} The server returned a non-JSON response.`);
+  }
+
+  try {
+    return (await response.json()) as T;
+  } catch {
+    throw new Error(`${fallbackMessage} The server returned invalid JSON.`);
+  }
 }
 
 function WorkoutLoadingState() {
