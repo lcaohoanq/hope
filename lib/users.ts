@@ -29,7 +29,9 @@ export function getDefaultUser() {
 }
 
 export function getUserBySlug(slug: string) {
-  return APP_USERS.find((user) => user.slug === slug);
+  const normalizedSlug = normalizeUserSlug(slug);
+
+  return APP_USERS.find((user) => user.slug === normalizedSlug);
 }
 
 export function isKnownUserId(userId: string) {
@@ -48,4 +50,19 @@ export function normalizeUserId(value: unknown) {
 
 export function isWorkoutVisibleForUser(workout: Workout, userId: string) {
   return workout.userId ? workout.userId === userId : userId === DEFAULT_USER_ID;
+}
+
+function normalizeUserSlug(value: string) {
+  const decodedValue = safeDecodeURIComponent(value);
+  const trimmedValue = decodedValue.trim().toLowerCase();
+
+  return trimmedValue.startsWith("@") ? trimmedValue : `@${trimmedValue}`;
+}
+
+function safeDecodeURIComponent(value: string) {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
 }
