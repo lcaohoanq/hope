@@ -91,7 +91,7 @@ export function ContributionHeatmap({
   const viewEyebrow =
     view.mode === "lifetime" ? `${currentYear} - ${birthYear}` : String(view.year);
   const viewTitle =
-    view.mode === "lifetime" ? "Lifetime heatmap" : `${view.year} heatmap`;
+    view.mode === "lifetime" ? "Lifetime" : `Your ${view.year}`;
   const [activeTooltip, setActiveTooltip] = useState<ActiveTooltip | null>(null);
   const [selectedDay, setSelectedDay] = useState<SelectedDay | null>(null);
 
@@ -167,9 +167,9 @@ export function ContributionHeatmap({
     <section className="rounded-lg border border-stone-200 bg-white p-5 sm:p-6">
       <div className="flex flex-col gap-4 border-b border-stone-100 pb-5 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-stone-500">
+          {/* <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-stone-500">
             {viewEyebrow}
-          </p>
+          </p> */}
           <h2 className="mt-2 text-xl font-semibold tracking-[-0.02em] text-stone-950">
             {viewTitle}
           </h2>
@@ -208,9 +208,9 @@ export function ContributionHeatmap({
               className="grid grid-cols-[44px_32px_1fr] items-start gap-x-3"
               key={year}
             >
-              <div className="pt-5 font-mono text-[11px] text-stone-500">
+              {/* <div className="pt-5 font-mono text-[11px] text-stone-500">
                 {year}
-              </div>
+              </div> */}
               <div className="mt-5 grid grid-rows-7 gap-1 text-[9px] text-stone-400">
                 {weekdayLabels.map((label) => (
                   <span key={label} className="flex h-2.5 items-center">
@@ -310,10 +310,10 @@ export function ContributionHeatmap({
               </div>
             </div>
           ))}
-          <div className="border-t border-stone-100 pt-3 text-xs text-stone-500">
+          {/* <div className="border-t border-stone-100 pt-3 text-xs text-stone-500">
             Workout tracking starts in {trackingStartYear}; older cells are
             shown only to frame the timeline.
-          </div>
+          </div> */}
         </div>
       </div>
       {activeTooltip ? (

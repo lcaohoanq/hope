@@ -21,6 +21,7 @@ export type HeatmapDefaultView =
 export type AppUser = UserProfile & {
   id: string;
   slug: string;
+  bio: string;
   heatmapSettings: {
     defaultView: HeatmapDefaultView;
   };
@@ -33,6 +34,7 @@ export const APP_USERS = [
     displayName: "Test User",
     birthYear: 2004,
     avatarSeed: "test",
+    bio: "Testing the quiet little rituals that make movement easier to repeat.",
     heatmapSettings: {
       defaultView: {
         mode: "year",
@@ -45,6 +47,7 @@ export const APP_USERS = [
     displayName: "Hoang",
     birthYear: 2004,
     avatarSeed: "hoang",
+    bio: "Expect the Not Expected.",
     heatmapSettings: {
       defaultView: {
         mode: "year",
@@ -57,6 +60,7 @@ export const APP_USERS = [
     displayName: "Linh",
     birthYear: 2005,
     avatarSeed: "linh",
+    bio: "Building a steady rhythm one logged workout at a time.",
     heatmapSettings: {
       defaultView: {
         mode: "year",

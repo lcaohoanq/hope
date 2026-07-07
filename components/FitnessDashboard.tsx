@@ -370,8 +370,7 @@ function UserProfileSidebar({
           </h1>
           <p className="mt-1 truncate text-sm text-stone-500">{user.slug}</p>
           <p className="mt-4 max-w-sm text-sm leading-6 text-stone-600">
-            Log any workout from 2026 onward. Earlier years stay quiet,
-            framing the story without counting as missed days.
+            {user.bio}
           </p>
         </div>
       </div>
