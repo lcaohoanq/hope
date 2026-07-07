@@ -3,6 +3,7 @@ import type {
   HeatmapDay,
   Workout,
   WorkoutData,
+  WorkoutImage,
 } from "@/lib/workout-types";
 import {
   getDaysInRange,
@@ -223,6 +224,7 @@ export function createWorkoutRecord(
     endTime: string;
     durationMinutes: number;
     note: string;
+    images?: WorkoutImage[];
   },
   now = new Date(),
 ): Workout {
@@ -234,6 +236,7 @@ export function createWorkoutRecord(
     endTime: input.endTime,
     durationMinutes: input.durationMinutes,
     note: input.note,
+    ...(input.images && input.images.length > 0 ? { images: input.images } : {}),
     createdAt: now.toISOString(),
   };
 }

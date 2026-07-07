@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { WorkoutInput } from "@/lib/workout-types";
 import { calculateDurationMinutes } from "@/lib/workout-utils";
 
@@ -18,12 +18,18 @@ const initialForm = (defaultDate: string): WorkoutInput => ({
   note: "",
 });
 
+const MAX_SELECTED_IMAGES = 3;
+
 export function WorkoutForm({
   defaultDate,
   isSubmitting,
   onSubmitWorkout,
 }: WorkoutFormProps) {
   const [form, setForm] = useState<WorkoutInput>(() => initialForm(defaultDate));
+  const [selectedImages, setSelectedImages] = useState<File[]>([]);
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  const [imageInputKey, setImageInputKey] = useState(0);
+  const previewUrlsRef = useRef<string[]>([]);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -35,10 +41,39 @@ export function WorkoutForm({
     return calculateDurationMinutes(form.startTime, form.endTime);
   }, [form.startTime, form.endTime]);
 
+  useEffect(() => {
+    return () => {
+      previewUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, []);
+
   function updateField(field: keyof WorkoutInput, value: string) {
     setForm((current) => ({ ...current, [field]: value }));
     setError("");
     setSuccess("");
+  }
+
+  function updateImages(files: FileList | null) {
+    const nextImages = files ? Array.from(files) : [];
+
+    if (nextImages.length > MAX_SELECTED_IMAGES) {
+      setImageSelection(nextImages.slice(0, MAX_SELECTED_IMAGES));
+      setError(`Choose up to ${MAX_SELECTED_IMAGES} images.`);
+      setSuccess("");
+      return;
+    }
+
+    setImageSelection(nextImages);
+    setError("");
+    setSuccess("");
+  }
+
+  function setImageSelection(images: File[]) {
+    const nextPreviewUrls = images.map((image) => URL.createObjectURL(image));
+    previewUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
+    previewUrlsRef.current = nextPreviewUrls;
+    setSelectedImages(images);
+    setPreviewUrls(nextPreviewUrls);
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -73,9 +108,12 @@ export function WorkoutForm({
         startTime: form.startTime,
         endTime: form.endTime,
         note,
+        images: selectedImages,
       });
 
       setForm(initialForm(defaultDate));
+      setImageSelection([]);
+      setImageInputKey((current) => current + 1);
       setSuccess("Workout saved and heatmap refreshed.");
     } catch (submitError) {
       setError(
@@ -153,6 +191,36 @@ export function WorkoutForm({
             value={form.note}
           />
         </label>
+
+        <label className="grid gap-2 text-sm font-medium text-stone-800">
+          Images
+          <input
+            accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
+            className="block w-full rounded-md border border-stone-200 bg-stone-50 px-3 py-2 text-sm font-normal text-stone-700 file:mr-3 file:rounded-md file:border-0 file:bg-stone-950 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white focus:border-moss focus:bg-white focus:outline-none focus:ring-2 focus:ring-moss/15 disabled:cursor-not-allowed disabled:opacity-60"
+            key={imageInputKey}
+            multiple
+            onChange={(event) => updateImages(event.target.files)}
+            type="file"
+          />
+        </label>
+
+        {previewUrls.length > 0 ? (
+          <div className="grid grid-cols-3 gap-2">
+            {previewUrls.map((url, index) => (
+              <div
+                className="aspect-square overflow-hidden rounded-md border border-stone-200 bg-stone-100"
+                key={url}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  alt={`Selected workout preview ${index + 1}`}
+                  className="h-full w-full object-cover"
+                  src={url}
+                />
+              </div>
+            ))}
+          </div>
+        ) : null}
       </fieldset>
 
       <div className="mt-5 min-h-6">

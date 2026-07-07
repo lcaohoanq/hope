@@ -86,12 +86,26 @@ export function FitnessDashboard() {
     setIsSubmittingWorkout(true);
 
     try {
+      const hasImages = input.images && input.images.length > 0;
+      const body = hasImages ? new FormData() : JSON.stringify(input);
+      const headers = hasImages ? undefined : { "Content-Type": "application/json" };
+
+      if (hasImages && body instanceof FormData) {
+        body.set("date", input.date);
+        body.set("type", input.type);
+        body.set("startTime", input.startTime);
+        body.set("endTime", input.endTime);
+        body.set("note", input.note);
+
+        input.images?.forEach((image) => {
+          body.append("images", image);
+        });
+      }
+
       const response = await fetch("/api/workouts", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(input),
+        headers,
+        body,
       });
       const payload = (await response.json()) as CreateWorkoutResponse;
 
