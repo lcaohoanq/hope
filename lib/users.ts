@@ -7,6 +7,13 @@ export type AppUser = UserProfile & {
 
 export const APP_USERS = [
   {
+    id: "test",
+    slug: "@test",
+    displayName: "Test User",
+    birthYear: 2004,
+    avatarSeed: "test",
+  },
+  {
     id: "hoang",
     slug: "@hoang",
     displayName: "Hoang",
@@ -17,7 +24,7 @@ export const APP_USERS = [
     id: "linh",
     slug: "@linh",
     displayName: "Linh",
-    birthYear: 2004,
+    birthYear: 2005,
     avatarSeed: "linh",
   },
 ] as const satisfies readonly AppUser[];
