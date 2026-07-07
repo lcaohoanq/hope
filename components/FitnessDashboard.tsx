@@ -187,94 +187,52 @@ export function FitnessDashboard({ user }: FitnessDashboardProps) {
       {isUploadingWorkoutImages ? (
         <Loading message="Optimizing your workout images..." />
       ) : null}
-      <div className="mx-auto flex max-w-7xl flex-col gap-6">
-        <header className="grid gap-6 rounded-lg border border-stone-200 bg-white p-5 sm:p-8 lg:grid-cols-[1fr_320px] lg:items-end">
-          <div>
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="h-14 w-14 overflow-hidden rounded-lg border border-stone-200 bg-stone-100">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  alt={`${user.displayName}'s DiceBear avatar`}
-                  className="h-full w-full object-cover"
-                  src={getAvatarUrl(user.avatarSeed)}
-                />
+      <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[280px_minmax(0,1fr)] lg:items-start">
+        <UserProfileSidebar
+          onAddWorkout={() => setIsWorkoutDialogOpen(true)}
+          todayDateKey={todayDateKey}
+          user={user}
+        />
+
+        <div className="grid min-w-0 gap-6">
+          {workoutLoadError ? (
+            <section className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <p>{workoutLoadError}</p>
+                <button
+                  className="h-9 rounded-md border border-red-200 bg-white px-3 font-semibold text-red-800 transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-red-100 active:scale-[0.98]"
+                  onClick={() => void loadWorkouts()}
+                  type="button"
+                >
+                  Retry
+                </button>
               </div>
-              <div>
-                <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-stone-500">
-                  Fitness Tracker
-                </p>
-                <p className="mt-1 text-sm font-medium text-stone-600">
-                  Welcome back, {user.displayName}
-                </p>
-              </div>
-            </div>
-            <h1 className="mt-4 max-w-3xl text-4xl font-semibold leading-[1.04] tracking-[-0.05em] text-stone-950 sm:text-5xl lg:text-6xl">
-              Your lifetime map is awake.
-            </h1>
-            <p className="mt-5 max-w-2xl text-base leading-7 text-stone-600">
-              Log any workout from 2026 onward. Earlier years stay quiet,
-              framing the story without counting as missed days.
-            </p>
-          </div>
-          <div className="rounded-lg border border-stone-200 bg-stone-50 p-4">
-            <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-stone-500">
-              Profile
-            </p>
-            <p className="mt-3 text-2xl font-semibold tracking-[-0.03em]">
-              {user.birthYear}
-            </p>
-            <p className="mt-2 text-sm leading-6 text-stone-500">
-              Heatmap begins at birth year; workout tracking begins at 2026.
-            </p>
-          </div>
-        </header>
+            </section>
+          ) : null}
 
-        {workoutLoadError ? (
-          <section className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <p>{workoutLoadError}</p>
-              <button
-                className="h-9 rounded-md border border-red-200 bg-white px-3 font-semibold text-red-800 transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-red-100 active:scale-[0.98]"
-                onClick={() => void loadWorkouts()}
-                type="button"
-              >
-                Retry
-              </button>
-            </div>
-          </section>
-        ) : null}
+          {isLoadingWorkouts ? (
+            <WorkoutLoadingState />
+          ) : (
+            <StatsCards workouts={workouts} todayDateKey={todayDateKey} />
+          )}
 
-        {isLoadingWorkouts ? (
-          <WorkoutLoadingState />
-        ) : (
-          <StatsCards workouts={workouts} todayDateKey={todayDateKey} />
-        )}
-
-        <div className="flex justify-end">
-          <button
-            className="h-11 rounded-md bg-stone-950 px-4 text-sm font-semibold text-white transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-stone-800 active:scale-[0.98]"
-            onClick={() => setIsWorkoutDialogOpen(true)}
-            type="button"
-          >
-            Add a workout
-          </button>
-        </div>
-
-        <div className="grid gap-6">
           {isLoadingWorkouts ? (
             <section className="min-h-[480px] rounded-lg border border-stone-200 bg-white p-5 sm:p-6">
               <div className="h-5 w-40 animate-pulse rounded bg-stone-100" />
-              <div className="mt-6 grid gap-3">
-                {Array.from({ length: 10 }, (_, index) => (
-                  <div className="flex gap-3" key={index}>
-                    <div className="h-3 w-10 rounded bg-stone-100" />
-                    <div className="grid flex-1 grid-cols-12 gap-1">
-                      {Array.from({ length: 48 }, (_, cellIndex) => (
-                        <div
-                          className="h-2.5 rounded-[2px] bg-stone-100"
-                          key={cellIndex}
-                        />
-                      ))}
+              <div className="mt-8 grid gap-5">
+                {Array.from({ length: 8 }, (_, index) => (
+                  <div className="grid gap-2" key={index}>
+                    <div className="ml-24 h-3 w-80 rounded bg-stone-100" />
+                    <div className="flex gap-3">
+                      <div className="h-3 w-10 rounded bg-stone-100" />
+                      <div className="grid flex-1 grid-cols-12 gap-1">
+                        {Array.from({ length: 48 }, (_, cellIndex) => (
+                          <div
+                            className="h-2.5 rounded-[2px] bg-stone-100"
+                            key={cellIndex}
+                          />
+                        ))}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -329,6 +287,70 @@ export function FitnessDashboard({ user }: FitnessDashboardProps) {
         ) : null}
       </AnimatePresence>
     </main>
+  );
+}
+
+function UserProfileSidebar({
+  user,
+  todayDateKey,
+  onAddWorkout,
+}: {
+  user: AppUser;
+  todayDateKey: string;
+  onAddWorkout: () => void;
+}) {
+  const trackingStartYear = 2026;
+  const userAge = Number(todayDateKey.slice(0, 4)) - user.birthYear;
+
+  return (
+    <aside className="rounded-lg border border-stone-200 bg-white p-5 lg:sticky lg:top-6">
+      <div className="flex gap-4 lg:block">
+        <div className="h-24 w-24 shrink-0 overflow-hidden rounded-full border border-stone-200 bg-stone-100 sm:h-28 sm:w-28 lg:h-auto lg:w-full">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            alt={`${user.displayName}'s DiceBear avatar`}
+            className="aspect-square h-full w-full object-cover"
+            src={getAvatarUrl(user.avatarSeed)}
+          />
+        </div>
+        <div className="min-w-0 flex-1 lg:mt-5">
+          <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-stone-500">
+            Fitness Tracker
+          </p>
+          <h1 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-stone-950">
+            {user.displayName}
+          </h1>
+          <p className="mt-1 truncate text-sm text-stone-500">{user.slug}</p>
+          <p className="mt-4 max-w-sm text-sm leading-6 text-stone-600">
+            Log any workout from 2026 onward. Earlier years stay quiet,
+            framing the story without counting as missed days.
+          </p>
+        </div>
+      </div>
+
+      <button
+        className="mt-5 h-11 w-full rounded-md bg-stone-950 px-4 text-sm font-semibold text-white transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-stone-800 active:scale-[0.98]"
+        onClick={onAddWorkout}
+        type="button"
+      >
+        Add a workout
+      </button>
+
+      <div className="mt-5 grid gap-3 border-t border-stone-100 pt-5 text-sm text-stone-600">
+        <div className="flex items-center justify-between gap-3">
+          <span>Birth year</span>
+          <span className="font-medium text-stone-950">{user.birthYear}</span>
+        </div>
+        <div className="flex items-center justify-between gap-3">
+          <span>Age map</span>
+          <span className="font-medium text-stone-950">{userAge} years</span>
+        </div>
+        <div className="flex items-center justify-between gap-3">
+          <span>Tracking from</span>
+          <span className="font-medium text-stone-950">{trackingStartYear}</span>
+        </div>
+      </div>
+    </aside>
   );
 }
 
