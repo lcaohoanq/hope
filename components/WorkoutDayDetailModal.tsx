@@ -63,14 +63,16 @@ export function WorkoutDayDetailModal({
       <motion.div
         animate={{
           opacity: 1,
-          scaleX: 1,
-          scaleY: 1,
+          rotate: [0, -1.1, 0.7, -0.35, 0],
+          scaleX: [0.04, 1.06, 0.97, 1.015, 1],
+          scaleY: [0.04, 0.9, 1.05, 0.985, 1],
           x: 0,
           y: 0,
         }}
         className="max-h-[88dvh] w-full max-w-3xl overflow-hidden rounded-lg border border-stone-200 bg-white shadow-[0_30px_120px_rgba(17,17,17,0.22)]"
         exit={{
           opacity: 0,
+          rotate: 0,
           scaleX: 0.04,
           scaleY: 0.04,
           x: spawnOffset.x,
@@ -78,6 +80,7 @@ export function WorkoutDayDetailModal({
         }}
         initial={{
           opacity: 0,
+          rotate: 0,
           scaleX: 0.04,
           scaleY: 0.04,
           x: spawnOffset.x,
@@ -89,8 +92,21 @@ export function WorkoutDayDetailModal({
         }}
         transition={{
           opacity: { duration: 0.12 },
-          scaleX: { duration: 0.36, ease: [0.16, 1, 0.3, 1] },
-          scaleY: { duration: 0.42, ease: [0.16, 1, 0.3, 1] },
+          rotate: {
+            duration: 0.56,
+            ease: [0.16, 1, 0.3, 1],
+            times: [0, 0.38, 0.62, 0.82, 1],
+          },
+          scaleX: {
+            duration: 0.56,
+            ease: [0.16, 1, 0.3, 1],
+            times: [0, 0.38, 0.62, 0.82, 1],
+          },
+          scaleY: {
+            duration: 0.58,
+            ease: [0.16, 1, 0.3, 1],
+            times: [0, 0.34, 0.58, 0.82, 1],
+          },
           x: { duration: 0.42, ease: [0.16, 1, 0.3, 1] },
           y: { duration: 0.36, ease: [0.16, 1, 0.3, 1] },
         }}
