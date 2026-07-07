@@ -7,6 +7,7 @@ The app records daily workouts, shows a GitHub-style lifetime heatmap, and can s
 ## Features
 
 - First-run onboarding with display name, birth year, and DiceBear `notionists` avatar.
+- Static multi-user routes for `@hoang` and `@linh`.
 - Lifetime heatmap from birth year to the current year.
 - Workout tracking starts at `2026-01-01`; earlier years render as no-data cells.
 - Workout form with server-side validation.
@@ -50,7 +51,8 @@ Run the app:
 pnpm run dev
 ```
 
-Open `http://localhost:3000`.
+Open `http://localhost:3000/@hoang` or `http://localhost:3000/@linh`.
+The root URL redirects to `@hoang`.
 
 If GitHub env vars are not configured locally, API routes read and write `data/workouts.json` directly on the server and write optimized images to `public/uploads`. If GitHub env vars are configured, `POST /api/workouts` may commit to GitHub.
 
@@ -105,6 +107,15 @@ RESEND_FROM=Fitness Tracker <onboarding@resend.dev>
 7. The API appends the new workout and commits the updated JSON with optimized AVIF files.
 8. If GitHub returns a conflict, the API reads again and retries once.
 9. The frontend refreshes workout data without a full page reload.
+
+## Multi-user Routes
+
+- Declared users live in `lib/users.ts`.
+- Hoang is available at `/@hoang`.
+- Linh is available at `/@linh`.
+- Workouts are stored in the same JSON file with `userId`.
+- Legacy workouts without `userId` are shown under Hoang.
+- API reads use `GET /api/workouts?userId=hoang` or `userId=linh`.
 
 ## Edit Flow
 

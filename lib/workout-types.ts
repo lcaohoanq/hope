@@ -8,6 +8,7 @@ export type WorkoutImage = {
 
 export type Workout = {
   id: string;
+  userId?: string;
   date: string;
   type: string;
   startTime: string;
@@ -26,6 +27,7 @@ export type WorkoutData = {
 };
 
 export type CreateWorkoutRequest = {
+  userId?: unknown;
   date?: unknown;
   type?: unknown;
   startTime?: unknown;
