@@ -5,6 +5,8 @@ const DICEBEAR_NOTIONISTS_BASE_URL =
 
 export const USER_PROFILE_STORAGE_KEY = "fitness-tracker-profile";
 const USER_PROFILE_CHANGE_EVENT = "fitness-tracker-profile-change";
+let cachedProfileStorageValue: string | null = null;
+let cachedProfile: UserProfile | null = null;
 
 export function createAvatarSeed(displayName?: string) {
   const namePart = displayName?.trim().toLowerCase().replace(/\s+/g, "-");
@@ -26,7 +28,13 @@ export function readStoredProfile() {
     const value = window.localStorage.getItem(USER_PROFILE_STORAGE_KEY);
 
     if (!value) {
+      cachedProfileStorageValue = null;
+      cachedProfile = null;
       return null;
+    }
+
+    if (value === cachedProfileStorageValue) {
+      return cachedProfile;
     }
 
     const parsed = JSON.parse(value) as Partial<UserProfile>;
@@ -36,20 +44,31 @@ export function readStoredProfile() {
       typeof parsed.birthYear !== "number" ||
       typeof parsed.avatarSeed !== "string"
     ) {
+      cachedProfileStorageValue = value;
+      cachedProfile = null;
       return null;
     }
 
-    return {
+    cachedProfileStorageValue = value;
+    cachedProfile = {
       displayName: parsed.displayName,
       birthYear: parsed.birthYear,
       avatarSeed: parsed.avatarSeed,
     };
+
+    return cachedProfile;
   } catch {
+    cachedProfileStorageValue = null;
+    cachedProfile = null;
     return null;
   }
 }
 
 export function subscribeToProfileChanges(onStoreChange: () => void) {
+  if (typeof window === "undefined") {
+    return () => {};
+  }
+
   window.addEventListener("storage", onStoreChange);
   window.addEventListener(USER_PROFILE_CHANGE_EVENT, onStoreChange);
 
