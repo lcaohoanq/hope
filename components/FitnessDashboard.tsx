@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { ContributionHeatmap } from "@/components/ContributionHeatmap";
 import { Loading } from "@/components/Loading";
 import { StatsCards } from "@/components/StatsCards";
@@ -47,6 +48,7 @@ export function FitnessDashboard({ user }: FitnessDashboardProps) {
   const [isUploadingWorkoutImages, setIsUploadingWorkoutImages] =
     useState(false);
   const [workoutLoadError, setWorkoutLoadError] = useState("");
+  const [isWorkoutDialogOpen, setIsWorkoutDialogOpen] = useState(false);
 
   const loadWorkouts = useCallback(async () => {
     setIsLoadingWorkouts(true);
@@ -84,6 +86,21 @@ export function FitnessDashboard({ user }: FitnessDashboardProps) {
 
     return () => window.clearTimeout(timer);
   }, [loadWorkouts]);
+
+  useEffect(() => {
+    if (!isWorkoutDialogOpen) {
+      return;
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setIsWorkoutDialogOpen(false);
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isWorkoutDialogOpen]);
 
   async function handleSubmitWorkout(input: WorkoutInput) {
     setIsSubmittingWorkout(true);
@@ -233,7 +250,17 @@ export function FitnessDashboard({ user }: FitnessDashboardProps) {
           <StatsCards workouts={workouts} todayDateKey={todayDateKey} />
         )}
 
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start">
+        <div className="flex justify-end">
+          <button
+            className="h-11 rounded-md bg-stone-950 px-4 text-sm font-semibold text-white transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-stone-800 active:scale-[0.98]"
+            onClick={() => setIsWorkoutDialogOpen(true)}
+            type="button"
+          >
+            Add a workout
+          </button>
+        </div>
+
+        <div className="grid gap-6">
           {isLoadingWorkouts ? (
             <section className="min-h-[480px] rounded-lg border border-stone-200 bg-white p-5 sm:p-6">
               <div className="h-5 w-40 animate-pulse rounded bg-stone-100" />
@@ -261,13 +288,46 @@ export function FitnessDashboard({ user }: FitnessDashboardProps) {
               todayDateKey={todayDateKey}
             />
           )}
-          <WorkoutForm
-            defaultDate={todayDateKey}
-            isSubmitting={isSubmittingWorkout}
-            onSubmitWorkout={handleSubmitWorkout}
-          />
         </div>
       </div>
+      <AnimatePresence>
+        {isWorkoutDialogOpen ? (
+          <motion.div
+            aria-label="Log a workout"
+            aria-modal="true"
+            animate={{ opacity: 1 }}
+            className="fixed inset-0 z-[10000] flex items-center justify-center bg-stone-950/35 p-4 backdrop-blur-sm"
+            exit={{ opacity: 0 }}
+            initial={{ opacity: 0 }}
+            onClick={() => setIsWorkoutDialogOpen(false)}
+            role="dialog"
+            transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <motion.div
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              className="relative max-h-[90dvh] w-full max-w-xl overflow-y-auto rounded-lg shadow-[0_30px_120px_rgba(17,17,17,0.22)]"
+              exit={{ opacity: 0, scale: 0.96, y: 12 }}
+              initial={{ opacity: 0, scale: 0.96, y: 12 }}
+              onClick={(event) => event.stopPropagation()}
+              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <button
+                aria-label="Close workout form"
+                className="absolute right-4 top-4 z-10 h-9 w-9 rounded-md border border-stone-200 bg-white text-xl leading-none text-stone-500 transition hover:bg-stone-100 hover:text-stone-950"
+                onClick={() => setIsWorkoutDialogOpen(false)}
+                type="button"
+              >
+                x
+              </button>
+              <WorkoutForm
+                defaultDate={todayDateKey}
+                isSubmitting={isSubmittingWorkout}
+                onSubmitWorkout={handleSubmitWorkout}
+              />
+            </motion.div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
     </main>
   );
 }
