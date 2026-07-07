@@ -75,13 +75,39 @@ export function createLifetimeHeatmapYears({
   workouts: Workout[];
   trackingStartDateKey?: string;
 }) {
-  const workoutsByDate = groupWorkoutsByDate(workouts);
   const currentYear = Number(endDateKey.slice(0, 4));
 
+  return createHeatmapYears({
+    startYear: birthYear,
+    endYear: currentYear,
+    endDateKey,
+    workouts,
+    trackingStartDateKey,
+  });
+}
+
+export function createHeatmapYears({
+  startYear,
+  endYear,
+  endDateKey,
+  workouts,
+  trackingStartDateKey = TRACKING_START_DATE,
+}: {
+  startYear: number;
+  endYear: number;
+  endDateKey: string;
+  workouts: Workout[];
+  trackingStartDateKey?: string;
+}) {
+  const workoutsByDate = groupWorkoutsByDate(workouts);
+  const currentYear = Number(endDateKey.slice(0, 4));
+  const firstYear = Math.min(startYear, endYear);
+  const lastYear = Math.min(Math.max(startYear, endYear), currentYear);
+
   return Array.from(
-    { length: currentYear - birthYear + 1 },
+    { length: lastYear - firstYear + 1 },
     (_, yearOffset) => {
-      const year = birthYear + yearOffset;
+      const year = firstYear + yearOffset;
       const yearStart = `${year}-01-01`;
       const yearEnd = year === currentYear ? endDateKey : `${year}-12-31`;
       const days = getDaysInRange(yearStart, yearEnd);

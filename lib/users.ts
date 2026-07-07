@@ -1,8 +1,29 @@
 import type { UserProfile, Workout } from "@/lib/workout-types";
 
+export type HeatmapView =
+  | {
+      mode: "lifetime";
+    }
+  | {
+      mode: "year";
+      year: number;
+    };
+
+export type HeatmapDefaultView =
+  | {
+      mode: "lifetime";
+    }
+  | {
+      mode: "year";
+      year?: number;
+    };
+
 export type AppUser = UserProfile & {
   id: string;
   slug: string;
+  heatmapSettings: {
+    defaultView: HeatmapDefaultView;
+  };
 };
 
 export const APP_USERS = [
@@ -12,6 +33,11 @@ export const APP_USERS = [
     displayName: "Test User",
     birthYear: 2004,
     avatarSeed: "test",
+    heatmapSettings: {
+      defaultView: {
+        mode: "year",
+      },
+    },
   },
   {
     id: "hoang",
@@ -19,6 +45,11 @@ export const APP_USERS = [
     displayName: "Hoang",
     birthYear: 2004,
     avatarSeed: "hoang",
+    heatmapSettings: {
+      defaultView: {
+        mode: "year",
+      },
+    },
   },
   {
     id: "linh",
@@ -26,6 +57,11 @@ export const APP_USERS = [
     displayName: "Linh",
     birthYear: 2005,
     avatarSeed: "linh",
+    heatmapSettings: {
+      defaultView: {
+        mode: "year",
+      },
+    },
   },
 ] as const satisfies readonly AppUser[];
 

@@ -1,18 +1,25 @@
 import type { Workout } from "@/lib/workout-types";
 import { getWorkoutStats } from "@/lib/workout-utils";
+import type { HeatmapView } from "@/lib/users";
 
 type StatsCardsProps = {
   workouts: Workout[];
   todayDateKey: string;
+  view: HeatmapView;
 };
 
-export function StatsCards({ workouts, todayDateKey }: StatsCardsProps) {
-  const stats = getWorkoutStats(workouts, todayDateKey);
+export function StatsCards({ workouts, todayDateKey, view }: StatsCardsProps) {
+  const statsEndDateKey =
+    view.mode === "year" && view.year < Number(todayDateKey.slice(0, 4))
+      ? `${view.year}-12-31`
+      : todayDateKey;
+  const stats = getWorkoutStats(workouts, statsEndDateKey);
+  const scopeLabel = view.mode === "lifetime" ? "lifetime view" : `${view.year}`;
   const items = [
     {
       label: "Active days",
       value: stats.activeDays,
-      detail: "logged in the visible year",
+      detail: `logged in ${scopeLabel}`,
     },
     {
       label: "Last 30 days",

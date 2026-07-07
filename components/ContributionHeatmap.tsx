@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 import { AnimatePresence } from "framer-motion";
-import type { Workout, WorkoutUpdateInput } from "@/lib/workout-types";
+import type { HeatmapDay, Workout, WorkoutUpdateInput } from "@/lib/workout-types";
 import {
+  createHeatmapYears,
   createLifetimeHeatmapYears,
   TRACKING_START_DATE,
 } from "@/lib/workout-utils";
+import type { HeatmapView } from "@/lib/users";
 import { WorkoutDayDetailModal } from "@/components/WorkoutDayDetailModal";
 import { WorkoutTooltip } from "@/components/WorkoutTooltip";
 
@@ -14,6 +16,8 @@ type ContributionHeatmapProps = {
   workouts: Workout[];
   todayDateKey: string;
   birthYear: number;
+  view: HeatmapView;
+  onViewChange: (view: HeatmapView) => void;
   onUpdateWorkout: (input: WorkoutUpdateInput) => Promise<Workout>;
 };
 
@@ -58,15 +62,36 @@ export function ContributionHeatmap({
   workouts,
   todayDateKey,
   birthYear,
+  view,
+  onViewChange,
   onUpdateWorkout,
 }: ContributionHeatmapProps) {
-  const heatmapYears = createLifetimeHeatmapYears({
-    birthYear,
-    endDateKey: todayDateKey,
-    workouts,
-  });
+  const currentYear = Number(todayDateKey.slice(0, 4));
+  const availableYears = Array.from(
+    { length: currentYear - birthYear + 1 },
+    (_, index) => currentYear - index,
+  );
+  const heatmapYears =
+    view.mode === "lifetime"
+      ? createLifetimeHeatmapYears({
+          birthYear,
+          endDateKey: todayDateKey,
+          workouts,
+        })
+      : createHeatmapYears({
+          startYear: view.year,
+          endYear: view.year,
+          endDateKey: todayDateKey,
+          workouts,
+        });
   const descendingHeatmapYears = [...heatmapYears].reverse();
   const trackingStartYear = Number(TRACKING_START_DATE.slice(0, 4));
+  const selectedViewValue =
+    view.mode === "lifetime" ? "lifetime" : String(view.year);
+  const viewEyebrow =
+    view.mode === "lifetime" ? `${currentYear} - ${birthYear}` : String(view.year);
+  const viewTitle =
+    view.mode === "lifetime" ? "Lifetime heatmap" : `${view.year} heatmap`;
   const [activeTooltip, setActiveTooltip] = useState<ActiveTooltip | null>(null);
   const [selectedDay, setSelectedDay] = useState<SelectedDay | null>(null);
 
@@ -130,24 +155,49 @@ export function ContributionHeatmap({
     return updatedWorkout;
   }
 
+  function handleViewChange(value: string) {
+    onViewChange(
+      value === "lifetime"
+        ? { mode: "lifetime" }
+        : { mode: "year", year: Number(value) },
+    );
+  }
+
   return (
     <section className="rounded-lg border border-stone-200 bg-white p-5 sm:p-6">
-      <div className="flex flex-col gap-2 border-b border-stone-100 pb-5 sm:flex-row sm:items-end sm:justify-between">
+      <div className="flex flex-col gap-4 border-b border-stone-100 pb-5 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-stone-500">
-            {todayDateKey.slice(0, 4)} - {birthYear}
+            {viewEyebrow}
           </p>
           <h2 className="mt-2 text-xl font-semibold tracking-[-0.02em] text-stone-950">
-            Lifetime heatmap
+            {viewTitle}
           </h2>
         </div>
-        <div className="flex flex-wrap items-center gap-2 text-xs text-stone-500">
-          <span>No data</span>
-          <span className="h-3 w-3 rounded-[3px] border border-stone-200 bg-stone-100" />
-          <span>No workout</span>
-          <span className="h-3 w-3 rounded-[3px] bg-stone-950" />
-          <span className="h-3 w-3 rounded-[3px] bg-moss" />
-          <span>Workout</span>
+        <div className="flex flex-wrap items-center gap-3">
+          <label className="flex items-center gap-2 text-xs font-medium text-stone-500">
+            View
+            <select
+              className="h-9 rounded-md border border-stone-200 bg-white px-3 text-sm font-semibold text-stone-800 outline-none transition focus:border-moss focus:ring-2 focus:ring-moss/15"
+              onChange={(event) => handleViewChange(event.target.value)}
+              value={selectedViewValue}
+            >
+              <option value="lifetime">Lifetime</option>
+              {availableYears.map((year) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              ))}
+            </select>
+          </label>
+          <div className="flex flex-wrap items-center gap-2 text-xs text-stone-500">
+            <span>No data</span>
+            <span className="h-3 w-3 rounded-[3px] border border-stone-200 bg-stone-100" />
+            <span>No workout</span>
+            <span className="h-3 w-3 rounded-[3px] bg-stone-950" />
+            <span className="h-3 w-3 rounded-[3px] bg-moss" />
+            <span>Workout</span>
+          </div>
         </div>
       </div>
 
@@ -301,9 +351,7 @@ export function ContributionHeatmap({
   );
 }
 
-function getMonthMarkers(
-  weeks: Array<Array<{ date: string } | null>>,
-) {
+function getMonthMarkers(weeks: Array<Array<HeatmapDay | null>>) {
   return weeks.map((week) => {
     const firstOfMonth = week.find((day) => day?.date.endsWith("-01"));
 
