@@ -10,8 +10,9 @@ The app records daily workouts, shows a GitHub-style lifetime heatmap, and can s
 - Lifetime heatmap from birth year to the current year.
 - Workout tracking starts at `2026-01-01`; earlier years render as no-data cells.
 - Workout form with server-side validation.
+- Workout detail view with inline editing.
 - Workout image uploads optimized to AVIF with `sharp`.
-- `GET /api/workouts` and `POST /api/workouts`.
+- `GET /api/workouts`, `POST /api/workouts`, and `PATCH /api/workouts`.
 - MVP storage in `data/workouts.json`.
 - Server-side GitHub Contents API commits for production writes.
 - Local development fallback to server-side local JSON reads/writes when GitHub env vars are absent.
@@ -105,6 +106,15 @@ RESEND_FROM=Fitness Tracker <onboarding@resend.dev>
 8. If GitHub returns a conflict, the API reads again and retries once.
 9. The frontend refreshes workout data without a full page reload.
 
+## Edit Flow
+
+1. User clicks a heatmap day and opens the workout detail modal.
+2. User clicks `Edit` on a workout record.
+3. Frontend calls `PATCH /api/workouts` as JSON for text-only edits or `multipart/form-data` when adding images.
+4. The API validates the workout id and edited fields server-side.
+5. Existing images are preserved; new images can be appended up to 3 total images per workout.
+6. In production, the API commits the updated JSON and any new optimized AVIF files together where possible.
+
 ## Image Uploads
 
 - Images are processed server-side with `sharp`; `sharp` is never imported by client components.
@@ -195,7 +205,7 @@ REMINDER_DRY_RUN=1 pnpm run reminder
 
 - Move onboarding profile into repository JSON or a real account model.
 - Add intensity levels based on total workout duration.
-- Add edit/delete workout support.
+- Add delete workout support.
 - Add yearly heatmap filters.
 - Add authenticated access before sharing the app publicly.
 

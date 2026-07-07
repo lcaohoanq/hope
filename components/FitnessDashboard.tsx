@@ -13,7 +13,13 @@ import {
   storeProfile,
   subscribeToProfileChanges,
 } from "@/lib/profile-utils";
-import type { UserProfile, Workout, WorkoutData, WorkoutInput } from "@/lib/workout-types";
+import type {
+  UserProfile,
+  Workout,
+  WorkoutData,
+  WorkoutInput,
+  WorkoutUpdateInput,
+} from "@/lib/workout-types";
 
 type ApiErrorResponse = {
   success: false;
@@ -21,6 +27,13 @@ type ApiErrorResponse = {
 };
 
 type CreateWorkoutResponse =
+  | {
+      success: true;
+      workout: Workout;
+    }
+  | ApiErrorResponse;
+
+type UpdateWorkoutResponse =
   | {
       success: true;
       workout: Workout;
@@ -89,26 +102,9 @@ export function FitnessDashboard() {
     setIsSubmittingWorkout(true);
 
     try {
-      const hasImages = input.images && input.images.length > 0;
-      const body = hasImages ? new FormData() : JSON.stringify(input);
-      const headers = hasImages ? undefined : { "Content-Type": "application/json" };
-
-      if (hasImages && body instanceof FormData) {
-        body.set("date", input.date);
-        body.set("type", input.type);
-        body.set("startTime", input.startTime);
-        body.set("endTime", input.endTime);
-        body.set("note", input.note);
-
-        input.images?.forEach((image) => {
-          body.append("images", image);
-        });
-      }
-
       const response = await fetch("/api/workouts", {
         method: "POST",
-        headers,
-        body,
+        ...createWorkoutRequestInit(input),
       });
       const payload = await readApiJson<CreateWorkoutResponse>(
         response,
@@ -136,6 +132,42 @@ export function FitnessDashboard() {
     } finally {
       setIsSubmittingWorkout(false);
     }
+  }
+
+  async function handleUpdateWorkout(input: WorkoutUpdateInput) {
+    const response = await fetch("/api/workouts", {
+      method: "PATCH",
+      ...createWorkoutRequestInit(input),
+    });
+    const payload = await readApiJson<UpdateWorkoutResponse>(
+      response,
+      "Unable to update workout.",
+    );
+
+    if (!response.ok || !payload.success) {
+      throw new Error(
+        "error" in payload ? payload.error : "Unable to update workout.",
+      );
+    }
+
+    setWorkouts((current) =>
+      current
+        .map((workout) =>
+          workout.id === payload.workout.id ? payload.workout : workout,
+        )
+        .sort((a, b) => {
+          const dateSort = a.date.localeCompare(b.date);
+
+          if (dateSort !== 0) {
+            return dateSort;
+          }
+
+          return a.startTime.localeCompare(b.startTime);
+        }),
+    );
+    await loadWorkouts();
+
+    return payload.workout;
   }
 
   return (
@@ -249,6 +281,7 @@ export function FitnessDashboard() {
           ) : (
             <ContributionHeatmap
               birthYear={profile?.birthYear ?? currentYear}
+              onUpdateWorkout={handleUpdateWorkout}
               workouts={workouts}
               todayDateKey={todayDateKey}
             />
@@ -262,6 +295,39 @@ export function FitnessDashboard() {
       </div>
     </main>
   );
+}
+
+function createWorkoutRequestInit(input: WorkoutInput | WorkoutUpdateInput) {
+  const hasImages = input.images && input.images.length > 0;
+
+  if (!hasImages) {
+    return {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(input),
+    };
+  }
+
+  const body = new FormData();
+
+  if ("id" in input) {
+    body.set("id", input.id);
+  }
+
+  body.set("date", input.date);
+  body.set("type", input.type);
+  body.set("startTime", input.startTime);
+  body.set("endTime", input.endTime);
+  body.set("note", input.note);
+
+  input.images?.forEach((image) => {
+    body.append("images", image);
+  });
+
+  return {
+    body,
+  };
 }
 
 async function readApiJson<T>(response: Response, fallbackMessage: string) {

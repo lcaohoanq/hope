@@ -1,6 +1,7 @@
 import type {
   CreateWorkoutRequest,
   HeatmapDay,
+  UpdateWorkoutRequest,
   Workout,
   WorkoutData,
   WorkoutImage,
@@ -216,6 +217,32 @@ export function validateCreateWorkoutRequest(
   };
 }
 
+export function validateUpdateWorkoutRequest(
+  body: UpdateWorkoutRequest,
+  todayDateKey = getTodayInTimezone(),
+) {
+  const id = typeof body.id === "string" ? body.id.trim() : "";
+
+  if (!id) {
+    return {
+      success: false as const,
+      error: "Workout id is required.",
+    };
+  }
+
+  const validation = validateCreateWorkoutRequest(body, todayDateKey);
+
+  if (!validation.success) {
+    return validation;
+  }
+
+  return {
+    success: true as const,
+    workoutId: id,
+    workoutInput: validation.workoutInput,
+  };
+}
+
 export function createWorkoutRecord(
   input: {
     date: string;
@@ -257,6 +284,27 @@ export function appendWorkout(data: WorkoutData, workout: Workout): WorkoutData 
 
       return a.startTime.localeCompare(b.startTime);
     }),
+  };
+}
+
+export function replaceWorkout(data: WorkoutData, workout: Workout): WorkoutData {
+  if (!data.workouts.some((existing) => existing.id === workout.id)) {
+    return data;
+  }
+
+  return {
+    ...data,
+    workouts: data.workouts
+      .map((existing) => (existing.id === workout.id ? workout : existing))
+      .sort((a, b) => {
+        const dateSort = a.date.localeCompare(b.date);
+
+        if (dateSort !== 0) {
+          return dateSort;
+        }
+
+        return a.startTime.localeCompare(b.startTime);
+      }),
   };
 }
 

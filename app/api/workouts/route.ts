@@ -11,16 +11,26 @@ import {
 import type { OptimizedWorkoutImage } from "@/lib/workout-images";
 import type {
   CreateWorkoutRequest,
+  UpdateWorkoutRequest,
   Workout,
   WorkoutImage,
 } from "@/lib/workout-types";
 import {
   appendWorkout,
   createWorkoutRecord,
+  replaceWorkout,
   validateCreateWorkoutRequest,
+  validateUpdateWorkoutRequest,
 } from "@/lib/workout-utils";
 
 export const runtime = "nodejs";
+
+class WorkoutNotFoundError extends Error {
+  constructor() {
+    super("Workout was not found.");
+    this.name = "WorkoutNotFoundError";
+  }
+}
 
 export async function GET() {
   try {
@@ -157,6 +167,134 @@ export async function POST(request: Request) {
   }
 }
 
+export async function PATCH(request: Request) {
+  let payload: {
+    body: UpdateWorkoutRequest;
+    imageFiles: File[];
+  };
+
+  try {
+    payload = await parseUpdateWorkoutPayload(request);
+  } catch {
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Request body must be valid JSON or multipart form data.",
+      },
+      { status: 400 },
+    );
+  }
+
+  const validation = validateUpdateWorkoutRequest(payload.body);
+
+  if (!validation.success) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: validation.error,
+      },
+      { status: 400 },
+    );
+  }
+
+  try {
+    if (!isUsingGitHubDataSource()) {
+      const data = await readWorkoutData();
+      const existingWorkout = data.workouts.find(
+        (workout) => workout.id === validation.workoutId,
+      );
+
+      if (!existingWorkout) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Workout was not found.",
+          },
+          { status: 404 },
+        );
+      }
+
+      const optimizedImages = await prepareWorkoutImages(
+        payload.imageFiles,
+        validation.workoutInput.date,
+        existingWorkout.images?.length ?? 0,
+      );
+      const workout = await createUpdatedWorkout(
+        existingWorkout,
+        validation.workoutInput,
+        optimizedImages,
+      );
+      const nextData = replaceWorkout(data, workout);
+
+      try {
+        if (optimizedImages.length > 0) {
+          const { writeOptimizedWorkoutImagesLocally } = await import(
+            "@/lib/workout-images"
+          );
+
+          await writeOptimizedWorkoutImagesLocally(optimizedImages);
+        }
+
+        await writeWorkoutDataLocally(nextData);
+      } catch (error) {
+        if (optimizedImages.length > 0) {
+          const { cleanupOptimizedWorkoutImagesLocally } = await import(
+            "@/lib/workout-images"
+          );
+
+          await cleanupOptimizedWorkoutImagesLocally(optimizedImages);
+        }
+
+        throw error;
+      }
+
+      return NextResponse.json({
+        success: true,
+        workout,
+      });
+    }
+
+    const workout = await updateAndCommitWorkout(
+      validation.workoutId,
+      validation.workoutInput,
+      payload.imageFiles,
+    );
+
+    return NextResponse.json({
+      success: true,
+      workout,
+    });
+  } catch (error) {
+    if (isWorkoutImageValidationError(error)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: error.message,
+        },
+        { status: 400 },
+      );
+    }
+
+    if (error instanceof WorkoutNotFoundError) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: error.message,
+        },
+        { status: 404 },
+      );
+    }
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Unable to update workout.",
+      },
+      { status: 500 },
+    );
+  }
+}
+
 async function parseCreateWorkoutPayload(request: Request): Promise<{
   body: CreateWorkoutRequest;
   imageFiles: File[];
@@ -187,9 +325,41 @@ async function parseCreateWorkoutPayload(request: Request): Promise<{
   };
 }
 
+async function parseUpdateWorkoutPayload(request: Request): Promise<{
+  body: UpdateWorkoutRequest;
+  imageFiles: File[];
+}> {
+  const contentType = request.headers.get("content-type") ?? "";
+
+  if (!contentType.toLowerCase().includes("multipart/form-data")) {
+    return {
+      body: (await request.json()) as UpdateWorkoutRequest,
+      imageFiles: [],
+    };
+  }
+
+  const formData = await request.formData();
+  const imageFiles = formData
+    .getAll("images")
+    .filter((value): value is File => value instanceof File && value.size > 0);
+
+  return {
+    body: {
+      id: formData.get("id"),
+      date: formData.get("date"),
+      type: formData.get("type"),
+      startTime: formData.get("startTime"),
+      endTime: formData.get("endTime"),
+      note: formData.get("note"),
+    },
+    imageFiles,
+  };
+}
+
 async function prepareWorkoutImages(
   imageFiles: File[],
   workoutDate: string,
+  existingImageCount = 0,
 ): Promise<OptimizedWorkoutImage[]> {
   if (imageFiles.length === 0) {
     return [];
@@ -202,7 +372,7 @@ async function prepareWorkoutImages(
     WorkoutImageValidationError,
   } = await import("@/lib/workout-images");
 
-  if (imageFiles.length > MAX_WORKOUT_IMAGES) {
+  if (existingImageCount + imageFiles.length > MAX_WORKOUT_IMAGES) {
     throw new WorkoutImageValidationError(
       `Please upload no more than ${MAX_WORKOUT_IMAGES} images per workout.`,
     );
@@ -227,6 +397,39 @@ async function prepareWorkoutImages(
   }
 
   return optimizedImages;
+}
+
+async function createUpdatedWorkout(
+  existingWorkout: Workout,
+  input: {
+    date: string;
+    type: string;
+    startTime: string;
+    endTime: string;
+    durationMinutes: number;
+    note: string;
+  },
+  optimizedImages: OptimizedWorkoutImage[],
+): Promise<Workout> {
+  let newImageMetadata: WorkoutImage[] = [];
+
+  if (optimizedImages.length > 0) {
+    const { getWorkoutImageMetadata } = await import("@/lib/workout-images");
+    newImageMetadata = optimizedImages.map(getWorkoutImageMetadata);
+  }
+
+  const images = [...(existingWorkout.images ?? []), ...newImageMetadata];
+
+  return {
+    ...existingWorkout,
+    date: input.date,
+    type: input.type,
+    startTime: input.startTime,
+    endTime: input.endTime,
+    durationMinutes: input.durationMinutes,
+    note: input.note,
+    ...(images.length > 0 ? { images } : { images: undefined }),
+  };
 }
 
 function isWorkoutImageValidationError(error: unknown): error is Error {
@@ -294,4 +497,93 @@ async function commitWorkoutToGitHub({
     })),
     message: `Add workout for ${workout.date}`,
   });
+}
+
+async function updateAndCommitWorkout(
+  workoutId: string,
+  input: Parameters<typeof createUpdatedWorkout>[1],
+  imageFiles: File[],
+) {
+  const firstRead = await readWorkoutGitHubFile();
+
+  try {
+    return await updateWorkoutInGitHubFile({
+      fileData: firstRead.data,
+      sha: firstRead.sha,
+      workoutId,
+      input,
+      imageFiles,
+    });
+  } catch (error) {
+    if (!(error instanceof GitHubJsonConflictError)) {
+      throw error;
+    }
+
+    const retryRead = await readWorkoutGitHubFile();
+
+    return updateWorkoutInGitHubFile({
+      fileData: retryRead.data,
+      sha: retryRead.sha,
+      workoutId,
+      input,
+      imageFiles,
+    });
+  }
+}
+
+async function updateWorkoutInGitHubFile({
+  fileData,
+  sha,
+  workoutId,
+  input,
+  imageFiles,
+}: {
+  fileData: Awaited<ReturnType<typeof readWorkoutGitHubFile>>["data"];
+  sha: string;
+  workoutId: string;
+  input: Parameters<typeof createUpdatedWorkout>[1];
+  imageFiles: File[];
+}) {
+  const existingWorkout = fileData.workouts.find(
+    (workout) => workout.id === workoutId,
+  );
+
+  if (!existingWorkout) {
+    throw new WorkoutNotFoundError();
+  }
+
+  const optimizedImages = await prepareWorkoutImages(
+    imageFiles,
+    input.date,
+    existingWorkout.images?.length ?? 0,
+  );
+
+  const workout = await createUpdatedWorkout(
+    existingWorkout,
+    input,
+    optimizedImages,
+  );
+  const nextData = replaceWorkout(fileData, workout);
+
+  if (optimizedImages.length === 0) {
+    await commitWorkoutDataToGitHub({
+      data: nextData,
+      sha,
+      message: `Update workout for ${workout.date}`,
+    });
+
+    return workout;
+  }
+
+  await commitWorkoutDataAndFilesToGitHub({
+    data: nextData,
+    expectedDataSha: sha,
+    files: optimizedImages.map((image) => ({
+      path: image.repositoryPath,
+      content: image.buffer,
+    })),
+    message: `Update workout for ${workout.date}`,
+  });
+
+  return workout;
 }

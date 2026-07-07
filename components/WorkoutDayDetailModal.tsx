@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { formatDisplayDate } from "@/lib/date-utils";
-import type { Workout } from "@/lib/workout-types";
+import type { Workout, WorkoutUpdateInput } from "@/lib/workout-types";
+import { calculateDurationMinutes } from "@/lib/workout-utils";
 import { WorkoutImageThumbnail } from "@/components/WorkoutImageThumbnail";
 
 type WorkoutDayDetailModalProps = {
@@ -15,7 +16,18 @@ type WorkoutDayDetailModalProps = {
     y: number;
   };
   onClose: () => void;
+  onUpdateWorkout: (input: WorkoutUpdateInput) => Promise<Workout>;
 };
+
+type EditWorkoutForm = {
+  date: string;
+  type: string;
+  startTime: string;
+  endTime: string;
+  note: string;
+};
+
+const MAX_WORKOUT_IMAGES = 3;
 
 export function WorkoutDayDetailModal({
   date,
@@ -23,6 +35,7 @@ export function WorkoutDayDetailModal({
   isTrackable,
   origin,
   onClose,
+  onUpdateWorkout,
 }: WorkoutDayDetailModalProps) {
   const galleryImages = useMemo(
     () =>
@@ -37,6 +50,14 @@ export function WorkoutDayDetailModal({
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const selectedImage = galleryImages[selectedImageIndex];
   const spawnOffset = getSpawnOffset(origin);
+  const [editingWorkoutId, setEditingWorkoutId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState<EditWorkoutForm | null>(null);
+  const [editImages, setEditImages] = useState<File[]>([]);
+  const [editPreviewUrls, setEditPreviewUrls] = useState<string[]>([]);
+  const editPreviewUrlsRef = useRef<string[]>([]);
+  const [editError, setEditError] = useState("");
+  const [editSuccess, setEditSuccess] = useState("");
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
@@ -48,6 +69,120 @@ export function WorkoutDayDetailModal({
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [onClose]);
+
+  useEffect(() => {
+    return () => {
+      editPreviewUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, []);
+
+  function startEditing(workout: Workout) {
+    setEditingWorkoutId(workout.id);
+    setEditForm({
+      date: workout.date,
+      type: workout.type,
+      startTime: workout.startTime,
+      endTime: workout.endTime,
+      note: workout.note ?? "",
+    });
+    setEditImageSelection([]);
+    setEditError("");
+    setEditSuccess("");
+  }
+
+  function cancelEditing() {
+    setEditingWorkoutId(null);
+    setEditForm(null);
+    setEditImageSelection([]);
+    setEditError("");
+  }
+
+  function updateEditField(field: keyof EditWorkoutForm, value: string) {
+    setEditForm((current) =>
+      current ? { ...current, [field]: value } : current,
+    );
+    setEditError("");
+    setEditSuccess("");
+  }
+
+  function updateEditImages(files: FileList | null, remainingImageSlots: number) {
+    const nextImages = files ? Array.from(files) : [];
+
+    if (nextImages.length > remainingImageSlots) {
+      setEditImageSelection(nextImages.slice(0, remainingImageSlots));
+      setEditError(`Add up to ${remainingImageSlots} more image${
+        remainingImageSlots === 1 ? "" : "s"
+      }.`);
+      setEditSuccess("");
+      return;
+    }
+
+    setEditImageSelection(nextImages);
+    setEditError("");
+    setEditSuccess("");
+  }
+
+  function setEditImageSelection(images: File[]) {
+    const nextPreviewUrls = images.map((image) => URL.createObjectURL(image));
+    editPreviewUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
+    editPreviewUrlsRef.current = nextPreviewUrls;
+    setEditImages(images);
+    setEditPreviewUrls(nextPreviewUrls);
+  }
+
+  async function submitEdit(workout: Workout) {
+    if (!editForm) {
+      return;
+    }
+
+    const type = editForm.type.trim();
+    const note = editForm.note.trim();
+    const durationMinutes = calculateDurationMinutes(
+      editForm.startTime,
+      editForm.endTime,
+    );
+
+    if (!type) {
+      setEditError("Workout type is required.");
+      return;
+    }
+
+    if (!editForm.startTime || !editForm.endTime) {
+      setEditError("Start time and end time are required.");
+      return;
+    }
+
+    if (durationMinutes <= 0) {
+      setEditError("Start time must be earlier than end time.");
+      return;
+    }
+
+    setIsSavingEdit(true);
+    setEditError("");
+    setEditSuccess("");
+
+    try {
+      await onUpdateWorkout({
+        id: workout.id,
+        date: editForm.date,
+        type,
+        startTime: editForm.startTime,
+        endTime: editForm.endTime,
+        note,
+        images: editImages,
+      });
+      setEditingWorkoutId(null);
+      setEditForm(null);
+      setEditImageSelection([]);
+      setEditSuccess("Workout updated.");
+    } catch (error) {
+      setEditError(
+        error instanceof Error ? error.message : "Unable to update workout.",
+      );
+    } finally {
+      setIsSavingEdit(false);
+    }
+  }
 
   return (
     <motion.div
@@ -189,22 +324,46 @@ export function WorkoutDayDetailModal({
                   className="rounded-lg border border-stone-200 bg-stone-50 p-4"
                   key={workout.id}
                 >
-                  <div className="flex flex-wrap items-baseline justify-between gap-2">
-                    <h4 className="text-base font-semibold text-stone-950">
-                      {workout.type}
-                    </h4>
-                    <p className="text-sm text-stone-500">
-                      {workout.startTime} - {workout.endTime}
-                    </p>
-                  </div>
-                  <p className="mt-1 text-sm text-stone-600">
-                    {workout.durationMinutes} minutes
-                  </p>
-                  {workout.note ? (
-                    <p className="mt-3 text-sm leading-6 text-stone-600">
-                      {workout.note}
-                    </p>
-                  ) : null}
+                  {editingWorkoutId === workout.id && editForm ? (
+                    <EditWorkoutPanel
+                      editError={editError}
+                      editForm={editForm}
+                      editPreviewUrls={editPreviewUrls}
+                      editSuccess={editSuccess}
+                      existingImageCount={workout.images?.length ?? 0}
+                      isSavingEdit={isSavingEdit}
+                      onCancel={cancelEditing}
+                      onSubmit={() => void submitEdit(workout)}
+                      onUpdateField={updateEditField}
+                      onUpdateImages={updateEditImages}
+                    />
+                  ) : (
+                    <>
+                      <div className="flex flex-wrap items-baseline justify-between gap-2">
+                        <h4 className="text-base font-semibold text-stone-950">
+                          {workout.type}
+                        </h4>
+                        <p className="text-sm text-stone-500">
+                          {workout.startTime} - {workout.endTime}
+                        </p>
+                      </div>
+                      <p className="mt-1 text-sm text-stone-600">
+                        {workout.durationMinutes} minutes
+                      </p>
+                      {workout.note ? (
+                        <p className="mt-3 text-sm leading-6 text-stone-600">
+                          {workout.note}
+                        </p>
+                      ) : null}
+                      <button
+                        className="mt-4 h-9 rounded-md border border-stone-200 bg-white px-3 text-sm font-semibold text-stone-700 transition hover:bg-stone-100 active:scale-[0.98]"
+                        onClick={() => startEditing(workout)}
+                        type="button"
+                      >
+                        Edit
+                      </button>
+                    </>
+                  )}
                 </article>
               ))
             )}
@@ -212,6 +371,155 @@ export function WorkoutDayDetailModal({
         </div>
       </motion.div>
     </motion.div>
+  );
+}
+
+function EditWorkoutPanel({
+  editError,
+  editForm,
+  editPreviewUrls,
+  editSuccess,
+  existingImageCount,
+  isSavingEdit,
+  onCancel,
+  onSubmit,
+  onUpdateField,
+  onUpdateImages,
+}: {
+  editError: string;
+  editForm: EditWorkoutForm;
+  editPreviewUrls: string[];
+  editSuccess: string;
+  existingImageCount: number;
+  isSavingEdit: boolean;
+  onCancel: () => void;
+  onSubmit: () => void;
+  onUpdateField: (field: keyof EditWorkoutForm, value: string) => void;
+  onUpdateImages: (files: FileList | null, remainingImageSlots: number) => void;
+}) {
+  const remainingImageSlots = Math.max(0, MAX_WORKOUT_IMAGES - existingImageCount);
+
+  return (
+    <form
+      className="grid gap-3"
+      onSubmit={(event) => {
+        event.preventDefault();
+        onSubmit();
+      }}
+    >
+      <div className="grid gap-3 sm:grid-cols-2">
+        <label className="grid gap-1.5 text-sm font-medium text-stone-800">
+          Type
+          <input
+            className="h-10 rounded-md border border-stone-200 bg-white px-3 text-sm font-normal text-stone-950 outline-none focus:border-moss focus:ring-2 focus:ring-moss/15"
+            onChange={(event) => onUpdateField("type", event.target.value)}
+            value={editForm.type}
+          />
+        </label>
+        <label className="grid gap-1.5 text-sm font-medium text-stone-800">
+          Date
+          <input
+            className="h-10 rounded-md border border-stone-200 bg-white px-3 text-sm font-normal text-stone-950 outline-none focus:border-moss focus:ring-2 focus:ring-moss/15"
+            onChange={(event) => onUpdateField("date", event.target.value)}
+            type="date"
+            value={editForm.date}
+          />
+        </label>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <label className="grid gap-1.5 text-sm font-medium text-stone-800">
+          Start
+          <input
+            className="h-10 rounded-md border border-stone-200 bg-white px-3 text-sm font-normal text-stone-950 outline-none focus:border-moss focus:ring-2 focus:ring-moss/15"
+            onChange={(event) => onUpdateField("startTime", event.target.value)}
+            type="time"
+            value={editForm.startTime}
+          />
+        </label>
+        <label className="grid gap-1.5 text-sm font-medium text-stone-800">
+          End
+          <input
+            className="h-10 rounded-md border border-stone-200 bg-white px-3 text-sm font-normal text-stone-950 outline-none focus:border-moss focus:ring-2 focus:ring-moss/15"
+            onChange={(event) => onUpdateField("endTime", event.target.value)}
+            type="time"
+            value={editForm.endTime}
+          />
+        </label>
+      </div>
+
+      <label className="grid gap-1.5 text-sm font-medium text-stone-800">
+        Note
+        <textarea
+          className="min-h-20 resize-y rounded-md border border-stone-200 bg-white px-3 py-2 text-sm font-normal text-stone-950 outline-none focus:border-moss focus:ring-2 focus:ring-moss/15"
+          onChange={(event) => onUpdateField("note", event.target.value)}
+          value={editForm.note}
+        />
+      </label>
+
+      <label className="grid gap-1.5 text-sm font-medium text-stone-800">
+        Add images
+        <input
+          accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
+          className="block w-full rounded-md border border-stone-200 bg-white px-3 py-2 text-sm font-normal text-stone-700 file:mr-3 file:rounded-md file:border-0 file:bg-stone-950 file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-white disabled:cursor-not-allowed disabled:opacity-60"
+          disabled={remainingImageSlots === 0 || isSavingEdit}
+          multiple
+          onChange={(event) =>
+            onUpdateImages(event.target.files, remainingImageSlots)
+          }
+          type="file"
+        />
+        <span className="text-xs font-normal text-stone-500">
+          {remainingImageSlots} image slot{remainingImageSlots === 1 ? "" : "s"}{" "}
+          available.
+        </span>
+      </label>
+
+      {editPreviewUrls.length > 0 ? (
+        <div className="grid grid-cols-3 gap-2">
+          {editPreviewUrls.map((url, index) => (
+            <div
+              className="aspect-square overflow-hidden rounded-md border border-stone-200 bg-stone-100"
+              key={url}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                alt={`Selected edit preview ${index + 1}`}
+                className="h-full w-full object-cover"
+                src={url}
+              />
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      <div className="min-h-5">
+        {editError ? (
+          <p className="text-sm font-medium text-red-700">{editError}</p>
+        ) : null}
+        {editSuccess ? (
+          <p className="text-sm font-medium text-moss">{editSuccess}</p>
+        ) : null}
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        <button
+          className="h-9 rounded-md bg-stone-950 px-3 text-sm font-semibold text-white transition hover:bg-stone-800 disabled:cursor-not-allowed disabled:bg-stone-400"
+          disabled={isSavingEdit}
+          type="submit"
+        >
+          {isSavingEdit ? "Saving..." : "Save changes"}
+        </button>
+        <button
+          className="h-9 rounded-md border border-stone-200 bg-white px-3 text-sm font-semibold text-stone-700 transition hover:bg-stone-100"
+          disabled={isSavingEdit}
+          onClick={onCancel}
+          type="button"
+        >
+          Cancel
+        </button>
+      </div>
+    </form>
   );
 }
 
