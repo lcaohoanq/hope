@@ -109,7 +109,7 @@ export function createHeatmapYears({
     (_, yearOffset) => {
       const year = firstYear + yearOffset;
       const yearStart = `${year}-01-01`;
-      const yearEnd = year === currentYear ? endDateKey : `${year}-12-31`;
+      const yearEnd = `${year}-12-31`;
       const days = getDaysInRange(yearStart, yearEnd);
       const leadingEmptyDays = new Date(days[0]).getDay();
       const cells = [
@@ -126,7 +126,7 @@ export function createHeatmapYears({
           }
 
           const dayWorkouts = workoutsByDate.get(date) ?? [];
-          const isTrackable = date >= trackingStartDateKey;
+          const isTrackable = date >= trackingStartDateKey && date <= endDateKey;
 
           return {
             date,
