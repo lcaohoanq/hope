@@ -1,5 +1,25 @@
 {
-  "workouts": [],
+  "workouts": [
+    {
+      "id": "2026-07-07-1783390773564-f6e64bb2",
+      "date": "2026-07-07",
+      "type": "test",
+      "startTime": "10:00",
+      "endTime": "10:30",
+      "durationMinutes": 30,
+      "note": "",
+      "images": [
+        {
+          "src": "/uploads/2026/07/2026-07-07-workout-7096fc8e.avif",
+          "format": "avif",
+          "width": 1200,
+          "height": 420,
+          "sizeBytes": 3429
+        }
+      ],
+      "createdAt": "2026-07-07T02:19:33.564Z"
+    }
+  ],
   "settings": {
     "timezone": "Asia/Ho_Chi_Minh"
   }
