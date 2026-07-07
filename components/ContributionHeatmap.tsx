@@ -68,7 +68,7 @@ export function ContributionHeatmap({
               </div>
               <div
                 aria-label={`${year} workout heatmap`}
-                className="grid auto-cols-[10px] grid-flow-col grid-rows-7 gap-1"
+                className="relative isolate grid auto-cols-[10px] grid-flow-col grid-rows-7 gap-1"
               >
                 {weeks.map((week, weekIndex) =>
                   week.map((day, dayIndex) => {
@@ -95,7 +95,7 @@ export function ContributionHeatmap({
                     return (
                       <button
                         aria-label={`${day.date}: ${label}`}
-                        className={`group relative h-2.5 w-2.5 rounded-[2px] outline-none ring-offset-2 ring-offset-white transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:z-50 hover:scale-150 focus-visible:z-50 focus-visible:ring-2 focus-visible:ring-moss ${
+                        className={`group relative z-0 h-2.5 w-2.5 rounded-[2px] outline-none ring-offset-2 ring-offset-white transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:z-[1000] hover:scale-150 focus:z-[1000] focus-visible:z-[1000] focus-visible:ring-2 focus-visible:ring-moss ${
                           hasWorkout
                             ? "bg-moss"
                             : isTrackable
