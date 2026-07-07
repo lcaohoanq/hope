@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import type { AppCopy } from "@/lib/i18n";
 import type { WorkoutInput } from "@/lib/workout-types";
 import { calculateDurationMinutes } from "@/lib/workout-utils";
 
 type WorkoutFormProps = {
+  copy: AppCopy;
   defaultDate: string;
   isSubmitting: boolean;
   onSubmitWorkout: (input: WorkoutInput) => Promise<void>;
@@ -21,6 +23,7 @@ const initialForm = (defaultDate: string): WorkoutInput => ({
 const MAX_SELECTED_IMAGES = 3;
 
 export function WorkoutForm({
+  copy,
   defaultDate,
   isSubmitting,
   onSubmitWorkout,
@@ -58,7 +61,7 @@ export function WorkoutForm({
 
     if (nextImages.length > MAX_SELECTED_IMAGES) {
       setImageSelection(nextImages.slice(0, MAX_SELECTED_IMAGES));
-      setError(`Choose up to ${MAX_SELECTED_IMAGES} images.`);
+      setError(copy.errors.imageLimit(MAX_SELECTED_IMAGES));
       setSuccess("");
       return;
     }
@@ -87,17 +90,17 @@ export function WorkoutForm({
     );
 
     if (!type) {
-      setError("Workout type is required.");
+      setError(copy.errors.typeRequired);
       return;
     }
 
     if (!form.startTime || !form.endTime) {
-      setError("Start time and end time are required.");
+      setError(copy.errors.timeRequired);
       return;
     }
 
     if (durationMinutes <= 0) {
-      setError("Start time must be earlier than end time.");
+      setError(copy.errors.startBeforeEnd);
       return;
     }
 
@@ -114,12 +117,12 @@ export function WorkoutForm({
       setForm(initialForm(defaultDate));
       setImageSelection([]);
       setImageInputKey((current) => current + 1);
-      setSuccess("Workout saved and heatmap refreshed.");
+      setSuccess(copy.form.success);
     } catch (submitError) {
       setError(
         submitError instanceof Error
           ? submitError.message
-          : "Unable to save workout.",
+          : copy.errors.saveWorkout,
       );
     }
   }
@@ -131,27 +134,27 @@ export function WorkoutForm({
     >
       <div className="border-b border-stone-100 pb-5">
         <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-stone-500">
-          Today&apos;s entry
+          {copy.form.todayEntry}
         </p>
         <h2 className="mt-2 text-xl font-semibold tracking-[-0.02em] text-stone-950">
-          Log a workout
+          {copy.form.logWorkout}
         </h2>
       </div>
 
       <fieldset className="mt-6 grid gap-4" disabled={isSubmitting}>
         <label className="grid gap-2 text-sm font-medium text-stone-800">
-          Workout type
+          {copy.form.workoutType}
           <input
             className="h-11 rounded-md border border-stone-200 bg-stone-50 px-3 text-base font-normal text-stone-950 outline-none transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] placeholder:text-stone-400 focus:border-moss focus:bg-white focus:ring-2 focus:ring-moss/15 disabled:cursor-not-allowed disabled:opacity-60"
             onChange={(event) => updateField("type", event.target.value)}
-            placeholder="Walking, gym, running"
+            placeholder={copy.form.workoutTypePlaceholder}
             type="text"
             value={form.type}
           />
         </label>
 
         <label className="grid gap-2 text-sm font-medium text-stone-800">
-          Date
+          {copy.form.date}
           <input
             className="h-11 rounded-md border border-stone-200 bg-stone-50 px-3 text-base font-normal text-stone-950 outline-none transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] focus:border-moss focus:bg-white focus:ring-2 focus:ring-moss/15 disabled:cursor-not-allowed disabled:opacity-60"
             onChange={(event) => updateField("date", event.target.value)}
@@ -162,7 +165,7 @@ export function WorkoutForm({
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <label className="grid gap-2 text-sm font-medium text-stone-800">
-            Start time
+            {copy.form.startTime}
             <input
               className="h-11 rounded-md border border-stone-200 bg-stone-50 px-3 text-base font-normal text-stone-950 outline-none transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] focus:border-moss focus:bg-white focus:ring-2 focus:ring-moss/15 disabled:cursor-not-allowed disabled:opacity-60"
               onChange={(event) => updateField("startTime", event.target.value)}
@@ -172,7 +175,7 @@ export function WorkoutForm({
           </label>
 
           <label className="grid gap-2 text-sm font-medium text-stone-800">
-            End time
+            {copy.form.endTime}
             <input
               className="h-11 rounded-md border border-stone-200 bg-stone-50 px-3 text-base font-normal text-stone-950 outline-none transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] focus:border-moss focus:bg-white focus:ring-2 focus:ring-moss/15 disabled:cursor-not-allowed disabled:opacity-60"
               onChange={(event) => updateField("endTime", event.target.value)}
@@ -183,17 +186,17 @@ export function WorkoutForm({
         </div>
 
         <label className="grid gap-2 text-sm font-medium text-stone-800">
-          Note
+          {copy.form.note}
           <textarea
             className="min-h-24 resize-y rounded-md border border-stone-200 bg-stone-50 px-3 py-3 text-base font-normal text-stone-950 outline-none transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] placeholder:text-stone-400 focus:border-moss focus:bg-white focus:ring-2 focus:ring-moss/15 disabled:cursor-not-allowed disabled:opacity-60"
             onChange={(event) => updateField("note", event.target.value)}
-            placeholder="Short context for future you"
+            placeholder={copy.form.notePlaceholder}
             value={form.note}
           />
         </label>
 
         <label className="grid gap-2 text-sm font-medium text-stone-800">
-          Images
+          {copy.form.images}
           <input
             accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
             className="block w-full rounded-md border border-stone-200 bg-stone-50 px-3 py-2 text-sm font-normal text-stone-700 file:mr-3 file:rounded-md file:border-0 file:bg-stone-950 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white focus:border-moss focus:bg-white focus:outline-none focus:ring-2 focus:ring-moss/15 disabled:cursor-not-allowed disabled:opacity-60"
@@ -213,7 +216,7 @@ export function WorkoutForm({
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  alt={`Selected workout preview ${index + 1}`}
+                  alt={copy.form.selectedPreviewAlt(index + 1)}
                   className="h-full w-full object-cover"
                   src={url}
                 />
@@ -226,9 +229,9 @@ export function WorkoutForm({
       <div className="mt-5 min-h-6">
         {durationPreview !== null && durationPreview > 0 ? (
           <p className="text-sm text-stone-500">
-            Duration preview:{" "}
+            {copy.form.durationPreview}:{" "}
             <span className="font-medium text-stone-950">
-              {durationPreview} minutes
+              {durationPreview} {copy.common.minutes}
             </span>
           </p>
         ) : null}
@@ -243,7 +246,7 @@ export function WorkoutForm({
         disabled={isSubmitting}
         type="submit"
       >
-        {isSubmitting ? "Saving..." : "Log workout"}
+        {isSubmitting ? copy.common.saving : copy.form.submit}
       </button>
     </form>
   );

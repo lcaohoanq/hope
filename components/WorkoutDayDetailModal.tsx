@@ -3,12 +3,15 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { formatDisplayDate } from "@/lib/date-utils";
+import type { AppCopy, Language } from "@/lib/i18n";
 import type { Workout, WorkoutUpdateInput } from "@/lib/workout-types";
 import { calculateDurationMinutes } from "@/lib/workout-utils";
 import { WorkoutImageThumbnail } from "@/components/WorkoutImageThumbnail";
 
 type WorkoutDayDetailModalProps = {
+  copy: AppCopy;
   date: string;
+  language: Language;
   workouts: Workout[];
   isTrackable: boolean;
   origin?: {
@@ -30,7 +33,9 @@ type EditWorkoutForm = {
 const MAX_WORKOUT_IMAGES = 3;
 
 export function WorkoutDayDetailModal({
+  copy,
   date,
+  language,
   workouts,
   isTrackable,
   origin,
@@ -110,9 +115,7 @@ export function WorkoutDayDetailModal({
 
     if (nextImages.length > remainingImageSlots) {
       setEditImageSelection(nextImages.slice(0, remainingImageSlots));
-      setEditError(`Add up to ${remainingImageSlots} more image${
-        remainingImageSlots === 1 ? "" : "s"
-      }.`);
+      setEditError(copy.modal.addMoreImages(remainingImageSlots));
       setEditSuccess("");
       return;
     }
@@ -143,17 +146,17 @@ export function WorkoutDayDetailModal({
     );
 
     if (!type) {
-      setEditError("Workout type is required.");
+      setEditError(copy.errors.typeRequired);
       return;
     }
 
     if (!editForm.startTime || !editForm.endTime) {
-      setEditError("Start time and end time are required.");
+      setEditError(copy.errors.timeRequired);
       return;
     }
 
     if (durationMinutes <= 0) {
-      setEditError("Start time must be earlier than end time.");
+      setEditError(copy.errors.startBeforeEnd);
       return;
     }
 
@@ -174,10 +177,10 @@ export function WorkoutDayDetailModal({
       setEditingWorkoutId(null);
       setEditForm(null);
       setEditImageSelection([]);
-      setEditSuccess("Workout updated.");
+      setEditSuccess(copy.form.workoutUpdated);
     } catch (error) {
       setEditError(
-        error instanceof Error ? error.message : "Unable to update workout.",
+        error instanceof Error ? error.message : copy.errors.updateWorkout,
       );
     } finally {
       setIsSavingEdit(false);
@@ -249,23 +252,21 @@ export function WorkoutDayDetailModal({
         <div className="flex items-start justify-between gap-4 border-b border-stone-100 p-4 sm:p-5">
           <div>
             <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-stone-500">
-              Day detail
+              {copy.modal.dayDetail}
             </p>
             <h3 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-stone-950">
-              {formatDisplayDate(date)}
+              {formatDisplayDate(date, language)}
             </h3>
             <p className="mt-1 text-sm text-stone-500">
               {!isTrackable
-                ? "No tracking yet"
+                ? copy.heatmap.noTrackingYet
                 : workouts.length > 0
-                  ? `${workouts.length} workout${
-                      workouts.length > 1 ? "s" : ""
-                    } logged`
-                  : "No workout logged"}
+                  ? copy.modal.loggedWorkoutCount(workouts.length)
+                  : copy.modal.noWorkoutLogged}
             </p>
           </div>
           <button
-            aria-label="Close workout detail"
+            aria-label={copy.modal.closeWorkoutDetail}
             className="h-9 w-9 rounded-md border border-stone-200 bg-white text-xl leading-none text-stone-500 transition hover:bg-stone-100 hover:text-stone-950"
             onClick={onClose}
             type="button"
@@ -296,7 +297,7 @@ export function WorkoutDayDetailModal({
               <div className="flex snap-x gap-3 overflow-x-auto pb-2">
                 {galleryImages.map(({ image, workout }, index) => (
                   <button
-                    aria-label={`Show workout image ${index + 1}`}
+                    aria-label={copy.modal.showWorkoutImage(index + 1)}
                     className={`h-28 w-40 shrink-0 snap-start overflow-hidden rounded-md border bg-stone-100 transition ${
                       index === selectedImageIndex
                         ? "border-moss ring-2 ring-moss/20"
@@ -316,7 +317,9 @@ export function WorkoutDayDetailModal({
           <div className="mt-5 grid gap-3">
             {workouts.length === 0 ? (
               <div className="rounded-lg border border-stone-200 bg-stone-50 p-4 text-sm text-stone-500">
-                {!isTrackable ? "No tracking yet." : "No workout logged."}
+                {!isTrackable
+                  ? `${copy.heatmap.noTrackingYet}.`
+                  : copy.modal.noWorkoutLogged}
               </div>
             ) : (
               workouts.map((workout) => (
@@ -326,6 +329,7 @@ export function WorkoutDayDetailModal({
                 >
                   {editingWorkoutId === workout.id && editForm ? (
                     <EditWorkoutPanel
+                      copy={copy}
                       editError={editError}
                       editForm={editForm}
                       editPreviewUrls={editPreviewUrls}
@@ -348,7 +352,7 @@ export function WorkoutDayDetailModal({
                         </p>
                       </div>
                       <p className="mt-1 text-sm text-stone-600">
-                        {workout.durationMinutes} minutes
+                        {workout.durationMinutes} {copy.common.minutes}
                       </p>
                       {workout.note ? (
                         <p className="mt-3 text-sm leading-6 text-stone-600">
@@ -360,7 +364,7 @@ export function WorkoutDayDetailModal({
                         onClick={() => startEditing(workout)}
                         type="button"
                       >
-                        Edit
+                        {copy.common.edit}
                       </button>
                     </>
                   )}
@@ -375,6 +379,7 @@ export function WorkoutDayDetailModal({
 }
 
 function EditWorkoutPanel({
+  copy,
   editError,
   editForm,
   editPreviewUrls,
@@ -386,6 +391,7 @@ function EditWorkoutPanel({
   onUpdateField,
   onUpdateImages,
 }: {
+  copy: AppCopy;
   editError: string;
   editForm: EditWorkoutForm;
   editPreviewUrls: string[];
@@ -409,7 +415,7 @@ function EditWorkoutPanel({
     >
       <div className="grid gap-3 sm:grid-cols-2">
         <label className="grid gap-1.5 text-sm font-medium text-stone-800">
-          Type
+          {copy.form.type}
           <input
             className="h-10 rounded-md border border-stone-200 bg-white px-3 text-sm font-normal text-stone-950 outline-none focus:border-moss focus:ring-2 focus:ring-moss/15"
             onChange={(event) => onUpdateField("type", event.target.value)}
@@ -417,7 +423,7 @@ function EditWorkoutPanel({
           />
         </label>
         <label className="grid gap-1.5 text-sm font-medium text-stone-800">
-          Date
+          {copy.form.date}
           <input
             className="h-10 rounded-md border border-stone-200 bg-white px-3 text-sm font-normal text-stone-950 outline-none focus:border-moss focus:ring-2 focus:ring-moss/15"
             onChange={(event) => onUpdateField("date", event.target.value)}
@@ -429,7 +435,7 @@ function EditWorkoutPanel({
 
       <div className="grid gap-3 sm:grid-cols-2">
         <label className="grid gap-1.5 text-sm font-medium text-stone-800">
-          Start
+          {copy.form.start}
           <input
             className="h-10 rounded-md border border-stone-200 bg-white px-3 text-sm font-normal text-stone-950 outline-none focus:border-moss focus:ring-2 focus:ring-moss/15"
             onChange={(event) => onUpdateField("startTime", event.target.value)}
@@ -438,7 +444,7 @@ function EditWorkoutPanel({
           />
         </label>
         <label className="grid gap-1.5 text-sm font-medium text-stone-800">
-          End
+          {copy.form.end}
           <input
             className="h-10 rounded-md border border-stone-200 bg-white px-3 text-sm font-normal text-stone-950 outline-none focus:border-moss focus:ring-2 focus:ring-moss/15"
             onChange={(event) => onUpdateField("endTime", event.target.value)}
@@ -449,7 +455,7 @@ function EditWorkoutPanel({
       </div>
 
       <label className="grid gap-1.5 text-sm font-medium text-stone-800">
-        Note
+        {copy.form.note}
         <textarea
           className="min-h-20 resize-y rounded-md border border-stone-200 bg-white px-3 py-2 text-sm font-normal text-stone-950 outline-none focus:border-moss focus:ring-2 focus:ring-moss/15"
           onChange={(event) => onUpdateField("note", event.target.value)}
@@ -458,7 +464,7 @@ function EditWorkoutPanel({
       </label>
 
       <label className="grid gap-1.5 text-sm font-medium text-stone-800">
-        Add images
+        {copy.form.addImages}
         <input
           accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
           className="block w-full rounded-md border border-stone-200 bg-white px-3 py-2 text-sm font-normal text-stone-700 file:mr-3 file:rounded-md file:border-0 file:bg-stone-950 file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-white disabled:cursor-not-allowed disabled:opacity-60"
@@ -470,8 +476,7 @@ function EditWorkoutPanel({
           type="file"
         />
         <span className="text-xs font-normal text-stone-500">
-          {remainingImageSlots} image slot{remainingImageSlots === 1 ? "" : "s"}{" "}
-          available.
+          {copy.form.imageSlotAvailable(remainingImageSlots)}
         </span>
       </label>
 
@@ -484,7 +489,7 @@ function EditWorkoutPanel({
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                alt={`Selected edit preview ${index + 1}`}
+                alt={copy.form.selectedEditPreviewAlt(index + 1)}
                 className="h-full w-full object-cover"
                 src={url}
               />
@@ -508,7 +513,7 @@ function EditWorkoutPanel({
           disabled={isSavingEdit}
           type="submit"
         >
-          {isSavingEdit ? "Saving..." : "Save changes"}
+          {isSavingEdit ? copy.common.saving : copy.common.saveChanges}
         </button>
         <button
           className="h-9 rounded-md border border-stone-200 bg-white px-3 text-sm font-semibold text-stone-700 transition hover:bg-stone-100"
@@ -516,7 +521,7 @@ function EditWorkoutPanel({
           onClick={onCancel}
           type="button"
         >
-          Cancel
+          {copy.common.cancel}
         </button>
       </div>
     </form>

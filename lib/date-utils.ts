@@ -1,3 +1,5 @@
+import type { Language } from "@/lib/i18n";
+
 const TIMEZONE = "Asia/Ho_Chi_Minh";
 
 export function getTodayInTimezone(timezone = TIMEZONE) {
@@ -27,8 +29,8 @@ export function parseDateKey(dateKey: string) {
   return new Date(year, month - 1, day);
 }
 
-export function formatDisplayDate(dateKey: string) {
-  return new Intl.DateTimeFormat("en", {
+export function formatDisplayDate(dateKey: string, language: Language = "en") {
+  return new Intl.DateTimeFormat(language === "vi" ? "vi-VN" : "en", {
     month: "short",
     day: "numeric",
     year: "numeric",

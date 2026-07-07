@@ -1,40 +1,48 @@
 import type { Workout } from "@/lib/workout-types";
 import { getWorkoutStats } from "@/lib/workout-utils";
+import type { AppCopy } from "@/lib/i18n";
 import type { HeatmapView } from "@/lib/users";
 
 type StatsCardsProps = {
+  copy: AppCopy;
   workouts: Workout[];
   todayDateKey: string;
   view: HeatmapView;
 };
 
-export function StatsCards({ workouts, todayDateKey, view }: StatsCardsProps) {
+export function StatsCards({
+  copy,
+  workouts,
+  todayDateKey,
+  view,
+}: StatsCardsProps) {
   const statsEndDateKey =
     view.mode === "year" && view.year < Number(todayDateKey.slice(0, 4))
       ? `${view.year}-12-31`
       : todayDateKey;
   const stats = getWorkoutStats(workouts, statsEndDateKey);
-  const scopeLabel = view.mode === "lifetime" ? "lifetime view" : `${view.year}`;
+  const scopeLabel =
+    view.mode === "lifetime" ? copy.stats.lifetimeScope : `${view.year}`;
   const items = [
     {
-      label: "Active days",
+      label: copy.stats.activeDays,
       value: stats.activeDays,
-      detail: `logged in ${scopeLabel}`,
+      detail: copy.stats.activeDaysDetail(scopeLabel),
     },
     {
-      label: "Last 30 days",
+      label: copy.stats.last30Days,
       value: `${stats.last30ActiveDays}/30`,
-      detail: "days with movement",
+      detail: copy.stats.last30DaysDetail,
     },
     {
-      label: "Current streak",
+      label: copy.stats.currentStreak,
       value: stats.streak,
-      detail: stats.streak === 1 ? "day" : "days",
+      detail: stats.streak === 1 ? copy.stats.day : copy.stats.days,
     },
     {
-      label: "Total time",
+      label: copy.stats.totalTime,
       value: `${Math.round(stats.totalMinutes / 60)}h`,
-      detail: `${stats.totalMinutes} minutes recorded`,
+      detail: copy.stats.totalTimeDetail(stats.totalMinutes),
     },
   ];
 

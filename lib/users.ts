@@ -1,4 +1,5 @@
 import type { UserProfile, Workout } from "@/lib/workout-types";
+import type { Language, LocalizedText } from "@/lib/i18n";
 
 export type HeatmapView =
   | {
@@ -21,7 +22,8 @@ export type HeatmapDefaultView =
 export type AppUser = UserProfile & {
   id: string;
   slug: string;
-  bio: string;
+  bio: LocalizedText;
+  preferredLanguage: Language;
   heatmapSettings: {
     defaultView: HeatmapDefaultView;
   };
@@ -34,7 +36,11 @@ export const APP_USERS = [
     displayName: "Test User",
     birthYear: 2004,
     avatarSeed: "test",
-    bio: "Testing the quiet little rituals that make movement easier to repeat.",
+    bio: {
+      en: "Testing the quiet little rituals that make movement easier to repeat.",
+      vi: "Thử những nhịp nhỏ, đều và đủ nhẹ để việc vận động dễ lặp lại hơn.",
+    },
+    preferredLanguage: "vi",
     heatmapSettings: {
       defaultView: {
         mode: "year",
@@ -47,7 +53,11 @@ export const APP_USERS = [
     displayName: "Hoang",
     birthYear: 2004,
     avatarSeed: "hoang",
-    bio: "Expect the Not Expected.",
+    bio: {
+      en: "Expect the Not Expected.",
+      vi: "Luôn sẵn sàng cho điều không ngờ.",
+    },
+    preferredLanguage: "vi",
     heatmapSettings: {
       defaultView: {
         mode: "year",
@@ -60,7 +70,11 @@ export const APP_USERS = [
     displayName: "Linh",
     birthYear: 2005,
     avatarSeed: "linh",
-    bio: "Building a steady rhythm one logged workout at a time.",
+    bio: {
+      en: "Building a steady rhythm one logged workout at a time.",
+      vi: "Xây nhịp sống đều hơn qua từng buổi tập được ghi lại.",
+    },
+    preferredLanguage: "vi",
     heatmapSettings: {
       defaultView: {
         mode: "year",
