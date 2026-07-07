@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { AnimatePresence } from "framer-motion";
 import type { Workout } from "@/lib/workout-types";
 import {
   createLifetimeHeatmapYears,
@@ -32,6 +33,10 @@ type SelectedDay = {
   date: string;
   workouts: Workout[];
   isTrackable: boolean;
+  origin: {
+    x: number;
+    y: number;
+  };
 };
 
 export function ContributionHeatmap({
@@ -173,12 +178,18 @@ export function ContributionHeatmap({
                           })
                         }
                         onMouseLeave={() => setActiveTooltip(null)}
-                        onClick={() => {
+                        onClick={(event) => {
+                          const rect = event.currentTarget.getBoundingClientRect();
+
                           setActiveTooltip(null);
                           setSelectedDay({
                             date: day.date,
                             workouts: day.workouts,
                             isTrackable,
+                            origin: {
+                              x: rect.left + rect.width / 2,
+                              y: rect.top + rect.height / 2,
+                            },
                           });
                         }}
                         key={day.date}
@@ -215,14 +226,17 @@ export function ContributionHeatmap({
           />
         </div>
       ) : null}
-      {selectedDay ? (
-        <WorkoutDayDetailModal
-          date={selectedDay.date}
-          isTrackable={selectedDay.isTrackable}
-          onClose={() => setSelectedDay(null)}
-          workouts={selectedDay.workouts}
-        />
-      ) : null}
+      <AnimatePresence>
+        {selectedDay ? (
+          <WorkoutDayDetailModal
+            date={selectedDay.date}
+            isTrackable={selectedDay.isTrackable}
+            onClose={() => setSelectedDay(null)}
+            origin={selectedDay.origin}
+            workouts={selectedDay.workouts}
+          />
+        ) : null}
+      </AnimatePresence>
     </section>
   );
 }
