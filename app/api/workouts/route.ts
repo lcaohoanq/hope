@@ -128,6 +128,8 @@ export async function POST(request: Request) {
       );
     }
 
+    console.error("Unable to process workout images.", error);
+
     return NextResponse.json(
       {
         success: false,
@@ -332,6 +334,8 @@ export async function PATCH(request: Request) {
         { status: 404 },
       );
     }
+
+    console.error("Unable to update workout.", error);
 
     return NextResponse.json(
       {
