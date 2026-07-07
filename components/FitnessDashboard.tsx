@@ -8,7 +8,7 @@ import { StatsCards } from "@/components/StatsCards";
 import { WorkoutForm } from "@/components/WorkoutForm";
 import { getTodayInTimezone } from "@/lib/date-utils";
 import { getAvatarUrl } from "@/lib/profile-utils";
-import type { AppUser } from "@/lib/users";
+import type { AppUser, HeatmapView } from "@/lib/users";
 import type {
   Workout,
   WorkoutData,
@@ -42,6 +42,7 @@ type FitnessDashboardProps = {
 export function FitnessDashboard({ user }: FitnessDashboardProps) {
   const todayDateKey = getTodayInTimezone();
   const currentYear = Number(todayDateKey.slice(0, 4));
+  const birthYear = user.birthYear ?? currentYear;
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [isLoadingWorkouts, setIsLoadingWorkouts] = useState(true);
   const [isSubmittingWorkout, setIsSubmittingWorkout] = useState(false);
@@ -49,6 +50,13 @@ export function FitnessDashboard({ user }: FitnessDashboardProps) {
     useState(false);
   const [workoutLoadError, setWorkoutLoadError] = useState("");
   const [isWorkoutDialogOpen, setIsWorkoutDialogOpen] = useState(false);
+  const [selectedHeatmapView, setSelectedHeatmapView] = useState<HeatmapView>(
+    () => resolveDefaultHeatmapView(user, currentYear),
+  );
+  const visibleWorkouts = filterWorkoutsForHeatmapView(
+    workouts,
+    selectedHeatmapView,
+  );
 
   const loadWorkouts = useCallback(async () => {
     setIsLoadingWorkouts(true);
@@ -213,7 +221,11 @@ export function FitnessDashboard({ user }: FitnessDashboardProps) {
           {isLoadingWorkouts ? (
             <WorkoutLoadingState />
           ) : (
-            <StatsCards workouts={workouts} todayDateKey={todayDateKey} />
+            <StatsCards
+              todayDateKey={todayDateKey}
+              view={selectedHeatmapView}
+              workouts={visibleWorkouts}
+            />
           )}
 
           {isLoadingWorkouts ? (
@@ -240,8 +252,10 @@ export function FitnessDashboard({ user }: FitnessDashboardProps) {
             </section>
           ) : (
             <ContributionHeatmap
-              birthYear={user.birthYear ?? currentYear}
+              birthYear={birthYear}
               onUpdateWorkout={handleUpdateWorkout}
+              onViewChange={setSelectedHeatmapView}
+              view={selectedHeatmapView}
               workouts={workouts}
               todayDateKey={todayDateKey}
             />
@@ -288,6 +302,40 @@ export function FitnessDashboard({ user }: FitnessDashboardProps) {
       </AnimatePresence>
     </main>
   );
+}
+
+function resolveDefaultHeatmapView(
+  user: AppUser,
+  currentYear: number,
+): HeatmapView {
+  const defaultView = user.heatmapSettings.defaultView;
+
+  if (defaultView.mode === "lifetime") {
+    return defaultView;
+  }
+
+  return {
+    mode: "year",
+    year: clampYear(
+      defaultView.year ?? currentYear,
+      user.birthYear,
+      currentYear,
+    ),
+  };
+}
+
+function filterWorkoutsForHeatmapView(workouts: Workout[], view: HeatmapView) {
+  if (view.mode === "lifetime") {
+    return workouts;
+  }
+
+  const yearPrefix = `${view.year}-`;
+
+  return workouts.filter((workout) => workout.date.startsWith(yearPrefix));
+}
+
+function clampYear(year: number, minYear: number, maxYear: number) {
+  return Math.min(Math.max(year, minYear), maxYear);
 }
 
 function UserProfileSidebar({
