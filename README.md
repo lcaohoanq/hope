@@ -12,7 +12,7 @@ The app records daily workouts, shows a GitHub-style lifetime heatmap, and can s
 - Workout tracking starts at `2026-01-01`; earlier years render as no-data cells.
 - Workout form with server-side validation.
 - Workout detail view with inline editing.
-- Workout image uploads optimized to AVIF with `sharp`.
+- Workout image uploads optimized to AVIF through the Appwrite `processImageHope` function.
 - `GET /api/workouts`, `POST /api/workouts`, and `PATCH /api/workouts`.
 - MVP storage in `data/workouts.json`.
 - Server-side GitHub Contents API commits for production writes.
@@ -28,7 +28,7 @@ The app records daily workouts, shows a GitHub-style lifetime heatmap, and can s
 - Vercel
 - GitHub Contents API
 - GitHub Actions
-- sharp
+- Appwrite Functions
 - Resend
 
 ## Local Development
@@ -54,7 +54,7 @@ pnpm run dev
 Open `http://localhost:3000/@hoang` or `http://localhost:3000/@linh`.
 The root URL redirects to `@hoang`.
 
-If GitHub env vars are not configured locally, API routes read and write `data/workouts.json` directly on the server and write optimized images to `public/uploads`. If GitHub env vars are configured, `POST /api/workouts` may commit to GitHub.
+If GitHub env vars are not configured locally, API routes read and write `data/workouts.json` directly on the server and write optimized images to `public/uploads`. If GitHub env vars are configured, `POST /api/workouts` may commit to GitHub. Image processing still requires the Appwrite image processor env vars.
 
 ## Environment Variables
 
@@ -68,6 +68,8 @@ GITHUB_OWNER=
 GITHUB_REPO=
 GITHUB_BRANCH=main
 WORKOUT_DATA_PATH=data/workouts.json
+APPWRITE_IMAGE_PROCESSOR_URL=
+APPWRITE_IMAGE_PROCESSOR_KEY=
 ```
 
 Use a fine-grained GitHub token with access only to this repository.
@@ -78,6 +80,9 @@ Required token permissions:
 - `Metadata`: Read-only, included by GitHub
 
 Do not use `NEXT_PUBLIC_` for secrets.
+
+`APPWRITE_IMAGE_PROCESSOR_URL` should point to the deployed Appwrite function URL for `processImageHope`.
+Set `APPWRITE_IMAGE_PROCESSOR_KEY` only if the function checks the `X-Appwrite-Key` header.
 
 ### GitHub Actions
 
@@ -101,7 +106,7 @@ RESEND_FROM=Fitness Tracker <onboarding@resend.dev>
 1. User submits workout type, date, start time, end time, optional note, and up to 3 optional images.
 2. Frontend calls `POST /api/workouts` as JSON for no-image submits or `multipart/form-data` when images are selected.
 3. The API validates input server-side.
-4. The API validates image MIME type, then `sharp` decodes and optimizes each image to AVIF.
+4. The API validates image MIME type, then calls the Appwrite `processImageHope` function to decode and optimize each image to AVIF.
 5. The API calculates `durationMinutes`.
 6. In production, the API reads latest `data/workouts.json` through GitHub Contents API.
 7. The API appends the new workout and commits the updated JSON with optimized AVIF files.
@@ -128,11 +133,11 @@ RESEND_FROM=Fitness Tracker <onboarding@resend.dev>
 
 ## Image Uploads
 
-- Images are processed server-side with `sharp`; `sharp` is never imported by client components.
+- Images are processed by the Appwrite `processImageHope` function; the Vercel web app does not import `sharp`.
 - Original uploads are never stored, committed, or written as base64 in JSON.
 - Optimized images are saved as AVIF under `public/uploads/YYYY/MM/`.
 - JSON stores public paths like `/uploads/2026/07/2026-07-07-workout-abcd1234.avif`.
-- HEIC/HEIF uploads are best-effort. If the server's `sharp`/libvips build cannot decode them, upload JPG, PNG, or WebP instead.
+- HEIC/HEIF uploads are best-effort. If the Appwrite function's `sharp`/libvips build cannot decode them, upload JPG, PNG, or WebP instead.
 - In local mode, optimized images are written to the working tree under `public/uploads`.
 - In GitHub-backed mode, optimized images and `data/workouts.json` are committed together where possible.
 - On Vercel, runtime writes to `public` are not persistent. Files committed to `public/uploads` through GitHub are not guaranteed to be available from `/uploads/...` until the app redeploys.
@@ -207,7 +212,9 @@ REMINDER_DRY_RUN=1 pnpm run reminder
 - `POST /api/workouts` returns `Unable to save workout.`: check GitHub env vars, token permission, repo owner/name, branch, and `WORKOUT_DATA_PATH`.
 - Data saves locally but not in production: verify `GITHUB_TOKEN`, `GITHUB_OWNER`, `GITHUB_REPO`, and `GITHUB_BRANCH` in Vercel.
 - Uploaded image path returns 404 in production: redeploy the app so newly committed `public/uploads` assets are included in the deployed build.
-- HEIC/HEIF upload fails: the deployed `sharp`/libvips build may not support that format; upload JPG, PNG, or WebP.
+- Image upload returns `Image processing service is not configured.`: set `APPWRITE_IMAGE_PROCESSOR_URL` in Vercel.
+- Image upload returns `Unable to reach the image processing service.`: verify the Appwrite function URL and execution permissions.
+- HEIC/HEIF upload fails: the deployed Appwrite `sharp`/libvips build may not support that format; upload JPG, PNG, or WebP.
 - Reminder workflow does not send: verify `RESEND_API_KEY`, `REMINDER_EMAIL`, and Resend sender/domain setup.
 - Reminder sends from `onboarding@resend.dev`: set `RESEND_FROM` to a verified sender for production.
 - Heatmap does not show onboarding again: click `Reset profile` in the dashboard to clear the local browser profile.
