@@ -5,6 +5,11 @@ const DICEBEAR_NOTIONISTS_BASE_URL =
 
 export const USER_PROFILE_STORAGE_KEY = "fitness-tracker-profile";
 const USER_PROFILE_CHANGE_EVENT = "fitness-tracker-profile-change";
+const DEFAULT_PROFILE: UserProfile = {
+  displayName: "Hoang",
+  birthYear: 2004,
+  avatarSeed: "hoang",
+};
 let cachedProfileStorageValue: string | null = null;
 let cachedProfile: UserProfile | null = null;
 
@@ -21,16 +26,15 @@ export function getAvatarUrl(seed: string) {
 
 export function readStoredProfile() {
   if (typeof window === "undefined") {
-    return null;
+    return DEFAULT_PROFILE;
   }
 
   try {
     const value = window.localStorage.getItem(USER_PROFILE_STORAGE_KEY);
 
     if (!value) {
-      cachedProfileStorageValue = null;
-      cachedProfile = null;
-      return null;
+      storeDefaultProfile();
+      return DEFAULT_PROFILE;
     }
 
     if (value === cachedProfileStorageValue) {
@@ -44,9 +48,8 @@ export function readStoredProfile() {
       typeof parsed.birthYear !== "number" ||
       typeof parsed.avatarSeed !== "string"
     ) {
-      cachedProfileStorageValue = value;
-      cachedProfile = null;
-      return null;
+      storeDefaultProfile();
+      return DEFAULT_PROFILE;
     }
 
     cachedProfileStorageValue = value;
@@ -59,8 +62,8 @@ export function readStoredProfile() {
     return cachedProfile;
   } catch {
     cachedProfileStorageValue = null;
-    cachedProfile = null;
-    return null;
+    cachedProfile = DEFAULT_PROFILE;
+    return DEFAULT_PROFILE;
   }
 }
 
@@ -86,4 +89,11 @@ export function storeProfile(profile: UserProfile) {
 export function clearStoredProfile() {
   window.localStorage.removeItem(USER_PROFILE_STORAGE_KEY);
   window.dispatchEvent(new Event(USER_PROFILE_CHANGE_EVENT));
+}
+
+function storeDefaultProfile() {
+  const serializedProfile = JSON.stringify(DEFAULT_PROFILE);
+  window.localStorage.setItem(USER_PROFILE_STORAGE_KEY, serializedProfile);
+  cachedProfileStorageValue = serializedProfile;
+  cachedProfile = DEFAULT_PROFILE;
 }

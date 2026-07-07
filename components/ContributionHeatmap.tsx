@@ -23,6 +23,7 @@ export function ContributionHeatmap({
     endDateKey: todayDateKey,
     workouts,
   });
+  const descendingHeatmapYears = [...heatmapYears].reverse();
   const trackingStartYear = Number(TRACKING_START_DATE.slice(0, 4));
 
   return (
@@ -30,7 +31,7 @@ export function ContributionHeatmap({
       <div className="flex flex-col gap-2 border-b border-stone-100 pb-5 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-stone-500">
-            {birthYear} - {todayDateKey.slice(0, 4)}
+            {todayDateKey.slice(0, 4)} - {birthYear}
           </p>
           <h2 className="mt-2 text-xl font-semibold tracking-[-0.02em] text-stone-950">
             Lifetime heatmap
@@ -48,7 +49,7 @@ export function ContributionHeatmap({
 
       <div className="mt-6 max-h-[620px] overflow-auto pr-1">
         <div className="grid min-w-[880px] gap-3">
-          {heatmapYears.map(({ year, weeks }) => (
+          {descendingHeatmapYears.map(({ year, weeks }) => (
             <div
               className="grid grid-cols-[44px_32px_1fr] items-start gap-3"
               key={year}
@@ -94,7 +95,7 @@ export function ContributionHeatmap({
                     return (
                       <button
                         aria-label={`${day.date}: ${label}`}
-                        className={`group relative h-2.5 w-2.5 rounded-[2px] outline-none ring-offset-2 ring-offset-white transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-150 focus-visible:ring-2 focus-visible:ring-moss ${
+                        className={`group relative h-2.5 w-2.5 rounded-[2px] outline-none ring-offset-2 ring-offset-white transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:z-50 hover:scale-150 focus-visible:z-50 focus-visible:ring-2 focus-visible:ring-moss ${
                           hasWorkout
                             ? "bg-moss"
                             : isTrackable
