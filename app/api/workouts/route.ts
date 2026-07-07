@@ -22,6 +22,10 @@ import {
   validateCreateWorkoutRequest,
   validateUpdateWorkoutRequest,
 } from "@/lib/workout-utils";
+import {
+  isWorkoutVisibleForUser,
+  normalizeUserId,
+} from "@/lib/users";
 
 export const runtime = "nodejs";
 
@@ -32,11 +36,28 @@ class WorkoutNotFoundError extends Error {
   }
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  const userId = getRequestUserId(request);
+
+  if (!userId) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: "A valid user is required.",
+      },
+      { status: 400 },
+    );
+  }
+
   try {
     const data = await readWorkoutData();
 
-    return NextResponse.json(data);
+    return NextResponse.json({
+      ...data,
+      workouts: data.workouts.filter((workout) =>
+        isWorkoutVisibleForUser(workout, userId),
+      ),
+    });
   } catch {
     return NextResponse.json(
       {
@@ -67,12 +88,23 @@ export async function POST(request: Request) {
   }
 
   const validation = validateCreateWorkoutRequest(payload.body);
+  const userId = normalizeUserId(payload.body.userId);
 
   if (!validation.success) {
     return NextResponse.json(
       {
         success: false,
         error: validation.error,
+      },
+      { status: 400 },
+    );
+  }
+
+  if (!userId) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: "A valid user is required.",
       },
       { status: 400 },
     );
@@ -114,6 +146,7 @@ export async function POST(request: Request) {
 
   const workout = createWorkoutRecord({
     ...validation.workoutInput,
+    userId,
     images: imageMetadata,
   });
 
@@ -186,6 +219,7 @@ export async function PATCH(request: Request) {
   }
 
   const validation = validateUpdateWorkoutRequest(payload.body);
+  const userId = normalizeUserId(payload.body.userId);
 
   if (!validation.success) {
     return NextResponse.json(
@@ -197,11 +231,23 @@ export async function PATCH(request: Request) {
     );
   }
 
+  if (!userId) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: "A valid user is required.",
+      },
+      { status: 400 },
+    );
+  }
+
   try {
     if (!isUsingGitHubDataSource()) {
       const data = await readWorkoutData();
       const existingWorkout = data.workouts.find(
-        (workout) => workout.id === validation.workoutId,
+        (workout) =>
+          workout.id === validation.workoutId &&
+          isWorkoutVisibleForUser(workout, userId),
       );
 
       if (!existingWorkout) {
@@ -223,6 +269,7 @@ export async function PATCH(request: Request) {
         existingWorkout,
         validation.workoutInput,
         optimizedImages,
+        userId,
       );
       const nextData = replaceWorkout(data, workout);
 
@@ -256,6 +303,7 @@ export async function PATCH(request: Request) {
 
     const workout = await updateAndCommitWorkout(
       validation.workoutId,
+      userId,
       validation.workoutInput,
       payload.imageFiles,
     );
@@ -315,6 +363,7 @@ async function parseCreateWorkoutPayload(request: Request): Promise<{
 
   return {
     body: {
+      userId: formData.get("userId"),
       date: formData.get("date"),
       type: formData.get("type"),
       startTime: formData.get("startTime"),
@@ -346,6 +395,7 @@ async function parseUpdateWorkoutPayload(request: Request): Promise<{
   return {
     body: {
       id: formData.get("id"),
+      userId: formData.get("userId"),
       date: formData.get("date"),
       type: formData.get("type"),
       startTime: formData.get("startTime"),
@@ -354,6 +404,12 @@ async function parseUpdateWorkoutPayload(request: Request): Promise<{
     },
     imageFiles,
   };
+}
+
+function getRequestUserId(request: Request) {
+  const url = new URL(request.url);
+
+  return normalizeUserId(url.searchParams.get("userId"));
 }
 
 async function prepareWorkoutImages(
@@ -410,6 +466,7 @@ async function createUpdatedWorkout(
     note: string;
   },
   optimizedImages: OptimizedWorkoutImage[],
+  userId: string,
 ): Promise<Workout> {
   let newImageMetadata: WorkoutImage[] = [];
 
@@ -422,6 +479,7 @@ async function createUpdatedWorkout(
 
   return {
     ...existingWorkout,
+    userId,
     date: input.date,
     type: input.type,
     startTime: input.startTime,
@@ -501,6 +559,7 @@ async function commitWorkoutToGitHub({
 
 async function updateAndCommitWorkout(
   workoutId: string,
+  userId: string,
   input: Parameters<typeof createUpdatedWorkout>[1],
   imageFiles: File[],
 ) {
@@ -511,6 +570,7 @@ async function updateAndCommitWorkout(
       fileData: firstRead.data,
       sha: firstRead.sha,
       workoutId,
+      userId,
       input,
       imageFiles,
     });
@@ -525,6 +585,7 @@ async function updateAndCommitWorkout(
       fileData: retryRead.data,
       sha: retryRead.sha,
       workoutId,
+      userId,
       input,
       imageFiles,
     });
@@ -535,17 +596,20 @@ async function updateWorkoutInGitHubFile({
   fileData,
   sha,
   workoutId,
+  userId,
   input,
   imageFiles,
 }: {
   fileData: Awaited<ReturnType<typeof readWorkoutGitHubFile>>["data"];
   sha: string;
   workoutId: string;
+  userId: string;
   input: Parameters<typeof createUpdatedWorkout>[1];
   imageFiles: File[];
 }) {
   const existingWorkout = fileData.workouts.find(
-    (workout) => workout.id === workoutId,
+    (workout) =>
+      workout.id === workoutId && isWorkoutVisibleForUser(workout, userId),
   );
 
   if (!existingWorkout) {
@@ -562,6 +626,7 @@ async function updateWorkoutInGitHubFile({
     existingWorkout,
     input,
     optimizedImages,
+    userId,
   );
   const nextData = replaceWorkout(fileData, workout);
 

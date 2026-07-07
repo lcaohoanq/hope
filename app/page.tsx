@@ -1,5 +1,6 @@
-import { FitnessDashboard } from "@/components/FitnessDashboard";
+import { redirect } from "next/navigation";
+import { getDefaultUser } from "@/lib/users";
 
 export default function Home() {
-  return <FitnessDashboard />;
+  redirect(`/${getDefaultUser().slug}`);
 }

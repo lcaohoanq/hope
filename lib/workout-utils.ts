@@ -245,6 +245,7 @@ export function validateUpdateWorkoutRequest(
 
 export function createWorkoutRecord(
   input: {
+    userId: string;
     date: string;
     type: string;
     startTime: string;
@@ -257,6 +258,7 @@ export function createWorkoutRecord(
 ): Workout {
   return {
     id: `${input.date}-${now.getTime()}-${crypto.randomUUID().slice(0, 8)}`,
+    userId: input.userId,
     date: input.date,
     type: input.type,
     startTime: input.startTime,

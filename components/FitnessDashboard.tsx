@@ -1,20 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ContributionHeatmap } from "@/components/ContributionHeatmap";
-import { OnboardingOverlay } from "@/components/OnboardingOverlay";
 import { StatsCards } from "@/components/StatsCards";
 import { WorkoutForm } from "@/components/WorkoutForm";
 import { getTodayInTimezone } from "@/lib/date-utils";
-import {
-  clearStoredProfile,
-  getAvatarUrl,
-  readStoredProfile,
-  storeProfile,
-  subscribeToProfileChanges,
-} from "@/lib/profile-utils";
+import { getAvatarUrl } from "@/lib/profile-utils";
+import type { AppUser } from "@/lib/users";
 import type {
-  UserProfile,
   Workout,
   WorkoutData,
   WorkoutInput,
@@ -40,25 +33,24 @@ type UpdateWorkoutResponse =
     }
   | ApiErrorResponse;
 
-export function FitnessDashboard() {
+type FitnessDashboardProps = {
+  user: AppUser;
+};
+
+export function FitnessDashboard({ user }: FitnessDashboardProps) {
   const todayDateKey = getTodayInTimezone();
   const currentYear = Number(todayDateKey.slice(0, 4));
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [isLoadingWorkouts, setIsLoadingWorkouts] = useState(true);
   const [isSubmittingWorkout, setIsSubmittingWorkout] = useState(false);
   const [workoutLoadError, setWorkoutLoadError] = useState("");
-  const profile = useSyncExternalStore(
-    subscribeToProfileChanges,
-    readStoredProfile,
-    () => null,
-  );
 
   const loadWorkouts = useCallback(async () => {
     setIsLoadingWorkouts(true);
     setWorkoutLoadError("");
 
     try {
-      const response = await fetch("/api/workouts", {
+      const response = await fetch(`/api/workouts?userId=${user.id}`, {
         cache: "no-store",
       });
       const payload = await readApiJson<WorkoutData | ApiErrorResponse>(
@@ -80,7 +72,7 @@ export function FitnessDashboard() {
     } finally {
       setIsLoadingWorkouts(false);
     }
-  }, []);
+  }, [user.id]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -90,21 +82,13 @@ export function FitnessDashboard() {
     return () => window.clearTimeout(timer);
   }, [loadWorkouts]);
 
-  function handleProfileComplete(nextProfile: UserProfile) {
-    storeProfile(nextProfile);
-  }
-
-  function handleProfileReset() {
-    clearStoredProfile();
-  }
-
   async function handleSubmitWorkout(input: WorkoutInput) {
     setIsSubmittingWorkout(true);
 
     try {
       const response = await fetch("/api/workouts", {
         method: "POST",
-        ...createWorkoutRequestInit(input),
+        ...createWorkoutRequestInit(input, user.id),
       });
       const payload = await readApiJson<CreateWorkoutResponse>(
         response,
@@ -137,7 +121,7 @@ export function FitnessDashboard() {
   async function handleUpdateWorkout(input: WorkoutUpdateInput) {
     const response = await fetch("/api/workouts", {
       method: "PATCH",
-      ...createWorkoutRequestInit(input),
+      ...createWorkoutRequestInit(input, user.id),
     });
     const payload = await readApiJson<UpdateWorkoutResponse>(
       response,
@@ -172,41 +156,29 @@ export function FitnessDashboard() {
 
   return (
     <main className="min-h-[100dvh] bg-paper px-4 py-6 text-stone-950 sm:px-6 lg:px-8">
-      {!profile ? (
-        <OnboardingOverlay
-          currentYear={currentYear}
-          onComplete={handleProfileComplete}
-        />
-      ) : null}
       <div className="mx-auto flex max-w-7xl flex-col gap-6">
         <header className="grid gap-6 rounded-lg border border-stone-200 bg-white p-5 sm:p-8 lg:grid-cols-[1fr_320px] lg:items-end">
           <div>
             <div className="flex flex-wrap items-center gap-3">
-              {profile ? (
-                <div className="h-14 w-14 overflow-hidden rounded-lg border border-stone-200 bg-stone-100">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    alt={`${profile.displayName}'s DiceBear avatar`}
-                    className="h-full w-full object-cover"
-                    src={getAvatarUrl(profile.avatarSeed)}
-                  />
-                </div>
-              ) : null}
+              <div className="h-14 w-14 overflow-hidden rounded-lg border border-stone-200 bg-stone-100">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  alt={`${user.displayName}'s DiceBear avatar`}
+                  className="h-full w-full object-cover"
+                  src={getAvatarUrl(user.avatarSeed)}
+                />
+              </div>
               <div>
                 <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-stone-500">
                   Fitness Tracker
                 </p>
-                {profile ? (
-                  <p className="mt-1 text-sm font-medium text-stone-600">
-                    Welcome back, {profile.displayName}
-                  </p>
-                ) : null}
+                <p className="mt-1 text-sm font-medium text-stone-600">
+                  Welcome back, {user.displayName}
+                </p>
               </div>
             </div>
             <h1 className="mt-4 max-w-3xl text-4xl font-semibold leading-[1.04] tracking-[-0.05em] text-stone-950 sm:text-5xl lg:text-6xl">
-              {profile
-                ? "Your lifetime map is awake."
-                : "Keep the chain visible."}
+              Your lifetime map is awake.
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-7 text-stone-600">
               Log any workout from 2026 onward. Earlier years stay quiet,
@@ -215,25 +187,14 @@ export function FitnessDashboard() {
           </div>
           <div className="rounded-lg border border-stone-200 bg-stone-50 p-4">
             <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-stone-500">
-              {profile ? "Profile" : "Today"}
+              Profile
             </p>
             <p className="mt-3 text-2xl font-semibold tracking-[-0.03em]">
-              {profile ? profile.birthYear : todayDateKey}
+              {user.birthYear}
             </p>
             <p className="mt-2 text-sm leading-6 text-stone-500">
-              {profile
-                ? "Heatmap begins at birth year; workout tracking begins at 2026."
-                : "Dates default to Asia/Ho_Chi_Minh for the final submit flow."}
+              Heatmap begins at birth year; workout tracking begins at 2026.
             </p>
-            {profile ? (
-              <button
-                className="mt-4 h-9 rounded-md border border-stone-200 bg-white px-3 text-sm font-semibold text-stone-700 transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-stone-100 active:scale-[0.98]"
-                onClick={handleProfileReset}
-                type="button"
-              >
-                Reset profile
-              </button>
-            ) : null}
           </div>
         </header>
 
@@ -280,7 +241,7 @@ export function FitnessDashboard() {
             </section>
           ) : (
             <ContributionHeatmap
-              birthYear={profile?.birthYear ?? currentYear}
+              birthYear={user.birthYear ?? currentYear}
               onUpdateWorkout={handleUpdateWorkout}
               workouts={workouts}
               todayDateKey={todayDateKey}
@@ -297,7 +258,10 @@ export function FitnessDashboard() {
   );
 }
 
-function createWorkoutRequestInit(input: WorkoutInput | WorkoutUpdateInput) {
+function createWorkoutRequestInit(
+  input: WorkoutInput | WorkoutUpdateInput,
+  userId: string,
+) {
   const hasImages = input.images && input.images.length > 0;
 
   if (!hasImages) {
@@ -305,7 +269,10 @@ function createWorkoutRequestInit(input: WorkoutInput | WorkoutUpdateInput) {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(input),
+      body: JSON.stringify({
+        ...input,
+        userId,
+      }),
     };
   }
 
@@ -315,6 +282,7 @@ function createWorkoutRequestInit(input: WorkoutInput | WorkoutUpdateInput) {
     body.set("id", input.id);
   }
 
+  body.set("userId", userId);
   body.set("date", input.date);
   body.set("type", input.type);
   body.set("startTime", input.startTime);
