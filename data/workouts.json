@@ -20,6 +20,26 @@
       "createdAt": "2026-07-07T02:19:33.564Z"
     },
     {
+      "id": "2026-07-07-1783435109180-055695c6",
+      "userId": "linh",
+      "date": "2026-07-07",
+      "type": "di bo",
+      "startTime": "12:38",
+      "endTime": "12:40",
+      "durationMinutes": 2,
+      "note": "",
+      "images": [
+        {
+          "src": "/uploads/2026/07/2026-07-07-workout-474d840a.avif",
+          "format": "avif",
+          "width": 900,
+          "height": 1200,
+          "sizeBytes": 24221
+        }
+      ],
+      "createdAt": "2026-07-07T14:38:29.180Z"
+    },
+    {
       "id": "2026-07-07-1783434384193-646edc8d",
       "userId": "test",
       "date": "2026-07-07",
