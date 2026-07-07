@@ -14,7 +14,7 @@ export function WorkoutTooltip({
   isTrackable = true,
 }: WorkoutTooltipProps) {
   return (
-    <div className="pointer-events-auto absolute bottom-full left-1/2 z-[1000] mb-2 hidden w-64 -translate-x-1/2 rounded-lg border border-stone-200 bg-white p-3 text-left text-xs text-stone-700 shadow-[0_18px_48px_rgba(17,17,17,0.10)] group-hover:block group-focus-visible:block">
+    <div className="w-64 rounded-lg border border-stone-200 bg-white p-3 text-left text-xs text-stone-700 shadow-[0_18px_48px_rgba(17,17,17,0.10)]">
       <p className="font-medium text-stone-950">{formatDisplayDate(date)}</p>
       {!isTrackable ? (
         <p className="mt-1 text-stone-500">No tracking yet</p>
