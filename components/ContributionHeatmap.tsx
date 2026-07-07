@@ -18,6 +18,20 @@ type ContributionHeatmapProps = {
 };
 
 const weekdayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const monthLabels = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
 const TOOLTIP_WIDTH = 256;
 const TOOLTIP_MARGIN = 16;
 
@@ -138,16 +152,16 @@ export function ContributionHeatmap({
       </div>
 
       <div className="mt-6 max-h-[620px] overflow-auto pr-1">
-        <div className="grid min-w-[880px] gap-3">
+        <div className="grid min-w-[900px] gap-5">
           {descendingHeatmapYears.map(({ year, weeks }) => (
             <div
-              className="grid grid-cols-[44px_32px_1fr] items-start gap-3"
+              className="grid grid-cols-[44px_32px_1fr] items-start gap-x-3"
               key={year}
             >
-              <div className="pt-0.5 font-mono text-[11px] text-stone-500">
+              <div className="pt-5 font-mono text-[11px] text-stone-500">
                 {year}
               </div>
-              <div className="grid grid-rows-7 gap-1 text-[9px] text-stone-400">
+              <div className="mt-5 grid grid-rows-7 gap-1 text-[9px] text-stone-400">
                 {weekdayLabels.map((label) => (
                   <span key={label} className="flex h-2.5 items-center">
                     {label === "Mon" || label === "Wed" || label === "Fri"
@@ -156,80 +170,93 @@ export function ContributionHeatmap({
                   </span>
                 ))}
               </div>
-              <div
-                aria-label={`${year} workout heatmap`}
-                className="relative isolate grid auto-cols-[10px] grid-flow-col grid-rows-7 gap-1"
-              >
-                {weeks.map((week, weekIndex) =>
-                  week.map((day, dayIndex) => {
-                    if (!day) {
+              <div>
+                <div
+                  aria-hidden="true"
+                  className="mb-2 grid h-3 auto-cols-[10px] grid-flow-col gap-1 text-[9px] leading-none text-stone-400"
+                >
+                  {getMonthMarkers(weeks).map((label, index) => (
+                    <span className="w-2.5" key={`${year}-${index}-${label}`}>
+                      {label}
+                    </span>
+                  ))}
+                </div>
+                <div
+                  aria-label={`${year} workout heatmap`}
+                  className="relative isolate grid auto-cols-[10px] grid-flow-col grid-rows-7 gap-1"
+                >
+                  {weeks.map((week, weekIndex) =>
+                    week.map((day, dayIndex) => {
+                      if (!day) {
+                        return (
+                          <span
+                            aria-hidden="true"
+                            className="h-2.5 w-2.5"
+                            key={`empty-${year}-${weekIndex}-${dayIndex}`}
+                          />
+                        );
+                      }
+
+                      const hasWorkout = day.status === "workout";
+                      const isTrackable = day.status !== "no-data";
+                      const label = !isTrackable
+                        ? "No tracking yet"
+                        : hasWorkout
+                          ? `${day.workouts.length} workout${
+                              day.workouts.length > 1 ? "s" : ""
+                            }`
+                          : "No workout";
+
                       return (
-                        <span
-                          aria-hidden="true"
-                          className="h-2.5 w-2.5"
-                          key={`empty-${year}-${weekIndex}-${dayIndex}`}
+                        <button
+                          aria-label={`${day.date}: ${label}`}
+                          className={`relative z-0 h-2.5 w-2.5 rounded-[2px] outline-none ring-offset-2 ring-offset-white transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:z-10 hover:scale-150 focus:z-10 focus-visible:ring-2 focus-visible:ring-moss ${
+                            hasWorkout
+                              ? "bg-moss"
+                              : isTrackable
+                                ? "bg-stone-950 hover:bg-stone-800"
+                                : "border border-stone-200 bg-stone-100"
+                          }`}
+                          onBlur={() => setActiveTooltip(null)}
+                          onFocus={(event) =>
+                            showTooltip({
+                              element: event.currentTarget,
+                              date: day.date,
+                              workouts: day.workouts,
+                              isTrackable,
+                            })
+                          }
+                          onMouseEnter={(event) =>
+                            showTooltip({
+                              element: event.currentTarget,
+                              date: day.date,
+                              workouts: day.workouts,
+                              isTrackable,
+                            })
+                          }
+                          onMouseLeave={() => setActiveTooltip(null)}
+                          onClick={(event) => {
+                            const rect =
+                              event.currentTarget.getBoundingClientRect();
+
+                            setActiveTooltip(null);
+                            setSelectedDay({
+                              date: day.date,
+                              workouts: day.workouts,
+                              isTrackable,
+                              origin: {
+                                x: rect.left + rect.width / 2,
+                                y: rect.top + rect.height / 2,
+                              },
+                            });
+                          }}
+                          key={day.date}
+                          type="button"
                         />
                       );
-                    }
-
-                    const hasWorkout = day.status === "workout";
-                    const isTrackable = day.status !== "no-data";
-                    const label = !isTrackable
-                      ? "No tracking yet"
-                      : hasWorkout
-                        ? `${day.workouts.length} workout${
-                            day.workouts.length > 1 ? "s" : ""
-                          }`
-                        : "No workout";
-
-                    return (
-                      <button
-                        aria-label={`${day.date}: ${label}`}
-                        className={`relative z-0 h-2.5 w-2.5 rounded-[2px] outline-none ring-offset-2 ring-offset-white transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:z-10 hover:scale-150 focus:z-10 focus-visible:ring-2 focus-visible:ring-moss ${
-                          hasWorkout
-                            ? "bg-moss"
-                            : isTrackable
-                              ? "bg-stone-950 hover:bg-stone-800"
-                              : "border border-stone-200 bg-stone-100"
-                        }`}
-                        onBlur={() => setActiveTooltip(null)}
-                        onFocus={(event) =>
-                          showTooltip({
-                            element: event.currentTarget,
-                            date: day.date,
-                            workouts: day.workouts,
-                            isTrackable,
-                          })
-                        }
-                        onMouseEnter={(event) =>
-                          showTooltip({
-                            element: event.currentTarget,
-                            date: day.date,
-                            workouts: day.workouts,
-                            isTrackable,
-                          })
-                        }
-                        onMouseLeave={() => setActiveTooltip(null)}
-                        onClick={(event) => {
-                          const rect = event.currentTarget.getBoundingClientRect();
-
-                          setActiveTooltip(null);
-                          setSelectedDay({
-                            date: day.date,
-                            workouts: day.workouts,
-                            isTrackable,
-                            origin: {
-                              x: rect.left + rect.width / 2,
-                              y: rect.top + rect.height / 2,
-                            },
-                          });
-                        }}
-                        key={day.date}
-                        type="button"
-                      />
-                    );
-                  }),
-                )}
+                    }),
+                  )}
+                </div>
               </div>
             </div>
           ))}
@@ -272,4 +299,18 @@ export function ContributionHeatmap({
       </AnimatePresence>
     </section>
   );
+}
+
+function getMonthMarkers(
+  weeks: Array<Array<{ date: string } | null>>,
+) {
+  return weeks.map((week) => {
+    const firstOfMonth = week.find((day) => day?.date.endsWith("-01"));
+
+    if (!firstOfMonth) {
+      return "";
+    }
+
+    return monthLabels[Number(firstOfMonth.date.slice(5, 7)) - 1];
+  });
 }
