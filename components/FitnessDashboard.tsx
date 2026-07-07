@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { ContributionHeatmap } from "@/components/ContributionHeatmap";
+import { Loading } from "@/components/Loading";
 import { StatsCards } from "@/components/StatsCards";
 import { WorkoutForm } from "@/components/WorkoutForm";
 import { getTodayInTimezone } from "@/lib/date-utils";
@@ -43,6 +44,8 @@ export function FitnessDashboard({ user }: FitnessDashboardProps) {
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [isLoadingWorkouts, setIsLoadingWorkouts] = useState(true);
   const [isSubmittingWorkout, setIsSubmittingWorkout] = useState(false);
+  const [isUploadingWorkoutImages, setIsUploadingWorkoutImages] =
+    useState(false);
   const [workoutLoadError, setWorkoutLoadError] = useState("");
 
   const loadWorkouts = useCallback(async () => {
@@ -84,6 +87,7 @@ export function FitnessDashboard({ user }: FitnessDashboardProps) {
 
   async function handleSubmitWorkout(input: WorkoutInput) {
     setIsSubmittingWorkout(true);
+    setIsUploadingWorkoutImages(hasWorkoutImages(input));
 
     try {
       const response = await fetch("/api/workouts", {
@@ -115,47 +119,57 @@ export function FitnessDashboard({ user }: FitnessDashboardProps) {
       await loadWorkouts();
     } finally {
       setIsSubmittingWorkout(false);
+      setIsUploadingWorkoutImages(false);
     }
   }
 
   async function handleUpdateWorkout(input: WorkoutUpdateInput) {
-    const response = await fetch("/api/workouts", {
-      method: "PATCH",
-      ...createWorkoutRequestInit(input, user.id),
-    });
-    const payload = await readApiJson<UpdateWorkoutResponse>(
-      response,
-      "Unable to update workout.",
-    );
+    setIsUploadingWorkoutImages(hasWorkoutImages(input));
 
-    if (!response.ok || !payload.success) {
-      throw new Error(
-        "error" in payload ? payload.error : "Unable to update workout.",
+    try {
+      const response = await fetch("/api/workouts", {
+        method: "PATCH",
+        ...createWorkoutRequestInit(input, user.id),
+      });
+      const payload = await readApiJson<UpdateWorkoutResponse>(
+        response,
+        "Unable to update workout.",
       );
+
+      if (!response.ok || !payload.success) {
+        throw new Error(
+          "error" in payload ? payload.error : "Unable to update workout.",
+        );
+      }
+
+      setWorkouts((current) =>
+        current
+          .map((workout) =>
+            workout.id === payload.workout.id ? payload.workout : workout,
+          )
+          .sort((a, b) => {
+            const dateSort = a.date.localeCompare(b.date);
+
+            if (dateSort !== 0) {
+              return dateSort;
+            }
+
+            return a.startTime.localeCompare(b.startTime);
+          }),
+      );
+      await loadWorkouts();
+
+      return payload.workout;
+    } finally {
+      setIsUploadingWorkoutImages(false);
     }
-
-    setWorkouts((current) =>
-      current
-        .map((workout) =>
-          workout.id === payload.workout.id ? payload.workout : workout,
-        )
-        .sort((a, b) => {
-          const dateSort = a.date.localeCompare(b.date);
-
-          if (dateSort !== 0) {
-            return dateSort;
-          }
-
-          return a.startTime.localeCompare(b.startTime);
-        }),
-    );
-    await loadWorkouts();
-
-    return payload.workout;
   }
 
   return (
     <main className="min-h-[100dvh] bg-paper px-4 py-6 text-stone-950 sm:px-6 lg:px-8">
+      {isUploadingWorkoutImages ? (
+        <Loading message="Optimizing your workout images..." />
+      ) : null}
       <div className="mx-auto flex max-w-7xl flex-col gap-6">
         <header className="grid gap-6 rounded-lg border border-stone-200 bg-white p-5 sm:p-8 lg:grid-cols-[1fr_320px] lg:items-end">
           <div>
@@ -256,6 +270,10 @@ export function FitnessDashboard({ user }: FitnessDashboardProps) {
       </div>
     </main>
   );
+}
+
+function hasWorkoutImages(input: WorkoutInput | WorkoutUpdateInput) {
+  return Boolean(input.images?.length);
 }
 
 function createWorkoutRequestInit(
