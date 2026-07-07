@@ -33,6 +33,10 @@ export type CreateWorkoutRequest = {
   note?: unknown;
 };
 
+export type UpdateWorkoutRequest = CreateWorkoutRequest & {
+  id?: unknown;
+};
+
 export type WorkoutInput = {
   date: string;
   type: string;
@@ -40,6 +44,10 @@ export type WorkoutInput = {
   endTime: string;
   note: string;
   images?: File[];
+};
+
+export type WorkoutUpdateInput = WorkoutInput & {
+  id: string;
 };
 
 export type UserProfile = {

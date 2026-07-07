@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { AnimatePresence } from "framer-motion";
-import type { Workout } from "@/lib/workout-types";
+import type { Workout, WorkoutUpdateInput } from "@/lib/workout-types";
 import {
   createLifetimeHeatmapYears,
   TRACKING_START_DATE,
@@ -14,6 +14,7 @@ type ContributionHeatmapProps = {
   workouts: Workout[];
   todayDateKey: string;
   birthYear: number;
+  onUpdateWorkout: (input: WorkoutUpdateInput) => Promise<Workout>;
 };
 
 const weekdayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -43,6 +44,7 @@ export function ContributionHeatmap({
   workouts,
   todayDateKey,
   birthYear,
+  onUpdateWorkout,
 }: ContributionHeatmapProps) {
   const heatmapYears = createLifetimeHeatmapYears({
     birthYear,
@@ -82,6 +84,36 @@ export function ContributionHeatmap({
       top: placement === "above" ? rect.top - 8 : rect.bottom + 8,
       placement,
     });
+  }
+
+  async function handleSelectedDayWorkoutUpdate(input: WorkoutUpdateInput) {
+    const updatedWorkout = await onUpdateWorkout(input);
+
+    setSelectedDay((current) => {
+      if (!current) {
+        return current;
+      }
+
+      return {
+        ...current,
+        date: updatedWorkout.date,
+        workouts: current.workouts
+          .map((workout) =>
+            workout.id === updatedWorkout.id ? updatedWorkout : workout,
+          )
+          .sort((a, b) => {
+            const dateSort = a.date.localeCompare(b.date);
+
+            if (dateSort !== 0) {
+              return dateSort;
+            }
+
+            return a.startTime.localeCompare(b.startTime);
+          }),
+      };
+    });
+
+    return updatedWorkout;
   }
 
   return (
@@ -232,6 +264,7 @@ export function ContributionHeatmap({
             date={selectedDay.date}
             isTrackable={selectedDay.isTrackable}
             onClose={() => setSelectedDay(null)}
+            onUpdateWorkout={handleSelectedDayWorkoutUpdate}
             origin={selectedDay.origin}
             workouts={selectedDay.workouts}
           />
