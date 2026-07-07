@@ -36,6 +36,7 @@ export function WorkoutDayDetailModal({
   );
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const selectedImage = galleryImages[selectedImageIndex];
+  const spawnOffset = getSpawnOffset(origin);
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
@@ -64,31 +65,33 @@ export function WorkoutDayDetailModal({
           opacity: 1,
           scaleX: 1,
           scaleY: 1,
+          x: 0,
           y: 0,
         }}
         className="max-h-[88dvh] w-full max-w-3xl overflow-hidden rounded-lg border border-stone-200 bg-white shadow-[0_30px_120px_rgba(17,17,17,0.22)]"
         exit={{
           opacity: 0,
-          scaleX: 0.08,
-          scaleY: 0.02,
-          y: 18,
+          scaleX: 0.04,
+          scaleY: 0.04,
+          x: spawnOffset.x,
+          y: spawnOffset.y,
         }}
         initial={{
           opacity: 0,
-          scaleX: 0.08,
-          scaleY: 0.02,
-          y: 18,
+          scaleX: 0.04,
+          scaleY: 0.04,
+          x: spawnOffset.x,
+          y: spawnOffset.y,
         }}
         onClick={(event) => event.stopPropagation()}
         style={{
-          transformOrigin: origin
-            ? `${origin.x}px ${origin.y}px`
-            : "50% 50%",
+          transformOrigin: "50% 50%",
         }}
         transition={{
           opacity: { duration: 0.12 },
           scaleX: { duration: 0.36, ease: [0.16, 1, 0.3, 1] },
           scaleY: { duration: 0.42, ease: [0.16, 1, 0.3, 1] },
+          x: { duration: 0.42, ease: [0.16, 1, 0.3, 1] },
           y: { duration: 0.36, ease: [0.16, 1, 0.3, 1] },
         }}
       >
@@ -194,4 +197,18 @@ export function WorkoutDayDetailModal({
       </motion.div>
     </motion.div>
   );
+}
+
+function getSpawnOffset(origin?: { x: number; y: number }) {
+  if (!origin || typeof window === "undefined") {
+    return {
+      x: 0,
+      y: 0,
+    };
+  }
+
+  return {
+    x: origin.x - window.innerWidth / 2,
+    y: origin.y - window.innerHeight / 2,
+  };
 }
