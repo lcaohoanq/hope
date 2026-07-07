@@ -11,6 +11,7 @@ type OnboardingOverlayProps = {
 };
 
 const onboardingSteps = ["Name", "Birth year"] as const;
+const initialAvatarSeed = "profile-preview";
 const stepContentTransition = {
   duration: 0.46,
   ease: [0.16, 1, 0.3, 1],
@@ -23,7 +24,7 @@ export function OnboardingOverlay({
   const [step, setStep] = useState<"name" | "birthYear">("name");
   const [displayName, setDisplayName] = useState("");
   const [birthYear, setBirthYear] = useState("");
-  const [avatarSeed, setAvatarSeed] = useState(() => createAvatarSeed());
+  const [avatarSeed, setAvatarSeed] = useState(initialAvatarSeed);
   const [error, setError] = useState("");
   const avatarUrl = useMemo(() => getAvatarUrl(avatarSeed), [avatarSeed]);
   const currentStepIndex = step === "name" ? 0 : 1;
