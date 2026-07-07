@@ -6,6 +6,7 @@ import {
   createLifetimeHeatmapYears,
   TRACKING_START_DATE,
 } from "@/lib/workout-utils";
+import { WorkoutDayDetailModal } from "@/components/WorkoutDayDetailModal";
 import { WorkoutTooltip } from "@/components/WorkoutTooltip";
 
 type ContributionHeatmapProps = {
@@ -27,6 +28,12 @@ type ActiveTooltip = {
   placement: "above" | "below";
 };
 
+type SelectedDay = {
+  date: string;
+  workouts: Workout[];
+  isTrackable: boolean;
+};
+
 export function ContributionHeatmap({
   workouts,
   todayDateKey,
@@ -40,6 +47,7 @@ export function ContributionHeatmap({
   const descendingHeatmapYears = [...heatmapYears].reverse();
   const trackingStartYear = Number(TRACKING_START_DATE.slice(0, 4));
   const [activeTooltip, setActiveTooltip] = useState<ActiveTooltip | null>(null);
+  const [selectedDay, setSelectedDay] = useState<SelectedDay | null>(null);
 
   function showTooltip({
     element,
@@ -165,6 +173,14 @@ export function ContributionHeatmap({
                           })
                         }
                         onMouseLeave={() => setActiveTooltip(null)}
+                        onClick={() => {
+                          setActiveTooltip(null);
+                          setSelectedDay({
+                            date: day.date,
+                            workouts: day.workouts,
+                            isTrackable,
+                          });
+                        }}
                         key={day.date}
                         type="button"
                       />
@@ -198,6 +214,14 @@ export function ContributionHeatmap({
             workouts={activeTooltip.workouts}
           />
         </div>
+      ) : null}
+      {selectedDay ? (
+        <WorkoutDayDetailModal
+          date={selectedDay.date}
+          isTrackable={selectedDay.isTrackable}
+          onClose={() => setSelectedDay(null)}
+          workouts={selectedDay.workouts}
+        />
       ) : null}
     </section>
   );

@@ -4,12 +4,16 @@ import { useState } from "react";
 import type { WorkoutImage } from "@/lib/workout-types";
 
 type WorkoutImageThumbnailProps = {
+  className?: string;
   image: WorkoutImage;
+  imageClassName?: string;
   workoutDate: string;
 };
 
 export function WorkoutImageThumbnail({
+  className = "h-full w-full",
   image,
+  imageClassName = "h-full w-full object-cover",
   workoutDate,
 }: WorkoutImageThumbnailProps) {
   const [src, setSrc] = useState(image.src);
@@ -26,7 +30,9 @@ export function WorkoutImageThumbnail({
 
   if (isUnavailable) {
     return (
-      <div className="flex h-full w-full items-center justify-center bg-stone-100 px-1 text-center text-[9px] leading-tight text-stone-500">
+      <div
+        className={`flex items-center justify-center bg-stone-100 px-1 text-center text-[9px] leading-tight text-stone-500 ${className}`}
+      >
         Image unavailable
       </div>
     );
@@ -36,7 +42,7 @@ export function WorkoutImageThumbnail({
     // eslint-disable-next-line @next/next/no-img-element
     <img
       alt={`Workout image for ${workoutDate}`}
-      className="h-full w-full object-cover"
+      className={imageClassName}
       height={image.height}
       loading="lazy"
       onError={handleImageError}
