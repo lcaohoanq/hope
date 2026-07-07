@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { motion } from "framer-motion";
 import { formatDisplayDate } from "@/lib/date-utils";
 import type { Workout } from "@/lib/workout-types";
 import { WorkoutImageThumbnail } from "@/components/WorkoutImageThumbnail";
@@ -9,6 +10,10 @@ type WorkoutDayDetailModalProps = {
   date: string;
   workouts: Workout[];
   isTrackable: boolean;
+  origin?: {
+    x: number;
+    y: number;
+  };
   onClose: () => void;
 };
 
@@ -16,6 +21,7 @@ export function WorkoutDayDetailModal({
   date,
   workouts,
   isTrackable,
+  origin,
   onClose,
 }: WorkoutDayDetailModalProps) {
   const galleryImages = useMemo(
@@ -43,15 +49,48 @@ export function WorkoutDayDetailModal({
   }, [onClose]);
 
   return (
-    <div
+    <motion.div
       aria-modal="true"
       className="fixed inset-0 z-[10000] flex items-center justify-center bg-stone-950/35 p-4 backdrop-blur-sm"
+      exit={{ opacity: 0 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
       onClick={onClose}
       role="dialog"
+      transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
     >
-      <div
+      <motion.div
+        animate={{
+          opacity: 1,
+          scaleX: 1,
+          scaleY: 1,
+          y: 0,
+        }}
         className="max-h-[88dvh] w-full max-w-3xl overflow-hidden rounded-lg border border-stone-200 bg-white shadow-[0_30px_120px_rgba(17,17,17,0.22)]"
+        exit={{
+          opacity: 0,
+          scaleX: 0.08,
+          scaleY: 0.02,
+          y: 18,
+        }}
+        initial={{
+          opacity: 0,
+          scaleX: 0.08,
+          scaleY: 0.02,
+          y: 18,
+        }}
         onClick={(event) => event.stopPropagation()}
+        style={{
+          transformOrigin: origin
+            ? `${origin.x}px ${origin.y}px`
+            : "50% 50%",
+        }}
+        transition={{
+          opacity: { duration: 0.12 },
+          scaleX: { duration: 0.36, ease: [0.16, 1, 0.3, 1] },
+          scaleY: { duration: 0.42, ease: [0.16, 1, 0.3, 1] },
+          y: { duration: 0.36, ease: [0.16, 1, 0.3, 1] },
+        }}
       >
         <div className="flex items-start justify-between gap-4 border-b border-stone-100 p-4 sm:p-5">
           <div>
@@ -152,7 +191,7 @@ export function WorkoutDayDetailModal({
             )}
           </div>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
