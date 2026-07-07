@@ -1,0 +1,248 @@
+export type Language = "vi" | "en";
+
+export type LocalizedText = Record<Language, string>;
+
+export const languageOptions: Array<{
+  label: string;
+  value: Language;
+}> = [
+  {
+    label: "Tiếng Việt",
+    value: "vi",
+  },
+  {
+    label: "English",
+    value: "en",
+  },
+];
+
+export const translations = {
+  vi: {
+    common: {
+      cancel: "Hủy",
+      close: "Đóng",
+      edit: "Chỉnh sửa",
+      home: "Trang chủ",
+      language: "Ngôn ngữ",
+      minutes: "phút",
+      profile: "Hồ sơ",
+      retry: "Thử lại",
+      saveChanges: "Lưu thay đổi",
+      saving: "Đang lưu...",
+    },
+    dashboard: {
+      addWorkout: "Thêm buổi tập",
+      ageMap: "Tuổi trên bản đồ",
+      birthYear: "Năm sinh",
+      closeWorkoutForm: "Đóng biểu mẫu tập luyện",
+      fitnessTracker: "Theo dõi luyện tập",
+      loadingImages: "Đang tối ưu ảnh buổi tập...",
+      trackingFrom: "Theo dõi từ",
+      years: "tuổi",
+    },
+    errors: {
+      imageLimit: (limit: number) => `Chọn tối đa ${limit} ảnh.`,
+      invalidJson: (fallback: string) =>
+        `${fallback} Máy chủ trả về dữ liệu JSON không hợp lệ.`,
+      nonJson: (fallback: string) =>
+        `${fallback} Máy chủ không trả về dữ liệu JSON.`,
+      saveWorkout: "Chưa thể lưu buổi tập.",
+      startBeforeEnd: "Giờ bắt đầu phải sớm hơn giờ kết thúc.",
+      timeRequired: "Vui lòng nhập giờ bắt đầu và giờ kết thúc.",
+      typeRequired: "Vui lòng nhập loại buổi tập.",
+      updateWorkout: "Chưa thể cập nhật buổi tập.",
+      workoutLoad: "Chưa thể tải dữ liệu tập luyện.",
+    },
+    form: {
+      addImages: "Thêm ảnh",
+      date: "Ngày",
+      durationPreview: "Thời lượng dự kiến",
+      end: "Kết thúc",
+      endTime: "Giờ kết thúc",
+      imageSlotAvailable: (count: number) =>
+        `Còn ${count} vị trí ảnh có thể thêm.`,
+      images: "Ảnh",
+      logWorkout: "Ghi lại buổi tập",
+      note: "Ghi chú",
+      notePlaceholder: "Một ghi chú ngắn cho bạn sau này",
+      selectedEditPreviewAlt: (index: number) =>
+        `Ảnh chỉnh sửa đã chọn ${index}`,
+      selectedPreviewAlt: (index: number) => `Ảnh buổi tập đã chọn ${index}`,
+      start: "Bắt đầu",
+      startTime: "Giờ bắt đầu",
+      submit: "Lưu buổi tập",
+      success: "Đã lưu buổi tập và cập nhật heatmap.",
+      todayEntry: "Hôm nay",
+      type: "Loại",
+      workoutType: "Loại buổi tập",
+      workoutTypePlaceholder: "Đi bộ, gym, chạy bộ",
+      workoutUpdated: "Đã cập nhật buổi tập.",
+    },
+    header: {
+      english: "English",
+      vietnamese: "Tiếng Việt",
+    },
+    heatmap: {
+      lifetime: "Trọn đời",
+      months: [
+        "Th1",
+        "Th2",
+        "Th3",
+        "Th4",
+        "Th5",
+        "Th6",
+        "Th7",
+        "Th8",
+        "Th9",
+        "Th10",
+        "Th11",
+        "Th12",
+      ],
+      noData: "Chưa có dữ liệu",
+      noTrackingYet: "Chưa bắt đầu theo dõi",
+      noWorkout: "Chưa tập",
+      weekdays: ["CN", "T2", "T3", "T4", "T5", "T6", "T7"],
+      view: "Chế độ xem",
+      workout: "Có tập",
+      workoutCount: (count: number) => `${count} buổi tập`,
+      yearTitle: (year: number) => `Năm ${year}`,
+    },
+    modal: {
+      addMoreImages: (count: number) => `Thêm tối đa ${count} ảnh nữa.`,
+      closeWorkoutDetail: "Đóng chi tiết buổi tập",
+      dayDetail: "Chi tiết ngày",
+      loggedWorkoutCount: (count: number) => `${count} buổi tập đã ghi`,
+      noWorkoutLogged: "Chưa ghi buổi tập.",
+      showWorkoutImage: (index: number) => `Xem ảnh buổi tập ${index}`,
+    },
+    stats: {
+      activeDays: "Ngày có tập",
+      activeDaysDetail: (scope: string) => `đã ghi trong ${scope}`,
+      currentStreak: "Chuỗi hiện tại",
+      day: "ngày",
+      days: "ngày",
+      last30Days: "30 ngày gần đây",
+      last30DaysDetail: "ngày có vận động",
+      lifetimeScope: "toàn bộ thời gian",
+      totalTime: "Tổng thời gian",
+      totalTimeDetail: (minutes: number) => `${minutes} phút đã ghi`,
+    },
+  },
+  en: {
+    common: {
+      cancel: "Cancel",
+      close: "Close",
+      edit: "Edit",
+      home: "Home",
+      language: "Language",
+      minutes: "minutes",
+      profile: "Profile",
+      retry: "Retry",
+      saveChanges: "Save changes",
+      saving: "Saving...",
+    },
+    dashboard: {
+      addWorkout: "Add a workout",
+      ageMap: "Age map",
+      birthYear: "Birth year",
+      closeWorkoutForm: "Close workout form",
+      fitnessTracker: "Fitness Tracker",
+      loadingImages: "Optimizing your workout images...",
+      trackingFrom: "Tracking from",
+      years: "years",
+    },
+    errors: {
+      imageLimit: (limit: number) => `Choose up to ${limit} images.`,
+      invalidJson: (fallback: string) =>
+        `${fallback} The server returned invalid JSON.`,
+      nonJson: (fallback: string) =>
+        `${fallback} The server returned a non-JSON response.`,
+      saveWorkout: "Unable to save workout.",
+      startBeforeEnd: "Start time must be earlier than end time.",
+      timeRequired: "Start time and end time are required.",
+      typeRequired: "Workout type is required.",
+      updateWorkout: "Unable to update workout.",
+      workoutLoad: "Unable to load workouts.",
+    },
+    form: {
+      addImages: "Add images",
+      date: "Date",
+      durationPreview: "Duration preview",
+      end: "End",
+      endTime: "End time",
+      imageSlotAvailable: (count: number) =>
+        `${count} image slot${count === 1 ? "" : "s"} available.`,
+      images: "Images",
+      logWorkout: "Log a workout",
+      note: "Note",
+      notePlaceholder: "Short context for future you",
+      selectedEditPreviewAlt: (index: number) =>
+        `Selected edit preview ${index}`,
+      selectedPreviewAlt: (index: number) =>
+        `Selected workout preview ${index}`,
+      start: "Start",
+      startTime: "Start time",
+      submit: "Log workout",
+      success: "Workout saved and heatmap refreshed.",
+      todayEntry: "Today's entry",
+      type: "Type",
+      workoutType: "Workout type",
+      workoutTypePlaceholder: "Walking, gym, running",
+      workoutUpdated: "Workout updated.",
+    },
+    header: {
+      english: "English",
+      vietnamese: "Tiếng Việt",
+    },
+    heatmap: {
+      lifetime: "Lifetime",
+      months: [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+      ],
+      noData: "No data",
+      noTrackingYet: "No tracking yet",
+      noWorkout: "No workout",
+      weekdays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+      view: "View",
+      workout: "Workout",
+      workoutCount: (count: number) =>
+        `${count} workout${count === 1 ? "" : "s"}`,
+      yearTitle: (year: number) => `Your ${year}`,
+    },
+    modal: {
+      addMoreImages: (count: number) =>
+        `Add up to ${count} more image${count === 1 ? "" : "s"}.`,
+      closeWorkoutDetail: "Close workout detail",
+      dayDetail: "Day detail",
+      loggedWorkoutCount: (count: number) =>
+        `${count} workout${count === 1 ? "" : "s"} logged`,
+      noWorkoutLogged: "No workout logged.",
+      showWorkoutImage: (index: number) => `Show workout image ${index}`,
+    },
+    stats: {
+      activeDays: "Active days",
+      activeDaysDetail: (scope: string) => `logged in ${scope}`,
+      currentStreak: "Current streak",
+      day: "day",
+      days: "days",
+      last30Days: "Last 30 days",
+      last30DaysDetail: "days with movement",
+      lifetimeScope: "lifetime view",
+      totalTime: "Total time",
+      totalTimeDetail: (minutes: number) => `${minutes} minutes recorded`,
+    },
+  },
+} as const;
+
+export type AppCopy = (typeof translations)[Language];

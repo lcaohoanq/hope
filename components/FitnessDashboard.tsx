@@ -2,11 +2,18 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import Link from "next/link";
 import { ContributionHeatmap } from "@/components/ContributionHeatmap";
 import { Loading } from "@/components/Loading";
 import { StatsCards } from "@/components/StatsCards";
 import { WorkoutForm } from "@/components/WorkoutForm";
 import { getTodayInTimezone } from "@/lib/date-utils";
+import {
+  languageOptions,
+  translations,
+  type AppCopy,
+  type Language,
+} from "@/lib/i18n";
 import { getAvatarUrl } from "@/lib/profile-utils";
 import type { AppUser, HeatmapView } from "@/lib/users";
 import type {
@@ -43,6 +50,8 @@ export function FitnessDashboard({ user }: FitnessDashboardProps) {
   const todayDateKey = getTodayInTimezone();
   const currentYear = Number(todayDateKey.slice(0, 4));
   const birthYear = user.birthYear ?? currentYear;
+  const [language, setLanguage] = useState<Language>(user.preferredLanguage);
+  const copy = translations[language];
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [isLoadingWorkouts, setIsLoadingWorkouts] = useState(true);
   const [isSubmittingWorkout, setIsSubmittingWorkout] = useState(false);
@@ -68,24 +77,24 @@ export function FitnessDashboard({ user }: FitnessDashboardProps) {
       });
       const payload = await readApiJson<WorkoutData | ApiErrorResponse>(
         response,
-        "Unable to load workouts.",
+        copy.errors.workoutLoad,
       );
 
       if (!response.ok || "success" in payload) {
         throw new Error(
-          "error" in payload ? payload.error : "Unable to load workouts.",
+          "error" in payload ? payload.error : copy.errors.workoutLoad,
         );
       }
 
       setWorkouts(payload.workouts);
     } catch (error) {
       setWorkoutLoadError(
-        error instanceof Error ? error.message : "Unable to load workouts.",
+        error instanceof Error ? error.message : copy.errors.workoutLoad,
       );
     } finally {
       setIsLoadingWorkouts(false);
     }
-  }, [user.id]);
+  }, [copy.errors.workoutLoad, user.id]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -121,12 +130,12 @@ export function FitnessDashboard({ user }: FitnessDashboardProps) {
       });
       const payload = await readApiJson<CreateWorkoutResponse>(
         response,
-        "Unable to save workout.",
+        copy.errors.saveWorkout,
       );
 
       if (!response.ok || !payload.success) {
         throw new Error(
-          "error" in payload ? payload.error : "Unable to save workout.",
+          "error" in payload ? payload.error : copy.errors.saveWorkout,
         );
       }
 
@@ -158,12 +167,12 @@ export function FitnessDashboard({ user }: FitnessDashboardProps) {
       });
       const payload = await readApiJson<UpdateWorkoutResponse>(
         response,
-        "Unable to update workout.",
+        copy.errors.updateWorkout,
       );
 
       if (!response.ok || !payload.success) {
         throw new Error(
-          "error" in payload ? payload.error : "Unable to update workout.",
+          "error" in payload ? payload.error : copy.errors.updateWorkout,
         );
       }
 
@@ -191,81 +200,94 @@ export function FitnessDashboard({ user }: FitnessDashboardProps) {
   }
 
   return (
-    <main className="min-h-[100dvh] bg-paper px-4 py-6 text-stone-950 sm:px-6 lg:px-8">
+    <main className="min-h-[100dvh] bg-paper text-stone-950">
       {isUploadingWorkoutImages ? (
-        <Loading message="Optimizing your workout images..." />
+        <Loading message={copy.dashboard.loadingImages} />
       ) : null}
-      <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[280px_minmax(0,1fr)] lg:items-start">
-        <UserProfileSidebar
-          onAddWorkout={() => setIsWorkoutDialogOpen(true)}
-          todayDateKey={todayDateKey}
-          user={user}
-        />
+      <TopHeader
+        copy={copy}
+        language={language}
+        onLanguageChange={setLanguage}
+        user={user}
+      />
+      <div className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:px-8">
+        <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)] lg:items-start">
+          <UserProfileSidebar
+            copy={copy}
+            language={language}
+            onAddWorkout={() => setIsWorkoutDialogOpen(true)}
+            todayDateKey={todayDateKey}
+            user={user}
+          />
 
-        <div className="grid min-w-0 gap-6">
-          {workoutLoadError ? (
-            <section className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <p>{workoutLoadError}</p>
-                <button
-                  className="h-9 rounded-md border border-red-200 bg-white px-3 font-semibold text-red-800 transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-red-100 active:scale-[0.98]"
-                  onClick={() => void loadWorkouts()}
-                  type="button"
-                >
-                  Retry
-                </button>
-              </div>
-            </section>
-          ) : null}
+          <div className="grid min-w-0 gap-6">
+            {workoutLoadError ? (
+              <section className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <p>{workoutLoadError}</p>
+                  <button
+                    className="h-9 rounded-md border border-red-200 bg-white px-3 font-semibold text-red-800 transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-red-100 active:scale-[0.98]"
+                    onClick={() => void loadWorkouts()}
+                    type="button"
+                  >
+                    {copy.common.retry}
+                  </button>
+                </div>
+              </section>
+            ) : null}
 
-          {isLoadingWorkouts ? (
-            <WorkoutLoadingState />
-          ) : (
-            <StatsCards
-              todayDateKey={todayDateKey}
-              view={selectedHeatmapView}
-              workouts={visibleWorkouts}
-            />
-          )}
+            {isLoadingWorkouts ? (
+              <WorkoutLoadingState />
+            ) : (
+              <StatsCards
+                copy={copy}
+                todayDateKey={todayDateKey}
+                view={selectedHeatmapView}
+                workouts={visibleWorkouts}
+              />
+            )}
 
-          {isLoadingWorkouts ? (
-            <section className="min-h-[480px] rounded-lg border border-stone-200 bg-white p-5 sm:p-6">
-              <div className="h-5 w-40 animate-pulse rounded bg-stone-100" />
-              <div className="mt-8 grid gap-5">
-                {Array.from({ length: 8 }, (_, index) => (
-                  <div className="grid gap-2" key={index}>
-                    <div className="ml-24 h-3 w-80 rounded bg-stone-100" />
-                    <div className="flex gap-3">
-                      <div className="h-3 w-10 rounded bg-stone-100" />
-                      <div className="grid flex-1 grid-cols-12 gap-1">
-                        {Array.from({ length: 48 }, (_, cellIndex) => (
-                          <div
-                            className="h-2.5 rounded-[2px] bg-stone-100"
-                            key={cellIndex}
-                          />
-                        ))}
+            {isLoadingWorkouts ? (
+              <section className="min-h-[480px] rounded-lg border border-stone-200 bg-white p-5 sm:p-6">
+                <div className="h-5 w-40 animate-pulse rounded bg-stone-100" />
+                <div className="mt-8 grid gap-5">
+                  {Array.from({ length: 8 }, (_, index) => (
+                    <div className="grid gap-2" key={index}>
+                      <div className="ml-24 h-3 w-80 rounded bg-stone-100" />
+                      <div className="flex gap-3">
+                        <div className="h-3 w-10 rounded bg-stone-100" />
+                        <div className="grid flex-1 grid-cols-12 gap-1">
+                          {Array.from({ length: 48 }, (_, cellIndex) => (
+                            <div
+                              className="h-2.5 rounded-[2px] bg-stone-100"
+                              key={cellIndex}
+                            />
+                          ))}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-          ) : (
-            <ContributionHeatmap
-              birthYear={birthYear}
-              onUpdateWorkout={handleUpdateWorkout}
-              onViewChange={setSelectedHeatmapView}
-              view={selectedHeatmapView}
-              workouts={workouts}
-              todayDateKey={todayDateKey}
-            />
-          )}
+                  ))}
+                </div>
+              </section>
+            ) : (
+              <ContributionHeatmap
+                birthYear={birthYear}
+                copy={copy}
+                language={language}
+                onUpdateWorkout={handleUpdateWorkout}
+                onViewChange={setSelectedHeatmapView}
+                view={selectedHeatmapView}
+                workouts={workouts}
+                todayDateKey={todayDateKey}
+              />
+            )}
+          </div>
         </div>
       </div>
       <AnimatePresence>
         {isWorkoutDialogOpen ? (
           <motion.div
-            aria-label="Log a workout"
+            aria-label={copy.form.logWorkout}
             aria-modal="true"
             animate={{ opacity: 1 }}
             className="fixed inset-0 z-[10000] flex items-center justify-center bg-stone-950/35 p-4 backdrop-blur-sm"
@@ -284,7 +306,7 @@ export function FitnessDashboard({ user }: FitnessDashboardProps) {
               transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
             >
               <button
-                aria-label="Close workout form"
+                aria-label={copy.dashboard.closeWorkoutForm}
                 className="absolute right-4 top-4 z-10 h-9 w-9 rounded-md border border-stone-200 bg-white text-xl leading-none text-stone-500 transition hover:bg-stone-100 hover:text-stone-950"
                 onClick={() => setIsWorkoutDialogOpen(false)}
                 type="button"
@@ -292,6 +314,7 @@ export function FitnessDashboard({ user }: FitnessDashboardProps) {
                 x
               </button>
               <WorkoutForm
+                copy={copy}
                 defaultDate={todayDateKey}
                 isSubmitting={isSubmittingWorkout}
                 onSubmitWorkout={handleSubmitWorkout}
@@ -338,11 +361,75 @@ function clampYear(year: number, minYear: number, maxYear: number) {
   return Math.min(Math.max(year, minYear), maxYear);
 }
 
+function TopHeader({
+  copy,
+  language,
+  onLanguageChange,
+  user,
+}: {
+  copy: AppCopy;
+  language: Language;
+  onLanguageChange: (language: Language) => void;
+  user: AppUser;
+}) {
+  return (
+    <header className="flex w-full flex-col gap-3 border-b border-stone-200 bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
+      <Link
+        className="inline-flex h-10 items-center rounded-md px-3 text-sm font-semibold text-stone-700 transition hover:bg-stone-100 hover:text-stone-950"
+        href="/"
+      >
+        {copy.common.home}
+      </Link>
+      <div className="flex flex-wrap items-center gap-3">
+        <Link
+          className="inline-flex h-10 items-center gap-2 rounded-md border border-stone-200 bg-white px-3 text-sm font-semibold text-stone-800 transition hover:bg-stone-100"
+          href={`/${user.slug}`}
+        >
+          <span className="h-6 w-6 overflow-hidden rounded-full border border-stone-200 bg-stone-100">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              alt={`${user.displayName}'s DiceBear avatar`}
+              className="h-full w-full object-cover"
+              src={getAvatarUrl(user.avatarSeed)}
+            />
+          </span>
+          <span className="sr-only">{copy.common.profile}</span>
+          <span>{user.displayName}</span>
+        </Link>
+        <label className="flex h-10 items-center gap-2 rounded-md border border-stone-200 bg-white px-3 text-sm font-semibold text-stone-800">
+          <span className="text-xs font-medium text-stone-500">
+            {copy.common.language}
+          </span>
+          <select
+            className="bg-transparent text-sm font-semibold text-stone-800 outline-none"
+            onChange={(event) =>
+              onLanguageChange(event.target.value as Language)
+            }
+            value={language}
+          >
+            {languageOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.value === "vi"
+                  ? copy.header.vietnamese
+                  : copy.header.english}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+    </header>
+  );
+}
+
 function UserProfileSidebar({
+  copy,
+  language,
   user,
   todayDateKey,
   onAddWorkout,
 }: {
+  copy: AppCopy;
+  language: Language;
   user: AppUser;
   todayDateKey: string;
   onAddWorkout: () => void;
@@ -363,14 +450,14 @@ function UserProfileSidebar({
         </div>
         <div className="min-w-0 flex-1 lg:mt-5">
           <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-stone-500">
-            Fitness Tracker
+            {copy.dashboard.fitnessTracker}
           </p>
           <h1 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-stone-950">
             {user.displayName}
           </h1>
           <p className="mt-1 truncate text-sm text-stone-500">{user.slug}</p>
           <p className="mt-4 max-w-sm text-sm leading-6 text-stone-600">
-            {user.bio}
+            {user.bio[language]}
           </p>
         </div>
       </div>
@@ -380,20 +467,22 @@ function UserProfileSidebar({
         onClick={onAddWorkout}
         type="button"
       >
-        Add a workout
+        {copy.dashboard.addWorkout}
       </button>
 
       <div className="mt-5 grid gap-3 border-t border-stone-100 pt-5 text-sm text-stone-600">
         <div className="flex items-center justify-between gap-3">
-          <span>Birth year</span>
+          <span>{copy.dashboard.birthYear}</span>
           <span className="font-medium text-stone-950">{user.birthYear}</span>
         </div>
         <div className="flex items-center justify-between gap-3">
-          <span>Age map</span>
-          <span className="font-medium text-stone-950">{userAge} years</span>
+          <span>{copy.dashboard.ageMap}</span>
+          <span className="font-medium text-stone-950">
+            {userAge} {copy.dashboard.years}
+          </span>
         </div>
         <div className="flex items-center justify-between gap-3">
-          <span>Tracking from</span>
+          <span>{copy.dashboard.trackingFrom}</span>
           <span className="font-medium text-stone-950">{trackingStartYear}</span>
         </div>
       </div>
