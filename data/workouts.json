@@ -18,6 +18,26 @@
         }
       ],
       "createdAt": "2026-07-07T02:19:33.564Z"
+    },
+    {
+      "id": "2026-07-07-1783434384193-646edc8d",
+      "userId": "test",
+      "date": "2026-07-07",
+      "type": "test",
+      "startTime": "21:10",
+      "endTime": "22:07",
+      "durationMinutes": 57,
+      "note": "",
+      "images": [
+        {
+          "src": "/uploads/2026/07/2026-07-07-workout-93abbc41.avif",
+          "format": "avif",
+          "width": 1200,
+          "height": 675,
+          "sizeBytes": 28864
+        }
+      ],
+      "createdAt": "2026-07-07T14:26:24.193Z"
     }
   ],
   "settings": {
