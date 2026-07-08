@@ -2,6 +2,14 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import {
+  FaExternalLinkAlt,
+  FaFacebookF,
+  FaGlobe,
+  FaInstagram,
+  FaLinkedinIn,
+} from "react-icons/fa";
+import type { IconType } from "react-icons";
 import Link from "next/link";
 import { ContributionHeatmap } from "@/components/ContributionHeatmap";
 import { Loading } from "@/components/Loading";
@@ -15,7 +23,7 @@ import {
   type Language,
 } from "@/lib/i18n";
 import { getAvatarUrl } from "@/lib/profile-utils";
-import type { AppUser, HeatmapView } from "@/lib/users";
+import type { AppUser, HeatmapView, UserLocation } from "@/lib/users";
 import type {
   Workout,
   WorkoutData,
@@ -42,11 +50,17 @@ type UpdateWorkoutResponse =
     }
   | ApiErrorResponse;
 
-type FitnessDashboardProps = {
+type HopeDashboardProps = {
   user: AppUser;
 };
 
-export function FitnessDashboard({ user }: FitnessDashboardProps) {
+type ProfileLink = {
+  label: string;
+  href: string;
+  Icon: IconType;
+};
+
+export function HopeDashboard({ user }: HopeDashboardProps) {
   const todayDateKey = getTodayInTimezone();
   const currentYear = Number(todayDateKey.slice(0, 4));
   const birthYear = user.birthYear ?? currentYear;
@@ -216,7 +230,6 @@ export function FitnessDashboard({ user }: FitnessDashboardProps) {
             copy={copy}
             language={language}
             onAddWorkout={() => setIsWorkoutDialogOpen(true)}
-            todayDateKey={todayDateKey}
             user={user}
           />
 
@@ -425,17 +438,51 @@ function UserProfileSidebar({
   copy,
   language,
   user,
-  todayDateKey,
   onAddWorkout,
 }: {
   copy: AppCopy;
   language: Language;
   user: AppUser;
-  todayDateKey: string;
   onAddWorkout: () => void;
 }) {
-  const trackingStartYear = 2026;
-  const userAge = Number(todayDateKey.slice(0, 4)) - user.birthYear;
+  const profileLinks: ProfileLink[] = [
+    ...(user.website
+      ? [
+          {
+            label: copy.dashboard.website,
+            href: user.website,
+            Icon: FaGlobe,
+          },
+        ]
+      : []),
+    ...(user.socialLinks?.facebook
+      ? [
+          {
+            label: copy.dashboard.facebook,
+            href: user.socialLinks.facebook,
+            Icon: FaFacebookF,
+          },
+        ]
+      : []),
+    ...(user.socialLinks?.instagram
+      ? [
+          {
+            label: copy.dashboard.instagram,
+            href: user.socialLinks.instagram,
+            Icon: FaInstagram,
+          },
+        ]
+      : []),
+    ...(user.socialLinks?.linkedin
+      ? [
+          {
+            label: copy.dashboard.linkedin,
+            href: user.socialLinks.linkedin,
+            Icon: FaLinkedinIn,
+          },
+        ]
+      : []),
+  ];
 
   return (
     <aside className="rounded-lg border border-stone-200 bg-white p-5 lg:sticky lg:top-6">
@@ -449,9 +496,9 @@ function UserProfileSidebar({
           />
         </div>
         <div className="min-w-0 flex-1 lg:mt-5">
-          <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-stone-500">
-            {copy.dashboard.fitnessTracker}
-          </p>
+          {/* <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-stone-500">
+            {copy.dashboard.appName}
+          </p> */}
           <h1 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-stone-950">
             {user.displayName}
           </h1>
@@ -470,7 +517,7 @@ function UserProfileSidebar({
         {copy.dashboard.addWorkout}
       </button>
 
-      <div className="mt-5 grid gap-3 border-t border-stone-100 pt-5 text-sm text-stone-600">
+      {/* <div className="mt-5 grid gap-3 border-t border-stone-100 pt-5 text-sm text-stone-600">
         <div className="flex items-center justify-between gap-3">
           <span>{copy.dashboard.birthYear}</span>
           <span className="font-medium text-stone-950">{user.birthYear}</span>
@@ -485,9 +532,99 @@ function UserProfileSidebar({
           <span>{copy.dashboard.trackingFrom}</span>
           <span className="font-medium text-stone-950">{trackingStartYear}</span>
         </div>
+      </div> */}
+
+      <div className="mt-5 grid gap-3 border-t border-stone-100 pt-5 text-sm text-stone-600">
+        {user.pronouns ? (
+          <div className="flex items-center justify-between gap-3">
+            <span>{copy.dashboard.pronouns}</span>
+            <span className="font-medium text-stone-950">
+              {user.pronouns[language]}
+            </span>
+          </div>
+        ) : null}
+
+        {profileLinks.length > 0 ? (
+          <div className="grid gap-2">
+            {profileLinks.map(({ href, Icon, label }) => (
+              <a
+                className="group flex items-center justify-between gap-3 py-1.5 text-stone-600 transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:text-stone-950"
+                href={href}
+                key={label}
+                rel="noreferrer"
+                target="_blank"
+              >
+                <span className="flex min-w-0 items-center gap-2">
+                  <Icon
+                    aria-hidden="true"
+                    className="h-4 w-4 shrink-0 text-stone-400 transition group-hover:text-stone-700"
+                  />
+                  <span className="truncate font-medium">{label}</span>
+                </span>
+                <FaExternalLinkAlt
+                  aria-hidden="true"
+                  className="h-3 w-3 shrink-0 text-stone-300 transition group-hover:text-stone-500"
+                />
+              </a>
+            ))}
+          </div>
+        ) : null}
       </div>
+
+      {user.location ? (
+        <div className="mt-5 border-t border-stone-100 pt-5">
+          <div className="flex items-start justify-between gap-3 text-sm">
+            <div>
+              <p className="text-stone-500">{copy.dashboard.location}</p>
+              <p className="mt-1 font-medium text-stone-950">
+                {user.location.label[language]}
+              </p>
+            </div>
+            <a
+              className="shrink-0 rounded-md border border-stone-200 px-3 py-2 text-xs font-semibold text-stone-700 transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-stone-300 hover:bg-stone-50 hover:text-stone-950"
+              href={getGoogleMaps3dUrl(user.location)}
+              rel="noreferrer"
+              target="_blank"
+            >
+              {copy.dashboard.open3dMap}
+            </a>
+          </div>
+          <div className="mt-3 overflow-hidden rounded-md border border-stone-200 bg-stone-100">
+            <iframe
+              allowFullScreen
+              className="block h-48 w-full border-0"
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              src={getGoogleMapsEmbedUrl(user.location)}
+              title={`${copy.dashboard.location}: ${user.location.label[language]}`}
+            />
+          </div>
+        </div>
+      ) : null}
     </aside>
   );
+}
+
+function getGoogleMapsEmbedUrl(location: UserLocation) {
+  const { latitude, longitude } = location.coordinates;
+  const zoom = location.zoom ?? 14;
+  const query = encodeURIComponent(`${latitude},${longitude}`);
+
+  return `https://www.google.com/maps?q=${query}&z=${zoom}&output=embed`;
+}
+
+function getGoogleMaps3dUrl(location: UserLocation) {
+  const { latitude, longitude } = location.coordinates;
+  const zoom = location.zoom ?? 14;
+  const params = new URLSearchParams({
+    api: "1",
+    map_action: "map",
+    center: `${latitude},${longitude}`,
+    zoom: String(zoom),
+    basemap: "satellite",
+  });
+
+  return `https://www.google.com/maps/@?${params.toString()}`;
 }
 
 function hasWorkoutImages(input: WorkoutInput | WorkoutUpdateInput) {
