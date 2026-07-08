@@ -53,6 +53,7 @@ export const APP_USERS = [
     displayName: "Hoang",
     birthYear: 2004,
     avatarSeed: "hoang",
+    avatarUrl: "/uploads/avatars/hoang-2e3a4bd2-264.png",
     bio: {
       en: "Expect the Not Expected.",
       vi: "Luôn sẵn sàng cho điều không ngờ.",
