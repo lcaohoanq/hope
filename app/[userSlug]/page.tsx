@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { FitnessDashboard } from "@/components/FitnessDashboard";
+import { HopeDashboard } from "@/components/HopeDashboard";
 import { APP_USERS, getUserBySlug } from "@/lib/users";
 
 type UserPageProps = {
@@ -20,12 +20,12 @@ export async function generateMetadata({ params }: UserPageProps) {
 
   if (!user) {
     return {
-      title: "Fitness Tracker",
+      title: "Hope",
     };
   }
 
   return {
-    title: `${user.displayName} - Fitness Tracker`,
+    title: `${user.displayName} - Hope`,
   };
 }
 
@@ -37,5 +37,5 @@ export default async function UserPage({ params }: UserPageProps) {
     notFound();
   }
 
-  return <FitnessDashboard user={user} />;
+  return <HopeDashboard key={user.id} user={user} />;
 }

@@ -19,11 +19,31 @@ export type HeatmapDefaultView =
       year?: number;
     };
 
+export type UserLocation = {
+  label: LocalizedText;
+  coordinates: {
+    latitude: number;
+    longitude: number;
+  };
+  zoom?: number;
+};
+
+export type UserSocialLinks = {
+  facebook?: string;
+  instagram?: string;
+  linkedin?: string;
+};
+
 export type AppUser = UserProfile & {
   id: string;
   slug: string;
+  avatarUrl?: string;
   bio: LocalizedText;
+  location?: UserLocation;
+  pronouns?: LocalizedText;
   preferredLanguage: Language;
+  socialLinks?: UserSocialLinks;
+  website?: string;
   heatmapSettings: {
     defaultView: HeatmapDefaultView;
   };
@@ -40,7 +60,28 @@ export const APP_USERS = [
       en: "Testing the quiet little rituals that make movement easier to repeat.",
       vi: "Thử những nhịp nhỏ, đều và đủ nhẹ để việc vận động dễ lặp lại hơn.",
     },
+    location: {
+      label: {
+        en: "Da Nang, Vietnam",
+        vi: "Đà Nẵng, Việt Nam",
+      },
+      coordinates: {
+        latitude: 16.0544,
+        longitude: 108.2022,
+      },
+      zoom: 13,
+    },
+    pronouns: {
+      en: "they/them",
+      vi: "họ",
+    },
     preferredLanguage: "vi",
+    website: "https://example.com/test",
+    socialLinks: {
+      facebook: "https://facebook.com/test.fitlog",
+      instagram: "https://instagram.com/test.fitlog",
+      linkedin: "https://linkedin.com/in/test-fitlog",
+    },
     heatmapSettings: {
       defaultView: {
         mode: "year",
@@ -50,14 +91,35 @@ export const APP_USERS = [
   {
     id: "hoang",
     slug: "@hoang",
-    displayName: "Hoang",
+    displayName: "Hoang Cao Luu",
     birthYear: 2004,
-    avatarSeed: "hoang",
+    avatarSeed: "lcaohoanq",
     bio: {
       en: "Expect the Not Expected.",
-      vi: "Luôn sẵn sàng cho điều không ngờ.",
+      vi: "Expect the Not Expected.",
     },
-    preferredLanguage: "vi",
+    location: {
+      label: {
+        en: "Ho Chi Minh City, Vietnam",
+        vi: "TP. Hồ Chí Minh, Việt Nam",
+      },
+      coordinates: {
+        latitude: 10.7769,
+        longitude: 106.7009,
+      },
+      zoom: 14,
+    },
+    pronouns: {
+      en: "he/him",
+      vi: "anh ấy",
+    },
+    preferredLanguage: "en",
+    website: "https://lcaohoanq.works",
+    socialLinks: {
+      facebook: "https://facebook.com/lcaohoanq",
+      instagram: "https://instagram.com/lcaohoanq",
+      linkedin: "https://linkedin.com/in/lcaohoanq",
+    },
     heatmapSettings: {
       defaultView: {
         mode: "year",
@@ -74,7 +136,28 @@ export const APP_USERS = [
       en: "Building a steady rhythm one logged workout at a time.",
       vi: "Xây nhịp sống đều hơn qua từng buổi tập được ghi lại.",
     },
+    location: {
+      label: {
+        en: "Hanoi, Vietnam",
+        vi: "Hà Nội, Việt Nam",
+      },
+      coordinates: {
+        latitude: 21.0285,
+        longitude: 105.8542,
+      },
+      zoom: 13,
+    },
+    pronouns: {
+      en: "she/her",
+      vi: "cô ấy",
+    },
     preferredLanguage: "vi",
+    website: "https://example.com/linh",
+    socialLinks: {
+      facebook: "https://facebook.com/linh.fitlog",
+      instagram: "https://instagram.com/linh.fitlog",
+      linkedin: "https://linkedin.com/in/linh-fitlog",
+    },
     heatmapSettings: {
       defaultView: {
         mode: "year",

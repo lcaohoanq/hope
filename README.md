@@ -1,8 +1,8 @@
-# Fitness Tracker
+# Hope
 
-A personal workout consistency tracker built with Next.js App Router, TypeScript, Tailwind CSS, GitHub JSON storage, GitHub Actions, and Resend.
+Hope is a personal workout consistency tracker built with Next.js App Router, TypeScript, Tailwind CSS, GitHub JSON storage, GitHub Actions, and Resend.
 
-The app records daily workouts, shows a GitHub-style lifetime heatmap, and can send a daily reminder email if no workout has been logged.
+Hope records daily workouts, shows a GitHub-style lifetime heatmap, and can send a daily reminder email if no workout has been logged.
 
 ## Features
 
@@ -96,7 +96,7 @@ REMINDER_EMAIL=
 Optional:
 
 ```env
-RESEND_FROM=Fitness Tracker <onboarding@resend.dev>
+RESEND_FROM=Hope <onboarding@resend.dev>
 ```
 
 `RESEND_FROM` should be changed to a verified Resend sender or domain for production.

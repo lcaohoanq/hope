@@ -2,6 +2,15 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import {
+  FaCamera,
+  FaExternalLinkAlt,
+  FaFacebookF,
+  FaGlobe,
+  FaInstagram,
+  FaLinkedinIn,
+} from "react-icons/fa";
+import type { IconType } from "react-icons";
 import Link from "next/link";
 import { ContributionHeatmap } from "@/components/ContributionHeatmap";
 import { Loading } from "@/components/Loading";
@@ -15,7 +24,7 @@ import {
   type Language,
 } from "@/lib/i18n";
 import { getAvatarUrl } from "@/lib/profile-utils";
-import type { AppUser, HeatmapView } from "@/lib/users";
+import type { AppUser, HeatmapView, UserLocation } from "@/lib/users";
 import type {
   Workout,
   WorkoutData,
@@ -42,11 +51,24 @@ type UpdateWorkoutResponse =
     }
   | ApiErrorResponse;
 
-type FitnessDashboardProps = {
+type UploadAvatarResponse =
+  | {
+      success: true;
+      avatarUrl: string;
+    }
+  | ApiErrorResponse;
+
+type HopeDashboardProps = {
   user: AppUser;
 };
 
-export function FitnessDashboard({ user }: FitnessDashboardProps) {
+type ProfileLink = {
+  label: string;
+  href: string;
+  Icon: IconType;
+};
+
+export function HopeDashboard({ user }: HopeDashboardProps) {
   const todayDateKey = getTodayInTimezone();
   const currentYear = Number(todayDateKey.slice(0, 4));
   const birthYear = user.birthYear ?? currentYear;
@@ -57,6 +79,12 @@ export function FitnessDashboard({ user }: FitnessDashboardProps) {
   const [isSubmittingWorkout, setIsSubmittingWorkout] = useState(false);
   const [isUploadingWorkoutImages, setIsUploadingWorkoutImages] =
     useState(false);
+  const [avatarUrl, setAvatarUrl] = useState(
+    () => user.avatarUrl ?? getAvatarUrl(user.avatarSeed),
+  );
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [avatarUploadMessage, setAvatarUploadMessage] = useState("");
+  const [avatarUploadError, setAvatarUploadError] = useState("");
   const [workoutLoadError, setWorkoutLoadError] = useState("");
   const [isWorkoutDialogOpen, setIsWorkoutDialogOpen] = useState(false);
   const [selectedHeatmapView, setSelectedHeatmapView] = useState<HeatmapView>(
@@ -199,12 +227,51 @@ export function FitnessDashboard({ user }: FitnessDashboardProps) {
     }
   }
 
+  async function handleUploadAvatar(file: File) {
+    const formData = new FormData();
+    formData.set("userId", user.id);
+    formData.set("avatar", file);
+
+    setIsUploadingAvatar(true);
+    setAvatarUploadMessage("");
+    setAvatarUploadError("");
+
+    try {
+      const response = await fetch("/api/users/avatar", {
+        method: "POST",
+        body: formData,
+      });
+      const payload = await readApiJson<UploadAvatarResponse>(
+        response,
+        copy.dashboard.avatarUploadFailed,
+      );
+
+      if (!response.ok || !payload.success) {
+        throw new Error(
+          "error" in payload ? payload.error : copy.dashboard.avatarUploadFailed,
+        );
+      }
+
+      setAvatarUrl(payload.avatarUrl);
+      setAvatarUploadMessage(copy.dashboard.avatarUpdated);
+    } catch (error) {
+      setAvatarUploadError(
+        error instanceof Error
+          ? error.message
+          : copy.dashboard.avatarUploadFailed,
+      );
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  }
+
   return (
     <main className="min-h-[100dvh] bg-paper text-stone-950">
       {isUploadingWorkoutImages ? (
         <Loading message={copy.dashboard.loadingImages} />
       ) : null}
       <TopHeader
+        avatarUrl={avatarUrl}
         copy={copy}
         language={language}
         onLanguageChange={setLanguage}
@@ -213,10 +280,14 @@ export function FitnessDashboard({ user }: FitnessDashboardProps) {
       <div className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:px-8">
         <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)] lg:items-start">
           <UserProfileSidebar
+            avatarUploadError={avatarUploadError}
+            avatarUploadMessage={avatarUploadMessage}
+            avatarUrl={avatarUrl}
             copy={copy}
+            isUploadingAvatar={isUploadingAvatar}
             language={language}
             onAddWorkout={() => setIsWorkoutDialogOpen(true)}
-            todayDateKey={todayDateKey}
+            onUploadAvatar={handleUploadAvatar}
             user={user}
           />
 
@@ -362,11 +433,13 @@ function clampYear(year: number, minYear: number, maxYear: number) {
 }
 
 function TopHeader({
+  avatarUrl,
   copy,
   language,
   onLanguageChange,
   user,
 }: {
+  avatarUrl: string;
   copy: AppCopy;
   language: Language;
   onLanguageChange: (language: Language) => void;
@@ -388,9 +461,9 @@ function TopHeader({
           <span className="h-6 w-6 overflow-hidden rounded-full border border-stone-200 bg-stone-100">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              alt={`${user.displayName}'s DiceBear avatar`}
+              alt={`${user.displayName}'s avatar`}
               className="h-full w-full object-cover"
-              src={getAvatarUrl(user.avatarSeed)}
+              src={avatarUrl}
             />
           </span>
           <span className="sr-only">{copy.common.profile}</span>
@@ -422,43 +495,130 @@ function TopHeader({
 }
 
 function UserProfileSidebar({
+  avatarUploadError,
+  avatarUploadMessage,
+  avatarUrl,
   copy,
+  isUploadingAvatar,
   language,
   user,
-  todayDateKey,
   onAddWorkout,
+  onUploadAvatar,
 }: {
+  avatarUploadError: string;
+  avatarUploadMessage: string;
+  avatarUrl: string;
   copy: AppCopy;
+  isUploadingAvatar: boolean;
   language: Language;
   user: AppUser;
-  todayDateKey: string;
   onAddWorkout: () => void;
+  onUploadAvatar: (file: File) => Promise<void>;
 }) {
-  const trackingStartYear = 2026;
-  const userAge = Number(todayDateKey.slice(0, 4)) - user.birthYear;
+  const profileLinks: ProfileLink[] = [
+    ...(user.website
+      ? [
+          {
+            label: copy.dashboard.website,
+            href: user.website,
+            Icon: FaGlobe,
+          },
+        ]
+      : []),
+    ...(user.socialLinks?.facebook
+      ? [
+          {
+            label: copy.dashboard.facebook,
+            href: user.socialLinks.facebook,
+            Icon: FaFacebookF,
+          },
+        ]
+      : []),
+    ...(user.socialLinks?.instagram
+      ? [
+          {
+            label: copy.dashboard.instagram,
+            href: user.socialLinks.instagram,
+            Icon: FaInstagram,
+          },
+        ]
+      : []),
+    ...(user.socialLinks?.linkedin
+      ? [
+          {
+            label: copy.dashboard.linkedin,
+            href: user.socialLinks.linkedin,
+            Icon: FaLinkedinIn,
+          },
+        ]
+      : []),
+  ];
 
   return (
-    <aside className="rounded-lg border border-stone-200 bg-white p-5 lg:sticky lg:top-6">
+    <aside className="rounded-lg p-5 lg:sticky lg:top-6">
       <div className="flex gap-4 lg:block">
-        <div className="h-24 w-24 shrink-0 overflow-hidden rounded-full border border-stone-200 bg-stone-100 sm:h-28 sm:w-28 lg:h-auto lg:w-full">
+        <div className="group relative h-24 w-24 shrink-0 overflow-hidden rounded-full border border-stone-200 bg-stone-100 sm:h-28 sm:w-28 lg:h-auto lg:w-full">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            alt={`${user.displayName}'s DiceBear avatar`}
+            alt={`${user.displayName}'s avatar`}
             className="aspect-square h-full w-full object-cover"
-            src={getAvatarUrl(user.avatarSeed)}
+            src={avatarUrl}
           />
+          <label
+            className="absolute inset-x-0 bottom-0 flex cursor-pointer items-center justify-center gap-2 bg-stone-950/75 px-3 py-2 text-xs font-semibold text-white opacity-100 transition group-hover:bg-stone-950/85 lg:opacity-0 lg:group-hover:opacity-100"
+            title={copy.dashboard.uploadAvatar}
+          >
+            <FaCamera aria-hidden="true" className="h-3.5 w-3.5" />
+            <span className="sr-only lg:not-sr-only lg:truncate">
+              {isUploadingAvatar
+                ? copy.dashboard.uploadingAvatar
+                : copy.dashboard.uploadAvatar}
+            </span>
+            <input
+              accept="image/jpeg,image/png,image/webp"
+              className="sr-only"
+              disabled={isUploadingAvatar}
+              onChange={(event) => {
+                const [file] = Array.from(event.target.files ?? []);
+                event.currentTarget.value = "";
+
+                if (file) {
+                  void onUploadAvatar(file);
+                }
+              }}
+              type="file"
+            />
+          </label>
         </div>
         <div className="min-w-0 flex-1 lg:mt-5">
-          <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-stone-500">
-            {copy.dashboard.fitnessTracker}
-          </p>
+          {/* <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-stone-500">
+            {copy.dashboard.appName}
+          </p> */}
           <h1 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-stone-950">
             {user.displayName}
           </h1>
-          <p className="mt-1 truncate text-sm text-stone-500">{user.slug}</p>
-          <p className="mt-4 max-w-sm text-sm leading-6 text-stone-600">
+          <div className="flex items-center gap-3">
+            <p className="mt-1 truncate text-sm text-stone-500">{user.slug}</p>
+            <span className="mt-1 text-sm text-stone-500">·</span>
+          {user.pronouns ? (
+            <span className="mt-1 text-sm text-stone-500">
+              {user.pronouns[language]}
+            </span>
+        ) : null}
+            </div>
+          <p className="mt-4 max-w-sm text-sm leading-6 text-stone-950">
             {user.bio[language]}
           </p>
+          {avatarUploadMessage ? (
+            <p className="mt-3 text-sm font-medium text-moss">
+              {avatarUploadMessage}
+            </p>
+          ) : null}
+          {avatarUploadError ? (
+            <p className="mt-3 text-sm font-medium text-red-700">
+              {avatarUploadError}
+            </p>
+          ) : null}
         </div>
       </div>
 
@@ -470,7 +630,7 @@ function UserProfileSidebar({
         {copy.dashboard.addWorkout}
       </button>
 
-      <div className="mt-5 grid gap-3 border-t border-stone-100 pt-5 text-sm text-stone-600">
+      {/* <div className="mt-5 grid gap-3 border-t border-stone-100 pt-5 text-sm text-stone-600">
         <div className="flex items-center justify-between gap-3">
           <span>{copy.dashboard.birthYear}</span>
           <span className="font-medium text-stone-950">{user.birthYear}</span>
@@ -485,9 +645,90 @@ function UserProfileSidebar({
           <span>{copy.dashboard.trackingFrom}</span>
           <span className="font-medium text-stone-950">{trackingStartYear}</span>
         </div>
+      </div> */}
+
+      <div className="mt-5 grid gap-3 border-t border-stone-300 pt-5 text-sm text-stone-600">
+        {profileLinks.length > 0 ? (
+          <div className="grid gap-2">
+            {profileLinks.map(({ href, Icon, label }) => (
+              <a
+                className="group flex items-center justify-between gap-3 py-1.5 text-stone-600 transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:text-stone-950"
+                href={href}
+                key={label}
+                rel="noreferrer"
+                target="_blank"
+              >
+                <span className="flex min-w-0 items-center gap-2">
+                  <Icon
+                    aria-hidden="true"
+                    className="h-4 w-4 shrink-0 text-stone-400 transition group-hover:text-stone-700"
+                  />
+                  <span className="truncate font-medium">{label}</span>
+                </span>
+                <FaExternalLinkAlt
+                  aria-hidden="true"
+                  className="h-3 w-3 shrink-0 text-stone-300 transition group-hover:text-stone-500"
+                />
+              </a>
+            ))}
+          </div>
+        ) : null}
       </div>
+
+      {user.location ? (
+        <div className="mt-5 border-t border-stone-300 pt-5">
+          <div className="flex items-start justify-between gap-3 text-sm">
+            <div>
+              <p className="text-stone-500">{copy.dashboard.location}</p>
+              <p className="mt-1 font-medium text-stone-950">
+                {user.location.label[language]}
+              </p>
+            </div>
+            <a
+              className="shrink-0 rounded-md border border-stone-200 px-3 py-2 text-xs font-semibold text-stone-700 transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-stone-300 hover:bg-stone-50 hover:text-stone-950"
+              href={getGoogleMaps3dUrl(user.location)}
+              rel="noreferrer"
+              target="_blank"
+            >
+              {copy.dashboard.open3dMap}
+            </a>
+          </div>
+          <div className="mt-3 overflow-hidden rounded-md border border-stone-200 bg-stone-100">
+            <iframe
+              allowFullScreen
+              className="block h-48 w-full border-0"
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              src={getGoogleMapsEmbedUrl(user.location)}
+              title={`${copy.dashboard.location}: ${user.location.label[language]}`}
+            />
+          </div>
+        </div>
+      ) : null}
     </aside>
   );
+}
+
+function getGoogleMapsEmbedUrl(location: UserLocation) {
+  const { latitude, longitude } = location.coordinates;
+  const zoom = location.zoom ?? 14;
+  const query = encodeURIComponent(`${latitude},${longitude}`);
+
+  return `https://www.google.com/maps?q=${query}&z=${zoom}&output=embed`;
+}
+
+function getGoogleMaps3dUrl(location: UserLocation) {
+  const { latitude, longitude } = location.coordinates;
+  const zoom = location.zoom ?? 14;
+  const params = new URLSearchParams({
+    api: "1",
+    map_action: "map",
+    center: `${latitude},${longitude}`,
+    zoom: String(zoom),
+    basemap: "satellite",
+  });
+
+  return `https://www.google.com/maps/@?${params.toString()}`;
 }
 
 function hasWorkoutImages(input: WorkoutInput | WorkoutUpdateInput) {
