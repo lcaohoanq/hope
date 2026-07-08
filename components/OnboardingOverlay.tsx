@@ -66,11 +66,11 @@ export function OnboardingOverlay({
 
   return (
     <div className="fixed inset-0 z-40 flex min-h-[100dvh] items-center justify-center overflow-hidden bg-[#f7f5f0] px-4 py-8 text-stone-950">
-      <div className="onboarding-orbit absolute h-[34rem] w-[34rem] rounded-[48%] border border-stone-200/80 bg-white/40" />
+      <div className="onboarding-orbit absolute h-[34rem] w-[34rem] rounded-[48%] border border-stone-300/80 bg-white/40" />
       <div className="onboarding-orbit onboarding-orbit-delay absolute h-[24rem] w-[24rem] rounded-[44%] border border-stone-300/70" />
       <div className="absolute inset-x-0 top-10 mx-auto h-px max-w-4xl bg-stone-200" />
-      <div className="relative grid w-full max-w-5xl overflow-hidden rounded-lg border border-stone-200 bg-white shadow-[0_30px_120px_rgba(17,17,17,0.08)] lg:grid-cols-[0.9fr_1.1fr]">
-        <aside className="relative hidden min-h-[580px] border-r border-stone-200 bg-stone-50 p-8 lg:block">
+      <div className="relative grid w-full max-w-5xl overflow-hidden rounded-lg border border-stone-300 bg-white shadow-[0_30px_120px_rgba(17,17,17,0.08)] lg:grid-cols-[0.9fr_1.1fr]">
+        <aside className="relative hidden min-h-[580px] border-r border-stone-300 bg-stone-50 p-8 lg:block">
           <div className="grid h-full content-between">
             <div>
               <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-stone-500">
@@ -83,7 +83,7 @@ export function OnboardingOverlay({
             <div className="grid gap-3">
               {["Name", "Birth year", "Lifetime map"].map((label, index) => (
                 <div
-                  className="flex items-center gap-3 border-t border-stone-200 pt-3"
+                  className="flex items-center gap-3 border-t border-stone-300 pt-3"
                   key={label}
                 >
                   <span className="font-mono text-xs text-stone-400">
@@ -110,7 +110,7 @@ export function OnboardingOverlay({
             </div>
             <motion.div
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              className="h-20 w-20 overflow-hidden rounded-lg border border-stone-200 bg-stone-100"
+              className="h-20 w-20 overflow-hidden rounded-lg border border-stone-300 bg-stone-100"
               initial={{ opacity: 0, scale: 0.94, y: 8 }}
               key={avatarSeed}
               transition={stepContentTransition}
@@ -152,7 +152,7 @@ export function OnboardingOverlay({
                   Display name
                   <input
                     autoFocus
-                    className="h-12 rounded-md border border-stone-200 bg-stone-50 px-3 text-base font-normal text-stone-950 outline-none transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] placeholder:text-stone-400 focus:border-moss focus:bg-white focus:ring-2 focus:ring-moss/15"
+                    className="h-12 rounded-md border border-stone-300 bg-stone-50 px-3 text-base font-normal text-stone-950 outline-none transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] placeholder:text-stone-400 focus:border-moss focus:bg-white focus:ring-2 focus:ring-moss/15"
                     onChange={(event) => {
                       setDisplayName(event.target.value);
                       setError("");
@@ -196,7 +196,7 @@ export function OnboardingOverlay({
                   Birth year
                   <input
                     autoFocus
-                    className="h-12 rounded-md border border-stone-200 bg-stone-50 px-3 text-base font-normal text-stone-950 outline-none transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] placeholder:text-stone-400 focus:border-moss focus:bg-white focus:ring-2 focus:ring-moss/15"
+                    className="h-12 rounded-md border border-stone-300 bg-stone-50 px-3 text-base font-normal text-stone-950 outline-none transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] placeholder:text-stone-400 focus:border-moss focus:bg-white focus:ring-2 focus:ring-moss/15"
                     inputMode="numeric"
                     max={currentYear}
                     min={1900}
@@ -220,7 +220,7 @@ export function OnboardingOverlay({
 
                 <div className="flex flex-col gap-3 sm:flex-row">
                   <button
-                    className="h-11 rounded-md border border-stone-200 px-4 text-sm font-semibold text-stone-700 transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-stone-50 active:scale-[0.98]"
+                    className="h-11 rounded-md border border-stone-300 px-4 text-sm font-semibold text-stone-700 transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-stone-50 active:scale-[0.98]"
                     onClick={() => {
                       setStep("name");
                       setError("");
@@ -293,7 +293,7 @@ function AvatarControls({
   onReroll: () => void;
 }) {
   return (
-    <div className="rounded-lg border border-stone-200 bg-stone-50 p-4">
+    <div className="rounded-lg border border-stone-300 bg-stone-50 p-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-stone-500">
@@ -304,7 +304,7 @@ function AvatarControls({
           </p>
         </div>
         <button
-          className="h-10 rounded-md border border-stone-200 bg-white px-3 text-sm font-semibold text-stone-800 transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-stone-100 active:scale-[0.98]"
+          className="h-10 rounded-md border border-stone-300 bg-white px-3 text-sm font-semibold text-stone-800 transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-stone-100 active:scale-[0.98]"
           onClick={onReroll}
           type="button"
         >

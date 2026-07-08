@@ -153,7 +153,7 @@ export function ContributionHeatmap({
   }
 
   return (
-    <section className="rounded-lg border border-stone-200 bg-white p-5 sm:p-6">
+    <section className="rounded-lg border border-stone-300 p-5 sm:p-6">
       <div className="flex flex-col gap-4 border-b border-stone-100 pb-5 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h2 className="mt-2 text-xl font-semibold tracking-[-0.02em] text-stone-950">
@@ -164,7 +164,7 @@ export function ContributionHeatmap({
           <label className="flex items-center gap-2 text-xs font-medium text-stone-500">
             {copy.heatmap.view}
             <select
-              className="h-9 rounded-md border border-stone-200 bg-white px-3 text-sm font-semibold text-stone-800 outline-none transition focus:border-moss focus:ring-2 focus:ring-moss/15"
+              className="h-9 rounded-md border border-stone-300 bg-white px-3 text-sm font-semibold text-stone-800 outline-none transition focus:border-moss focus:ring-2 focus:ring-moss/15"
               onChange={(event) => handleViewChange(event.target.value)}
               value={selectedViewValue}
             >
@@ -178,7 +178,7 @@ export function ContributionHeatmap({
           </label>
           <div className="flex flex-wrap items-center gap-2 text-xs text-stone-500">
             <span>{copy.heatmap.noData}</span>
-            <span className="h-3 w-3 rounded-[3px] border border-stone-200 bg-stone-100" />
+            <span className="h-3 w-3 rounded-[3px] border border-stone-300 bg-stone-100" />
             <span>{copy.heatmap.noWorkout}</span>
             <span className="h-3 w-3 rounded-[3px] bg-stone-950" />
             <span className="h-3 w-3 rounded-[3px] bg-moss" />
@@ -194,7 +194,7 @@ export function ContributionHeatmap({
               className="grid grid-cols-[44px_32px_1fr] items-start gap-x-3"
               key={year}
             >
-              <div className="mt-5 grid grid-rows-7 gap-1 text-[9px] text-stone-400">
+              <div className="mt-5 grid grid-rows-7 gap-1 text-[9px] text-stone-950">
                 {copy.heatmap.weekdays.map((label, labelIndex) => (
                   <span key={label} className="flex h-2.5 items-center">
                     {labelIndex === 1 || labelIndex === 3 || labelIndex === 5
@@ -206,7 +206,7 @@ export function ContributionHeatmap({
               <div>
                 <div
                   aria-hidden="true"
-                  className="mb-2 grid h-3 auto-cols-[10px] grid-flow-col gap-1 text-[9px] leading-none text-stone-400"
+                  className="mb-2 grid h-3 auto-cols-[10px] grid-flow-col gap-1 text-[9px] leading-none text-stone-950"
                 >
                   {getMonthMarkers(weeks, copy).map((label, index) => (
                     <span className="w-2.5" key={`${year}-${index}-${label}`}>
@@ -246,7 +246,7 @@ export function ContributionHeatmap({
                               ? "bg-moss"
                               : isTrackable
                                 ? "bg-stone-950 hover:bg-stone-800"
-                                : "border border-stone-200 bg-stone-100"
+                                : "border border-stone-300 bg-stone-100"
                           }`}
                           onBlur={() => setActiveTooltip(null)}
                           onFocus={(event) =>

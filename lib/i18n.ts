@@ -34,6 +34,8 @@ export const translations = {
       addWorkout: "Thêm buổi tập",
       ageMap: "Tuổi trên bản đồ",
       avatarUploadFailed: "Chưa thể tải ảnh đại diện lên.",
+      avatarUploadPending:
+        "Ảnh mới đang được lưu. Bạn vẫn có thể thấy preview trong lúc chờ.",
       avatarUpdated: "Đã cập nhật ảnh đại diện.",
       birthYear: "Năm sinh",
       closeWorkoutForm: "Đóng biểu mẫu tập luyện",
@@ -159,6 +161,8 @@ export const translations = {
       addWorkout: "Add a workout",
       ageMap: "Age map",
       avatarUploadFailed: "Unable to upload avatar.",
+      avatarUploadPending:
+        "Your new avatar is being saved. The preview stays visible while you wait.",
       avatarUpdated: "Avatar updated.",
       birthYear: "Birth year",
       closeWorkoutForm: "Close workout form",
