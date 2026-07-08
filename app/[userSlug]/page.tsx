@@ -37,5 +37,5 @@ export default async function UserPage({ params }: UserPageProps) {
     notFound();
   }
 
-  return <HopeDashboard user={user} />;
+  return <HopeDashboard key={user.id} user={user} />;
 }

@@ -37,6 +37,7 @@ export type UserSocialLinks = {
 export type AppUser = UserProfile & {
   id: string;
   slug: string;
+  avatarUrl?: string;
   bio: LocalizedText;
   location?: UserLocation;
   pronouns?: LocalizedText;
