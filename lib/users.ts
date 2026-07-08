@@ -94,6 +94,7 @@ export const APP_USERS = [
     displayName: "Hoang Cao Luu",
     birthYear: 2004,
     avatarSeed: "lcaohoanq",
+    avatarUrl: "/uploads/avatars/hoang-8fc5a8df-b32.png",
     bio: {
       en: "Expect the Not Expected.",
       vi: "Expect the Not Expected.",
