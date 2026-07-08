@@ -6,7 +6,7 @@ import type { WorkoutData } from "@/lib/workout-types";
 import { validateWorkoutData } from "@/lib/workout-utils";
 
 const DEFAULT_TIMEZONE = "Asia/Ho_Chi_Minh";
-const DEFAULT_FROM = "Fitness Tracker <onboarding@resend.dev>";
+const DEFAULT_FROM = "Hope <onboarding@resend.dev>";
 
 async function readWorkoutData() {
   const dataPath = process.env.WORKOUT_DATA_PATH || "data/workouts.json";

@@ -119,22 +119,25 @@ export function ContributionHeatmap({
         return current;
       }
 
+      const nextWorkouts = current.workouts
+        .map((workout) =>
+          workout.id === updatedWorkout.id ? updatedWorkout : workout,
+        )
+        .filter((workout) => workout.date === updatedWorkout.date)
+        .sort((a, b) => {
+          const dateSort = a.date.localeCompare(b.date);
+
+          if (dateSort !== 0) {
+            return dateSort;
+          }
+
+          return a.startTime.localeCompare(b.startTime);
+        });
+
       return {
         ...current,
         date: updatedWorkout.date,
-        workouts: current.workouts
-          .map((workout) =>
-            workout.id === updatedWorkout.id ? updatedWorkout : workout,
-          )
-          .sort((a, b) => {
-            const dateSort = a.date.localeCompare(b.date);
-
-            if (dateSort !== 0) {
-              return dateSort;
-            }
-
-            return a.startTime.localeCompare(b.startTime);
-          }),
+        workouts: nextWorkouts.length > 0 ? nextWorkouts : [updatedWorkout],
       };
     });
 

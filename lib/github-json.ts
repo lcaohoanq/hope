@@ -32,6 +32,14 @@ type CommitWorkoutDataAndFilesOptions = {
   message: string;
 };
 
+type CommitRepositoryFilesOptions = {
+  files: {
+    path: string;
+    content: Buffer;
+  }[];
+  message: string;
+};
+
 export class GitHubJsonConflictError extends Error {
   constructor() {
     super("GitHub file update conflict.");
@@ -268,6 +276,37 @@ export async function commitWorkoutDataAndFilesToGitHub({
         blobSha: blobs[index + 1],
       })),
     ],
+  });
+  const commitSha = await createGitHubCommit(config, {
+    message,
+    treeSha,
+    parentSha: headSha,
+  });
+
+  await updateGitHubBranchRef(config, commitSha);
+}
+
+export async function commitRepositoryFilesToGitHub({
+  files,
+  message,
+}: CommitRepositoryFilesOptions) {
+  const config = getGitHubConfig();
+
+  if (!config) {
+    throw new Error("GitHub environment variables are not configured.");
+  }
+
+  const headSha = await readGitHubHeadSha(config);
+  const baseTreeSha = await readGitHubCommitTreeSha(config, headSha);
+  const blobs = await Promise.all(
+    files.map((file) => createGitHubBlob(config, file.content)),
+  );
+  const treeSha = await createGitHubTree(config, {
+    baseTreeSha,
+    entries: files.map((file, index) => ({
+      path: file.path,
+      blobSha: blobs[index],
+    })),
   });
   const commitSha = await createGitHubCommit(config, {
     message,
