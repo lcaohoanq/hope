@@ -129,7 +129,7 @@ export function WorkoutForm({
 
   return (
     <form
-      className="rounded-lg border border-stone-200 bg-white p-5 sm:p-6"
+      className="rounded-lg border border-stone-300 bg-white p-5 sm:p-6"
       onSubmit={handleSubmit}
     >
       <div className="border-b border-stone-100 pb-5">
@@ -145,7 +145,7 @@ export function WorkoutForm({
         <label className="grid gap-2 text-sm font-medium text-stone-800">
           {copy.form.workoutType}
           <input
-            className="h-11 rounded-md border border-stone-200 bg-stone-50 px-3 text-base font-normal text-stone-950 outline-none transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] placeholder:text-stone-400 focus:border-moss focus:bg-white focus:ring-2 focus:ring-moss/15 disabled:cursor-not-allowed disabled:opacity-60"
+            className="h-11 rounded-md border border-stone-300 bg-stone-50 px-3 text-base font-normal text-stone-950 outline-none transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] placeholder:text-stone-400 focus:border-moss focus:bg-white focus:ring-2 focus:ring-moss/15 disabled:cursor-not-allowed disabled:opacity-60"
             onChange={(event) => updateField("type", event.target.value)}
             placeholder={copy.form.workoutTypePlaceholder}
             type="text"
@@ -156,7 +156,7 @@ export function WorkoutForm({
         <label className="grid gap-2 text-sm font-medium text-stone-800">
           {copy.form.date}
           <input
-            className="h-11 rounded-md border border-stone-200 bg-stone-50 px-3 text-base font-normal text-stone-950 outline-none transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] focus:border-moss focus:bg-white focus:ring-2 focus:ring-moss/15 disabled:cursor-not-allowed disabled:opacity-60"
+            className="h-11 rounded-md border border-stone-300 bg-stone-50 px-3 text-base font-normal text-stone-950 outline-none transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] focus:border-moss focus:bg-white focus:ring-2 focus:ring-moss/15 disabled:cursor-not-allowed disabled:opacity-60"
             onChange={(event) => updateField("date", event.target.value)}
             type="date"
             value={form.date}
@@ -167,7 +167,7 @@ export function WorkoutForm({
           <label className="grid gap-2 text-sm font-medium text-stone-800">
             {copy.form.startTime}
             <input
-              className="h-11 rounded-md border border-stone-200 bg-stone-50 px-3 text-base font-normal text-stone-950 outline-none transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] focus:border-moss focus:bg-white focus:ring-2 focus:ring-moss/15 disabled:cursor-not-allowed disabled:opacity-60"
+              className="h-11 rounded-md border border-stone-300 bg-stone-50 px-3 text-base font-normal text-stone-950 outline-none transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] focus:border-moss focus:bg-white focus:ring-2 focus:ring-moss/15 disabled:cursor-not-allowed disabled:opacity-60"
               onChange={(event) => updateField("startTime", event.target.value)}
               type="time"
               value={form.startTime}
@@ -177,7 +177,7 @@ export function WorkoutForm({
           <label className="grid gap-2 text-sm font-medium text-stone-800">
             {copy.form.endTime}
             <input
-              className="h-11 rounded-md border border-stone-200 bg-stone-50 px-3 text-base font-normal text-stone-950 outline-none transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] focus:border-moss focus:bg-white focus:ring-2 focus:ring-moss/15 disabled:cursor-not-allowed disabled:opacity-60"
+              className="h-11 rounded-md border border-stone-300 bg-stone-50 px-3 text-base font-normal text-stone-950 outline-none transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] focus:border-moss focus:bg-white focus:ring-2 focus:ring-moss/15 disabled:cursor-not-allowed disabled:opacity-60"
               onChange={(event) => updateField("endTime", event.target.value)}
               type="time"
               value={form.endTime}
@@ -188,7 +188,7 @@ export function WorkoutForm({
         <label className="grid gap-2 text-sm font-medium text-stone-800">
           {copy.form.note}
           <textarea
-            className="min-h-24 resize-y rounded-md border border-stone-200 bg-stone-50 px-3 py-3 text-base font-normal text-stone-950 outline-none transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] placeholder:text-stone-400 focus:border-moss focus:bg-white focus:ring-2 focus:ring-moss/15 disabled:cursor-not-allowed disabled:opacity-60"
+            className="min-h-24 resize-y rounded-md border border-stone-300 bg-stone-50 px-3 py-3 text-base font-normal text-stone-950 outline-none transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] placeholder:text-stone-400 focus:border-moss focus:bg-white focus:ring-2 focus:ring-moss/15 disabled:cursor-not-allowed disabled:opacity-60"
             onChange={(event) => updateField("note", event.target.value)}
             placeholder={copy.form.notePlaceholder}
             value={form.note}
@@ -199,7 +199,7 @@ export function WorkoutForm({
           {copy.form.images}
           <input
             accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
-            className="block w-full rounded-md border border-stone-200 bg-stone-50 px-3 py-2 text-sm font-normal text-stone-700 file:mr-3 file:rounded-md file:border-0 file:bg-stone-950 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white focus:border-moss focus:bg-white focus:outline-none focus:ring-2 focus:ring-moss/15 disabled:cursor-not-allowed disabled:opacity-60"
+            className="block w-full rounded-md border border-stone-300 bg-stone-50 px-3 py-2 text-sm font-normal text-stone-700 file:mr-3 file:rounded-md file:border-0 file:bg-stone-950 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white focus:border-moss focus:bg-white focus:outline-none focus:ring-2 focus:ring-moss/15 disabled:cursor-not-allowed disabled:opacity-60"
             key={imageInputKey}
             multiple
             onChange={(event) => updateImages(event.target.files)}
@@ -211,7 +211,7 @@ export function WorkoutForm({
           <div className="grid grid-cols-3 gap-2">
             {previewUrls.map((url, index) => (
               <div
-                className="aspect-square overflow-hidden rounded-md border border-stone-200 bg-stone-100"
+                className="aspect-square overflow-hidden rounded-md border border-stone-300 bg-stone-100"
                 key={url}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
