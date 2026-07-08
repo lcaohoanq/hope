@@ -485,7 +485,7 @@ function UserProfileSidebar({
   ];
 
   return (
-    <aside className="rounded-lg border border-stone-200 bg-white p-5 lg:sticky lg:top-6">
+    <aside className="rounded-lg p-5 lg:sticky lg:top-6">
       <div className="flex gap-4 lg:block">
         <div className="h-24 w-24 shrink-0 overflow-hidden rounded-full border border-stone-200 bg-stone-100 sm:h-28 sm:w-28 lg:h-auto lg:w-full">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -502,8 +502,16 @@ function UserProfileSidebar({
           <h1 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-stone-950">
             {user.displayName}
           </h1>
-          <p className="mt-1 truncate text-sm text-stone-500">{user.slug}</p>
-          <p className="mt-4 max-w-sm text-sm leading-6 text-stone-600">
+          <div className="flex items-center gap-3">
+            <p className="mt-1 truncate text-sm text-stone-500">{user.slug}</p>
+            <span className="mt-1 text-sm text-stone-500">·</span>
+          {user.pronouns ? (
+            <span className="mt-1 text-sm text-stone-500">
+              {user.pronouns[language]}
+            </span>
+        ) : null}
+            </div>
+          <p className="mt-4 max-w-sm text-sm leading-6 text-stone-950">
             {user.bio[language]}
           </p>
         </div>
@@ -534,16 +542,7 @@ function UserProfileSidebar({
         </div>
       </div> */}
 
-      <div className="mt-5 grid gap-3 border-t border-stone-100 pt-5 text-sm text-stone-600">
-        {user.pronouns ? (
-          <div className="flex items-center justify-between gap-3">
-            <span>{copy.dashboard.pronouns}</span>
-            <span className="font-medium text-stone-950">
-              {user.pronouns[language]}
-            </span>
-          </div>
-        ) : null}
-
+      <div className="mt-5 grid gap-3 border-t border-stone-300 pt-5 text-sm text-stone-600">
         {profileLinks.length > 0 ? (
           <div className="grid gap-2">
             {profileLinks.map(({ href, Icon, label }) => (
@@ -572,7 +571,7 @@ function UserProfileSidebar({
       </div>
 
       {user.location ? (
-        <div className="mt-5 border-t border-stone-100 pt-5">
+        <div className="mt-5 border-t border-stone-300 pt-5">
           <div className="flex items-start justify-between gap-3 text-sm">
             <div>
               <p className="text-stone-500">{copy.dashboard.location}</p>
