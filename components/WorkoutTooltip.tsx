@@ -19,7 +19,7 @@ export function WorkoutTooltip({
   isTrackable = true,
 }: WorkoutTooltipProps) {
   return (
-    <div className="w-64 rounded-lg border border-stone-200 bg-white p-3 text-left text-xs text-stone-700 shadow-[0_18px_48px_rgba(17,17,17,0.10)]">
+    <div className="w-64 rounded-lg border border-stone-300 bg-white p-3 text-left text-xs text-stone-700 shadow-[0_18px_48px_rgba(17,17,17,0.10)]">
       <p className="font-medium text-stone-950">
         {formatDisplayDate(date, language)}
       </p>
@@ -48,7 +48,7 @@ export function WorkoutTooltip({
                 <div className="grid grid-cols-3 gap-1.5 pt-1">
                   {workout.images.map((image) => (
                     <div
-                      className="aspect-square overflow-hidden rounded-md border border-stone-200 bg-stone-100"
+                      className="aspect-square overflow-hidden rounded-md border border-stone-300 bg-stone-100"
                       key={image.src}
                     >
                       <WorkoutImageThumbnail

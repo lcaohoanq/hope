@@ -82,6 +82,7 @@ export function HopeDashboard({ user }: HopeDashboardProps) {
   const [avatarUrl, setAvatarUrl] = useState(
     () => user.avatarUrl ?? getAvatarUrl(user.avatarSeed),
   );
+  const [pendingAvatarPreviewUrl, setPendingAvatarPreviewUrl] = useState("");
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [avatarUploadMessage, setAvatarUploadMessage] = useState("");
   const [avatarUploadError, setAvatarUploadError] = useState("");
@@ -94,6 +95,7 @@ export function HopeDashboard({ user }: HopeDashboardProps) {
     workouts,
     selectedHeatmapView,
   );
+  const displayedAvatarUrl = pendingAvatarPreviewUrl || avatarUrl;
 
   const loadWorkouts = useCallback(async () => {
     setIsLoadingWorkouts(true);
@@ -131,6 +133,14 @@ export function HopeDashboard({ user }: HopeDashboardProps) {
 
     return () => window.clearTimeout(timer);
   }, [loadWorkouts]);
+
+  useEffect(() => {
+    return () => {
+      if (pendingAvatarPreviewUrl) {
+        URL.revokeObjectURL(pendingAvatarPreviewUrl);
+      }
+    };
+  }, [pendingAvatarPreviewUrl]);
 
   useEffect(() => {
     if (!isWorkoutDialogOpen) {
@@ -229,11 +239,19 @@ export function HopeDashboard({ user }: HopeDashboardProps) {
 
   async function handleUploadAvatar(file: File) {
     const formData = new FormData();
+    const previewUrl = URL.createObjectURL(file);
+    const previousPreviewUrl = pendingAvatarPreviewUrl;
+
     formData.set("userId", user.id);
     formData.set("avatar", file);
 
+    if (previousPreviewUrl) {
+      URL.revokeObjectURL(previousPreviewUrl);
+    }
+
+    setPendingAvatarPreviewUrl(previewUrl);
     setIsUploadingAvatar(true);
-    setAvatarUploadMessage("");
+    setAvatarUploadMessage(copy.dashboard.avatarUploadPending);
     setAvatarUploadError("");
 
     try {
@@ -255,6 +273,8 @@ export function HopeDashboard({ user }: HopeDashboardProps) {
       setAvatarUrl(payload.avatarUrl);
       setAvatarUploadMessage(copy.dashboard.avatarUpdated);
     } catch (error) {
+      URL.revokeObjectURL(previewUrl);
+      setPendingAvatarPreviewUrl("");
       setAvatarUploadError(
         error instanceof Error
           ? error.message
@@ -271,7 +291,7 @@ export function HopeDashboard({ user }: HopeDashboardProps) {
         <Loading message={copy.dashboard.loadingImages} />
       ) : null}
       <TopHeader
-        avatarUrl={avatarUrl}
+        avatarUrl={displayedAvatarUrl}
         copy={copy}
         language={language}
         onLanguageChange={setLanguage}
@@ -282,10 +302,17 @@ export function HopeDashboard({ user }: HopeDashboardProps) {
           <UserProfileSidebar
             avatarUploadError={avatarUploadError}
             avatarUploadMessage={avatarUploadMessage}
-            avatarUrl={avatarUrl}
+            avatarUrl={displayedAvatarUrl}
             copy={copy}
+            hasPendingAvatarPreview={Boolean(pendingAvatarPreviewUrl)}
             isUploadingAvatar={isUploadingAvatar}
             language={language}
+            onAvatarLoad={(loadedAvatarUrl) => {
+              if (pendingAvatarPreviewUrl && loadedAvatarUrl === avatarUrl) {
+                URL.revokeObjectURL(pendingAvatarPreviewUrl);
+                setPendingAvatarPreviewUrl("");
+              }
+            }}
             onAddWorkout={() => setIsWorkoutDialogOpen(true)}
             onUploadAvatar={handleUploadAvatar}
             user={user}
@@ -319,7 +346,7 @@ export function HopeDashboard({ user }: HopeDashboardProps) {
             )}
 
             {isLoadingWorkouts ? (
-              <section className="min-h-[480px] rounded-lg border border-stone-200 bg-white p-5 sm:p-6">
+              <section className="min-h-[480px] rounded-lg border border-stone-300 bg-white p-5 sm:p-6">
                 <div className="h-5 w-40 animate-pulse rounded bg-stone-100" />
                 <div className="mt-8 grid gap-5">
                   {Array.from({ length: 8 }, (_, index) => (
@@ -378,7 +405,7 @@ export function HopeDashboard({ user }: HopeDashboardProps) {
             >
               <button
                 aria-label={copy.dashboard.closeWorkoutForm}
-                className="absolute right-4 top-4 z-10 h-9 w-9 rounded-md border border-stone-200 bg-white text-xl leading-none text-stone-500 transition hover:bg-stone-100 hover:text-stone-950"
+                className="absolute right-4 top-4 z-10 h-9 w-9 rounded-md border border-stone-300 bg-white text-xl leading-none text-stone-500 transition hover:bg-stone-100 hover:text-stone-950"
                 onClick={() => setIsWorkoutDialogOpen(false)}
                 type="button"
               >
@@ -446,7 +473,7 @@ function TopHeader({
   user: AppUser;
 }) {
   return (
-    <header className="flex w-full flex-col gap-3 border-b border-stone-200 bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
+    <header className="flex w-full flex-col gap-3 border-b border-stone-300 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
       <Link
         className="inline-flex h-10 items-center rounded-md px-3 text-sm font-semibold text-stone-700 transition hover:bg-stone-100 hover:text-stone-950"
         href="/"
@@ -455,10 +482,10 @@ function TopHeader({
       </Link>
       <div className="flex flex-wrap items-center gap-3">
         <Link
-          className="inline-flex h-10 items-center gap-2 rounded-md border border-stone-200 bg-white px-3 text-sm font-semibold text-stone-800 transition hover:bg-stone-100"
+          className="inline-flex h-10 items-center gap-2 rounded-md  px-3 text-sm font-semibold text-stone-800 transition hover:bg-stone-100"
           href={`/${user.slug}`}
         >
-          <span className="h-6 w-6 overflow-hidden rounded-full border border-stone-200 bg-stone-100">
+          <span className="h-6 w-6 overflow-hidden rounded-full border border-stone-300 bg-stone-100">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               alt={`${user.displayName}'s avatar`}
@@ -467,12 +494,12 @@ function TopHeader({
             />
           </span>
           <span className="sr-only">{copy.common.profile}</span>
-          <span>{user.displayName}</span>
+          {/* <span>{user.displayName}</span> */}
         </Link>
-        <label className="flex h-10 items-center gap-2 rounded-md border border-stone-200 bg-white px-3 text-sm font-semibold text-stone-800">
-          <span className="text-xs font-medium text-stone-500">
+        <label className="flex h-10 items-center gap-2 rounded-md px-3 text-sm font-semibold text-stone-800">
+          {/* <span className="text-xs font-medium text-stone-500">
             {copy.common.language}
-          </span>
+          </span> */}
           <select
             className="bg-transparent text-sm font-semibold text-stone-800 outline-none"
             onChange={(event) =>
@@ -499,8 +526,10 @@ function UserProfileSidebar({
   avatarUploadMessage,
   avatarUrl,
   copy,
+  hasPendingAvatarPreview,
   isUploadingAvatar,
   language,
+  onAvatarLoad,
   user,
   onAddWorkout,
   onUploadAvatar,
@@ -509,8 +538,10 @@ function UserProfileSidebar({
   avatarUploadMessage: string;
   avatarUrl: string;
   copy: AppCopy;
+  hasPendingAvatarPreview: boolean;
   isUploadingAvatar: boolean;
   language: Language;
+  onAvatarLoad: (avatarUrl: string) => void;
   user: AppUser;
   onAddWorkout: () => void;
   onUploadAvatar: (file: File) => Promise<void>;
@@ -557,13 +588,21 @@ function UserProfileSidebar({
   return (
     <aside className="rounded-lg p-5 lg:sticky lg:top-6">
       <div className="flex gap-4 lg:block">
-        <div className="group relative h-24 w-24 shrink-0 overflow-hidden rounded-full border border-stone-200 bg-stone-100 sm:h-28 sm:w-28 lg:h-auto lg:w-full">
+        <div className="group relative h-24 w-24 shrink-0 overflow-hidden rounded-full border border-stone-300 bg-stone-100 sm:h-28 sm:w-28 lg:h-auto lg:w-full">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             alt={`${user.displayName}'s avatar`}
-            className="aspect-square h-full w-full object-cover"
+            className={`aspect-square h-full w-full object-cover ${
+              hasPendingAvatarPreview ? "opacity-90" : ""
+            }`}
+            onLoad={() => onAvatarLoad(avatarUrl)}
             src={avatarUrl}
           />
+          {isUploadingAvatar ? (
+            <div className="absolute inset-0 grid place-items-center bg-stone-950/20">
+              <span className="h-8 w-8 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+            </div>
+          ) : null}
           <label
             className="absolute inset-x-0 bottom-0 flex cursor-pointer items-center justify-center gap-2 bg-stone-950/75 px-3 py-2 text-xs font-semibold text-white opacity-100 transition group-hover:bg-stone-950/85 lg:opacity-0 lg:group-hover:opacity-100"
             title={copy.dashboard.uploadAvatar}
@@ -685,7 +724,7 @@ function UserProfileSidebar({
               </p>
             </div>
             <a
-              className="shrink-0 rounded-md border border-stone-200 px-3 py-2 text-xs font-semibold text-stone-700 transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-stone-300 hover:bg-stone-50 hover:text-stone-950"
+              className="shrink-0 rounded-md border border-stone-300 px-3 py-2 text-xs font-semibold text-stone-700 transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-stone-300 hover:bg-stone-50 hover:text-stone-950"
               href={getGoogleMaps3dUrl(user.location)}
               rel="noreferrer"
               target="_blank"
@@ -693,7 +732,7 @@ function UserProfileSidebar({
               {copy.dashboard.open3dMap}
             </a>
           </div>
-          <div className="mt-3 overflow-hidden rounded-md border border-stone-200 bg-stone-100">
+          <div className="mt-3 overflow-hidden rounded-md border border-stone-300 bg-stone-100">
             <iframe
               allowFullScreen
               className="block h-48 w-full border-0"
@@ -794,7 +833,7 @@ function WorkoutLoadingState() {
     <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
       {Array.from({ length: 4 }, (_, index) => (
         <div
-          className="rounded-lg border border-stone-200 bg-white p-5"
+          className="rounded-lg border border-stone-300 bg-white p-5"
           key={index}
         >
           <div className="h-3 w-24 animate-pulse rounded bg-stone-100" />
