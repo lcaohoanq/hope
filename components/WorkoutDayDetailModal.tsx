@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
+import { FaPen } from "react-icons/fa";
 import { formatDisplayDate } from "@/lib/date-utils";
 import type { AppCopy, Language } from "@/lib/i18n";
 import type { Workout, WorkoutUpdateInput } from "@/lib/workout-types";
@@ -360,11 +361,12 @@ export function WorkoutDayDetailModal({
                         </p>
                       ) : null}
                       <button
-                        className="mt-4 h-9 rounded-md border border-stone-200 bg-white px-3 text-sm font-semibold text-stone-700 transition hover:bg-stone-100 active:scale-[0.98]"
+                        className="mt-4 inline-flex h-9 items-center gap-2 rounded-md border border-stone-200 bg-white px-3 text-sm font-semibold text-stone-700 transition hover:bg-stone-100 active:scale-[0.98]"
                         onClick={() => startEditing(workout)}
                         type="button"
                       >
-                        {copy.common.edit}
+                        <FaPen aria-hidden="true" className="h-3 w-3" />
+                        {copy.form.editWorkout}
                       </button>
                     </>
                   )}
@@ -404,6 +406,14 @@ function EditWorkoutPanel({
   onUpdateImages: (files: FileList | null, remainingImageSlots: number) => void;
 }) {
   const remainingImageSlots = Math.max(0, MAX_WORKOUT_IMAGES - existingImageCount);
+  const durationMinutes = calculateDurationMinutes(
+    editForm.startTime,
+    editForm.endTime,
+  );
+  const durationPreview =
+    durationMinutes > 0
+      ? `${durationMinutes} ${copy.common.minutes}`
+      : copy.errors.startBeforeEnd;
 
   return (
     <form
@@ -413,6 +423,15 @@ function EditWorkoutPanel({
         onSubmit();
       }}
     >
+      <div className="flex flex-col gap-1 border-b border-stone-200 pb-3">
+        <p className="text-base font-semibold text-stone-950">
+          {copy.form.editWorkout}
+        </p>
+        <p className="text-sm text-stone-500">
+          {copy.form.durationPreview}: {durationPreview}
+        </p>
+      </div>
+
       <div className="grid gap-3 sm:grid-cols-2">
         <label className="grid gap-1.5 text-sm font-medium text-stone-800">
           {copy.form.type}
@@ -464,7 +483,7 @@ function EditWorkoutPanel({
       </label>
 
       <label className="grid gap-1.5 text-sm font-medium text-stone-800">
-        {copy.form.addImages}
+        {copy.form.newImages}
         <input
           accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
           className="block w-full rounded-md border border-stone-200 bg-white px-3 py-2 text-sm font-normal text-stone-700 file:mr-3 file:rounded-md file:border-0 file:bg-stone-950 file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-white disabled:cursor-not-allowed disabled:opacity-60"
@@ -476,6 +495,7 @@ function EditWorkoutPanel({
           type="file"
         />
         <span className="text-xs font-normal text-stone-500">
+          {copy.form.existingImages(existingImageCount)} ·{" "}
           {copy.form.imageSlotAvailable(remainingImageSlots)}
         </span>
       </label>

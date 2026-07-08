@@ -64,12 +64,15 @@ export const translations = {
       addImages: "Thêm ảnh",
       date: "Ngày",
       durationPreview: "Thời lượng dự kiến",
+      editWorkout: "Sửa buổi tập",
       end: "Kết thúc",
       endTime: "Giờ kết thúc",
       imageSlotAvailable: (count: number) =>
         `Còn ${count} vị trí ảnh có thể thêm.`,
       images: "Ảnh",
+      existingImages: (count: number) => `${count} ảnh hiện có`,
       logWorkout: "Ghi lại buổi tập",
+      newImages: "Ảnh mới",
       note: "Ghi chú",
       notePlaceholder: "Một ghi chú ngắn cho bạn sau này",
       selectedEditPreviewAlt: (index: number) =>
@@ -182,12 +185,16 @@ export const translations = {
       addImages: "Add images",
       date: "Date",
       durationPreview: "Duration preview",
+      editWorkout: "Edit workout",
       end: "End",
       endTime: "End time",
       imageSlotAvailable: (count: number) =>
         `${count} image slot${count === 1 ? "" : "s"} available.`,
       images: "Images",
+      existingImages: (count: number) =>
+        `${count} existing image${count === 1 ? "" : "s"}`,
       logWorkout: "Log a workout",
+      newImages: "New images",
       note: "Note",
       notePlaceholder: "Short context for future you",
       selectedEditPreviewAlt: (index: number) =>
