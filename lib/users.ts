@@ -108,6 +108,7 @@ export const APP_USERS = [
       username: "hoang",
       password: "123",
     },
+    avatarUrl: "/uploads/avatars/hoang-8fc5a8df-b32.png",
     bio: {
       en: "Expect the Not Expected.",
       vi: "Expect the Not Expected.",
