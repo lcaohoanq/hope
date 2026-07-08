@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 import {
+  isUserAuthorized,
+} from "@/lib/auth";
+import {
   commitWorkoutDataAndFilesToGitHub,
   commitWorkoutDataToGitHub,
   GitHubJsonConflictError,
@@ -47,6 +50,10 @@ export async function GET(request: Request) {
       },
       { status: 400 },
     );
+  }
+
+  if (!isUserAuthorized(request.headers.get("cookie"), userId)) {
+    return createUnauthorizedResponse();
   }
 
   try {
@@ -108,6 +115,10 @@ export async function POST(request: Request) {
       },
       { status: 400 },
     );
+  }
+
+  if (!isUserAuthorized(request.headers.get("cookie"), userId)) {
+    return createUnauthorizedResponse();
   }
 
   let optimizedImages: OptimizedWorkoutImage[];
@@ -241,6 +252,10 @@ export async function PATCH(request: Request) {
       },
       { status: 400 },
     );
+  }
+
+  if (!isUserAuthorized(request.headers.get("cookie"), userId)) {
+    return createUnauthorizedResponse();
   }
 
   try {
@@ -414,6 +429,16 @@ function getRequestUserId(request: Request) {
   const url = new URL(request.url);
 
   return normalizeUserId(url.searchParams.get("userId"));
+}
+
+function createUnauthorizedResponse() {
+  return NextResponse.json(
+    {
+      success: false,
+      error: "Authentication is required.",
+    },
+    { status: 401 },
+  );
 }
 
 async function prepareWorkoutImages(
