@@ -91,12 +91,12 @@ export const APP_USERS = [
   {
     id: "hoang",
     slug: "@hoang",
-    displayName: "Hoang",
+    displayName: "Hoang Cao Luu",
     birthYear: 2004,
-    avatarSeed: "hoang",
+    avatarSeed: "lcaohoanq",
     bio: {
       en: "Expect the Not Expected.",
-      vi: "Luôn sẵn sàng cho điều không ngờ.",
+      vi: "Expect the Not Expected.",
     },
     location: {
       label: {
@@ -113,12 +113,12 @@ export const APP_USERS = [
       en: "he/him",
       vi: "anh ấy",
     },
-    preferredLanguage: "vi",
-    website: "https://example.com/hoang",
+    preferredLanguage: "en",
+    website: "https://lcaohoanq.works",
     socialLinks: {
-      facebook: "https://facebook.com/hoang.fitlog",
-      instagram: "https://instagram.com/hoang.fitlog",
-      linkedin: "https://linkedin.com/in/hoang-fitlog",
+      facebook: "https://facebook.com/lcaohoanq",
+      instagram: "https://instagram.com/lcaohoanq",
+      linkedin: "https://linkedin.com/in/lcaohoanq",
     },
     heatmapSettings: {
       defaultView: {
