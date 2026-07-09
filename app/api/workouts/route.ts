@@ -65,7 +65,9 @@ export async function GET(request: Request) {
         isWorkoutVisibleForUser(workout, userId),
       ),
     });
-  } catch {
+  } catch (error) {
+    console.error("Unable to load workout data.", error);
+
     return NextResponse.json(
       {
         success: false,
