@@ -807,6 +807,7 @@ function createWorkoutRequestInit(
   userId: string,
 ) {
   const hasImages = input.images && input.images.length > 0;
+  const imageSrcs = "imageSrcs" in input ? input.imageSrcs : undefined;
 
   if (!hasImages) {
     return {
@@ -815,6 +816,7 @@ function createWorkoutRequestInit(
       },
       body: JSON.stringify({
         ...input,
+        ...(imageSrcs ? { imageSrcs } : {}),
         userId,
       }),
     };
@@ -832,6 +834,10 @@ function createWorkoutRequestInit(
   body.set("startTime", input.startTime);
   body.set("endTime", input.endTime);
   body.set("note", input.note);
+
+  imageSrcs?.forEach((src) => {
+    body.append("imageSrcs", src);
+  });
 
   input.images?.forEach((image) => {
     body.append("images", image);

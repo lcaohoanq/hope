@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { FaPen } from "react-icons/fa";
+import { FaPen, FaTrash } from "react-icons/fa";
 import { formatDisplayDate } from "@/lib/date-utils";
 import type { AppCopy, Language } from "@/lib/i18n";
 import type { Workout, WorkoutUpdateInput } from "@/lib/workout-types";
@@ -58,10 +58,15 @@ export function WorkoutDayDetailModal({
     [workouts],
   );
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-  const selectedImage = galleryImages[selectedImageIndex];
+  const clampedSelectedImageIndex = Math.min(
+    selectedImageIndex,
+    Math.max(0, galleryImages.length - 1),
+  );
+  const selectedImage = galleryImages[clampedSelectedImageIndex];
   const spawnOffset = getSpawnOffset(origin);
   const [editingWorkoutId, setEditingWorkoutId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<EditWorkoutForm | null>(null);
+  const [editImageSrcs, setEditImageSrcs] = useState<string[]>([]);
   const [editImages, setEditImages] = useState<File[]>([]);
   const [editPreviewUrls, setEditPreviewUrls] = useState<string[]>([]);
   const editPreviewUrlsRef = useRef<string[]>([]);
@@ -95,6 +100,7 @@ export function WorkoutDayDetailModal({
       endTime: workout.endTime,
       note: workout.note ?? "",
     });
+    setEditImageSrcs((workout.images ?? []).map((image) => image.src));
     setEditImageSelection([]);
     setEditError("");
     setEditSuccess("");
@@ -103,6 +109,7 @@ export function WorkoutDayDetailModal({
   function cancelEditing() {
     setEditingWorkoutId(null);
     setEditForm(null);
+    setEditImageSrcs([]);
     setEditImageSelection([]);
     setEditError("");
   }
@@ -136,6 +143,14 @@ export function WorkoutDayDetailModal({
     editPreviewUrlsRef.current = nextPreviewUrls;
     setEditImages(images);
     setEditPreviewUrls(nextPreviewUrls);
+  }
+
+  function removeExistingImage(src: string) {
+    setEditImageSrcs((current) =>
+      current.filter((currentSrc) => currentSrc !== src),
+    );
+    setEditError("");
+    setEditSuccess("");
   }
 
   async function submitEdit(workout: Workout) {
@@ -177,10 +192,12 @@ export function WorkoutDayDetailModal({
         startTime: editForm.startTime,
         endTime: editForm.endTime,
         note,
+        imageSrcs: editImageSrcs,
         images: editImages,
       });
       setEditingWorkoutId(null);
       setEditForm(null);
+      setEditImageSrcs([]);
       setEditImageSelection([]);
       setEditSuccess(copy.form.workoutUpdated);
     } catch (error) {
@@ -304,7 +321,7 @@ export function WorkoutDayDetailModal({
                   <button
                     aria-label={copy.modal.showWorkoutImage(index + 1)}
                     className={`h-28 w-40 shrink-0 snap-start overflow-hidden rounded-md border bg-stone-100 transition ${
-                      index === selectedImageIndex
+                      index === clampedSelectedImageIndex
                         ? "border-moss ring-2 ring-moss/20"
                         : "border-stone-300 hover:border-stone-300"
                     }`}
@@ -337,11 +354,14 @@ export function WorkoutDayDetailModal({
                       copy={copy}
                       editError={editError}
                       editForm={editForm}
+                      existingImages={(workout.images ?? []).filter((image) =>
+                        editImageSrcs.includes(image.src),
+                      )}
                       editPreviewUrls={editPreviewUrls}
                       editSuccess={editSuccess}
-                      existingImageCount={workout.images?.length ?? 0}
                       isSavingEdit={isSavingEdit}
                       onCancel={cancelEditing}
+                      onRemoveExistingImage={removeExistingImage}
                       onSubmit={() => void submitEdit(workout)}
                       onUpdateField={updateEditField}
                       onUpdateImages={updateEditImages}
@@ -394,11 +414,12 @@ function EditWorkoutPanel({
   copy,
   editError,
   editForm,
+  existingImages,
   editPreviewUrls,
   editSuccess,
-  existingImageCount,
   isSavingEdit,
   onCancel,
+  onRemoveExistingImage,
   onSubmit,
   onUpdateField,
   onUpdateImages,
@@ -406,15 +427,17 @@ function EditWorkoutPanel({
   copy: AppCopy;
   editError: string;
   editForm: EditWorkoutForm;
+  existingImages: Workout["images"];
   editPreviewUrls: string[];
   editSuccess: string;
-  existingImageCount: number;
   isSavingEdit: boolean;
   onCancel: () => void;
+  onRemoveExistingImage: (src: string) => void;
   onSubmit: () => void;
   onUpdateField: (field: keyof EditWorkoutForm, value: string) => void;
   onUpdateImages: (files: FileList | null, remainingImageSlots: number) => void;
 }) {
+  const existingImageCount = existingImages?.length ?? 0;
   const remainingImageSlots = Math.max(0, MAX_WORKOUT_IMAGES - existingImageCount);
   const durationMinutes = calculateDurationMinutes(
     editForm.startTime,
@@ -491,6 +514,37 @@ function EditWorkoutPanel({
           value={editForm.note}
         />
       </label>
+
+      {existingImages && existingImages.length > 0 ? (
+        <div className="grid gap-2">
+          <p className="text-sm font-medium text-stone-800">
+            {copy.form.images}
+          </p>
+          <div className="grid grid-cols-3 gap-2">
+            {existingImages.map((image, index) => (
+              <div
+                className="group relative aspect-square overflow-hidden rounded-md border border-stone-300 bg-stone-100"
+                key={image.src}
+              >
+                <WorkoutImageThumbnail
+                  image={image}
+                  workoutDate={editForm.date}
+                />
+                <button
+                  aria-label={copy.form.removeImage(index + 1)}
+                  className="absolute right-1.5 top-1.5 inline-flex h-8 w-8 items-center justify-center rounded-md border border-white/70 bg-stone-950/80 text-white opacity-100 shadow-sm transition hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-stone-500 sm:opacity-0 sm:group-hover:opacity-100"
+                  disabled={isSavingEdit}
+                  onClick={() => onRemoveExistingImage(image.src)}
+                  title={copy.form.removeImage(index + 1)}
+                  type="button"
+                >
+                  <FaTrash aria-hidden="true" className="h-3 w-3" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
 
       <label className="grid gap-1.5 text-sm font-medium text-stone-800">
         {copy.form.newImages}

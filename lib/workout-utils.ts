@@ -248,6 +248,7 @@ export function validateUpdateWorkoutRequest(
   todayDateKey = getTodayInTimezone(),
 ) {
   const id = typeof body.id === "string" ? body.id.trim() : "";
+  const imageSrcs = parseWorkoutImageSrcs(body.imageSrcs);
 
   if (!id) {
     return {
@@ -266,7 +267,20 @@ export function validateUpdateWorkoutRequest(
     success: true as const,
     workoutId: id,
     workoutInput: validation.workoutInput,
+    imageSrcs,
   };
+}
+
+function parseWorkoutImageSrcs(value: unknown) {
+  if (typeof value === "undefined") {
+    return undefined;
+  }
+
+  const values = Array.isArray(value) ? value : [value];
+
+  return values.filter(
+    (src): src is string => typeof src === "string" && src.trim().length > 0,
+  );
 }
 
 export function createWorkoutRecord(

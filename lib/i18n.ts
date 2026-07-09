@@ -83,6 +83,7 @@ export const translations = {
       newImages: "Ảnh mới",
       note: "Ghi chú",
       notePlaceholder: "Một ghi chú ngắn cho bạn sau này",
+      removeImage: (index: number) => `Xóa ảnh ${index}`,
       selectedEditPreviewAlt: (index: number) =>
         `Ảnh chỉnh sửa đã chọn ${index}`,
       selectedPreviewAlt: (index: number) => `Ảnh buổi tập đã chọn ${index}`,
@@ -213,6 +214,7 @@ export const translations = {
       newImages: "New images",
       note: "Note",
       notePlaceholder: "Short context for future you",
+      removeImage: (index: number) => `Remove image ${index}`,
       selectedEditPreviewAlt: (index: number) =>
         `Selected edit preview ${index}`,
       selectedPreviewAlt: (index: number) =>
