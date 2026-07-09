@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import type { Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { AppFooter } from "@/components/AppFooter";
+import { AppShell } from "@/components/AppShell";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -47,8 +47,7 @@ export default function RootLayout({
   return (
     <html lang="vi">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        {children}
-        <AppFooter />
+        <AppShell>{children}</AppShell>
       </body>
     </html>
   );

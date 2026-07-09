@@ -1,6 +1,9 @@
+import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 import { HopeDashboard } from "@/components/HopeDashboard";
-import { APP_USERS, getUserBySlug } from "@/lib/users";
+import { AUTH_COOKIE_NAME, getAuthenticatedUser } from "@/lib/auth";
+import { APP_USERS, getUserBySlug, toPublicUser } from "@/lib/users";
 
 type UserPageProps = {
   params: Promise<{
@@ -32,10 +35,22 @@ export async function generateMetadata({ params }: UserPageProps) {
 export default async function UserPage({ params }: UserPageProps) {
   const { userSlug } = await params;
   const user = getUserBySlug(userSlug);
+  const cookieStore = await cookies();
+  const authenticatedUser = getAuthenticatedUser(
+    cookieStore.get(AUTH_COOKIE_NAME)?.value,
+  );
 
   if (!user) {
     notFound();
   }
 
-  return <HopeDashboard key={user.id} user={user} />;
+  if (!authenticatedUser) {
+    redirect(`/login?next=/${encodeURIComponent(user.slug)}`);
+  }
+
+  if (authenticatedUser.id !== user.id) {
+    redirect(`/${authenticatedUser.slug}`);
+  }
+
+  return <HopeDashboard key={user.id} user={toPublicUser(user)} />;
 }
