@@ -7,6 +7,8 @@ export const MAX_WORKOUT_IMAGES = 3;
 export const MAX_WORKOUT_IMAGE_BYTES = 10 * 1024 * 1024;
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+const WORKOUT_IMAGE_SRC_PATTERN =
+  /^\/uploads\/(\d{4})\/(\d{2})\/(\d{4}-\d{2}-\d{2}-workout-[a-z0-9-]+\.avif)$/;
 const ALLOWED_IMAGE_MIME_TYPES = new Set([
   "image/jpeg",
   "image/png",
@@ -141,6 +143,43 @@ export async function cleanupOptimizedWorkoutImagesLocally(
   images: OptimizedWorkoutImage[],
 ) {
   await cleanupLocalPaths(images.map((image) => image.localPath));
+}
+
+export async function deleteWorkoutImagesLocally(images: WorkoutImage[]) {
+  await cleanupLocalPaths(images.map((image) => getWorkoutImageLocalPath(image)));
+}
+
+export function getWorkoutImageRepositoryPath(image: WorkoutImage) {
+  const safePath = getWorkoutImageSafePath(image);
+
+  return `public/uploads/${safePath.year}/${safePath.month}/${safePath.filename}`;
+}
+
+function getWorkoutImageLocalPath(image: WorkoutImage) {
+  const safePath = getWorkoutImageSafePath(image);
+
+  return path.join(
+    process.cwd(),
+    "public",
+    "uploads",
+    safePath.year,
+    safePath.month,
+    safePath.filename,
+  );
+}
+
+function getWorkoutImageSafePath(image: WorkoutImage) {
+  const match = image.src.match(WORKOUT_IMAGE_SRC_PATTERN);
+
+  if (!match) {
+    throw new WorkoutImageValidationError("Workout image path is invalid.");
+  }
+
+  return {
+    year: match[1],
+    month: match[2],
+    filename: match[3],
+  };
 }
 
 async function cleanupLocalPaths(paths: string[]) {
