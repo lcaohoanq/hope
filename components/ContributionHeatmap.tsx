@@ -13,6 +13,7 @@ import { WorkoutDayDetailModal } from "@/components/WorkoutDayDetailModal";
 import { WorkoutTooltip } from "@/components/WorkoutTooltip";
 
 type ContributionHeatmapProps = {
+  allowPastWorkoutEdits: boolean;
   copy: AppCopy;
   language: Language;
   workouts: Workout[];
@@ -46,6 +47,7 @@ type SelectedDay = {
 };
 
 export function ContributionHeatmap({
+  allowPastWorkoutEdits,
   copy,
   language,
   workouts,
@@ -317,6 +319,7 @@ export function ContributionHeatmap({
       <AnimatePresence>
         {selectedDay ? (
           <WorkoutDayDetailModal
+            allowPastWorkoutEdits={allowPastWorkoutEdits}
             copy={copy}
             date={selectedDay.date}
             isTrackable={selectedDay.isTrackable}
@@ -324,6 +327,7 @@ export function ContributionHeatmap({
             onClose={() => setSelectedDay(null)}
             onUpdateWorkout={handleSelectedDayWorkoutUpdate}
             origin={selectedDay.origin}
+            todayDateKey={todayDateKey}
             workouts={selectedDay.workouts}
           />
         ) : null}

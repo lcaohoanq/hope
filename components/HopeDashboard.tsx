@@ -380,6 +380,7 @@ export function HopeDashboard({ user }: HopeDashboardProps) {
               </section>
             ) : (
               <ContributionHeatmap
+                allowPastWorkoutEdits={user.settings.workouts.allowPastWorkoutEdits}
                 birthYear={birthYear}
                 copy={copy}
                 language={language}
@@ -440,7 +441,7 @@ function resolveDefaultHeatmapView(
   user: PublicAppUser,
   currentYear: number,
 ): HeatmapView {
-  const defaultView = user.heatmapSettings.defaultView;
+  const defaultView = user.settings.heatmap.defaultView;
 
   if (defaultView.mode === "lifetime") {
     return defaultView;
