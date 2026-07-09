@@ -29,6 +29,7 @@ type CommitWorkoutDataAndFilesOptions = {
     path: string;
     content: Buffer;
   }[];
+  deletedFilePaths?: string[];
   message: string;
 };
 
@@ -243,6 +244,7 @@ export async function commitWorkoutDataAndFilesToGitHub({
   data,
   expectedDataSha,
   files,
+  deletedFilePaths = [],
   message,
 }: CommitWorkoutDataAndFilesOptions) {
   const config = getGitHubConfig();
@@ -274,6 +276,10 @@ export async function commitWorkoutDataAndFilesToGitHub({
       ...files.map((file, index) => ({
         path: file.path,
         blobSha: blobs[index + 1],
+      })),
+      ...deletedFilePaths.map((filePath) => ({
+        path: filePath,
+        blobSha: null,
       })),
     ],
   });
@@ -453,7 +459,7 @@ async function createGitHubTree(
     entries,
   }: {
     baseTreeSha: string;
-    entries: { path: string; blobSha: string }[];
+    entries: { path: string; blobSha: string | null }[];
   },
 ) {
   const response = await fetch(`${getGitHubApiBaseUrl(config)}/git/trees`, {

@@ -37,6 +37,7 @@ export type CreateWorkoutRequest = {
 
 export type UpdateWorkoutRequest = CreateWorkoutRequest & {
   id?: unknown;
+  imageSrcs?: unknown;
 };
 
 export type WorkoutInput = {
@@ -50,6 +51,7 @@ export type WorkoutInput = {
 
 export type WorkoutUpdateInput = WorkoutInput & {
   id: string;
+  imageSrcs?: string[];
 };
 
 export type UserProfile = {
