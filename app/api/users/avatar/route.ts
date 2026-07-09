@@ -167,7 +167,7 @@ function updateUsersSourceAvatarUrl({
   avatarUrl: string;
 }) {
   const userBlockPattern = new RegExp(
-    `(\\{\\n\\s+id: "${escapeRegExp(userId)}",[\\s\\S]*?\\n\\s+heatmapSettings:)`,
+    `(\\{\\n\\s+id: "${escapeRegExp(userId)}",[\\s\\S]*?\\n\\s+settings:)`,
   );
   const userBlockMatch = source.match(userBlockPattern);
 
