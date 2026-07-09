@@ -12,7 +12,10 @@ import {
   readWorkoutGitHubFile,
   writeWorkoutDataLocally,
 } from "@/lib/github-json";
-import type { OptimizedWorkoutImage } from "@/lib/workout-images";
+import {
+  getWorkoutImageRepositoryPath,
+  type OptimizedWorkoutImage,
+} from "@/lib/workout-images";
 import type {
   CreateWorkoutRequest,
   UpdateWorkoutRequest,
@@ -304,15 +307,20 @@ export async function PATCH(request: Request) {
       const optimizedImages = await prepareWorkoutImages(
         payload.imageFiles,
         validation.workoutInput.date,
-        existingWorkout.images?.length ?? 0,
+        getRetainedWorkoutImages(existingWorkout, validation.imageSrcs).length,
       );
       const workout = await createUpdatedWorkout(
         existingWorkout,
         validation.workoutInput,
         optimizedImages,
         userId,
+        validation.imageSrcs,
       );
       const nextData = replaceWorkout(data, workout);
+      const removedImages = getImagesToDelete(
+        getRemovedWorkoutImages(existingWorkout, validation.imageSrcs),
+        nextData,
+      );
 
       try {
         if (optimizedImages.length > 0) {
@@ -324,6 +332,14 @@ export async function PATCH(request: Request) {
         }
 
         await writeWorkoutDataLocally(nextData);
+
+        if (removedImages.length > 0) {
+          const { deleteWorkoutImagesLocally } = await import(
+            "@/lib/workout-images"
+          );
+
+          await deleteWorkoutImagesLocally(removedImages);
+        }
       } catch (error) {
         if (optimizedImages.length > 0) {
           const { cleanupOptimizedWorkoutImagesLocally } = await import(
@@ -347,6 +363,7 @@ export async function PATCH(request: Request) {
       userId,
       validation.workoutInput,
       payload.imageFiles,
+      validation.imageSrcs,
     );
 
     return NextResponse.json({
@@ -448,6 +465,7 @@ async function parseUpdateWorkoutPayload(request: Request): Promise<{
       startTime: formData.get("startTime"),
       endTime: formData.get("endTime"),
       note: formData.get("note"),
+      imageSrcs: formData.getAll("imageSrcs"),
     },
     imageFiles,
   };
@@ -534,6 +552,7 @@ async function createUpdatedWorkout(
   },
   optimizedImages: OptimizedWorkoutImage[],
   userId: string,
+  retainedImageSrcs?: string[],
 ): Promise<Workout> {
   let newImageMetadata: WorkoutImage[] = [];
 
@@ -542,7 +561,10 @@ async function createUpdatedWorkout(
     newImageMetadata = optimizedImages.map(getWorkoutImageMetadata);
   }
 
-  const images = [...(existingWorkout.images ?? []), ...newImageMetadata];
+  const images = [
+    ...getRetainedWorkoutImages(existingWorkout, retainedImageSrcs),
+    ...newImageMetadata,
+  ];
 
   return {
     ...existingWorkout,
@@ -555,6 +577,42 @@ async function createUpdatedWorkout(
     note: input.note,
     ...(images.length > 0 ? { images } : { images: undefined }),
   };
+}
+
+function getRetainedWorkoutImages(
+  workout: Workout,
+  retainedImageSrcs?: string[],
+) {
+  if (!retainedImageSrcs) {
+    return workout.images ?? [];
+  }
+
+  const retainedSrcs = new Set(retainedImageSrcs);
+
+  return (workout.images ?? []).filter((image) => retainedSrcs.has(image.src));
+}
+
+function getRemovedWorkoutImages(
+  workout: Workout,
+  retainedImageSrcs?: string[],
+) {
+  if (!retainedImageSrcs) {
+    return [];
+  }
+
+  const retainedSrcs = new Set(retainedImageSrcs);
+
+  return (workout.images ?? []).filter((image) => !retainedSrcs.has(image.src));
+}
+
+function getImagesToDelete(images: WorkoutImage[], data: { workouts: Workout[] }) {
+  const referencedSrcs = new Set(
+    data.workouts.flatMap((workout) =>
+      (workout.images ?? []).map((image) => image.src),
+    ),
+  );
+
+  return images.filter((image) => !referencedSrcs.has(image.src));
 }
 
 function isWorkoutImageValidationError(error: unknown): error is Error {
@@ -629,6 +687,7 @@ async function updateAndCommitWorkout(
   userId: string,
   input: Parameters<typeof createUpdatedWorkout>[1],
   imageFiles: File[],
+  retainedImageSrcs?: string[],
 ) {
   const firstRead = await readWorkoutGitHubFile();
 
@@ -640,6 +699,7 @@ async function updateAndCommitWorkout(
       userId,
       input,
       imageFiles,
+      retainedImageSrcs,
     });
   } catch (error) {
     if (!(error instanceof GitHubJsonConflictError)) {
@@ -655,6 +715,7 @@ async function updateAndCommitWorkout(
       userId,
       input,
       imageFiles,
+      retainedImageSrcs,
     });
   }
 }
@@ -666,6 +727,7 @@ async function updateWorkoutInGitHubFile({
   userId,
   input,
   imageFiles,
+  retainedImageSrcs,
 }: {
   fileData: Awaited<ReturnType<typeof readWorkoutGitHubFile>>["data"];
   sha: string;
@@ -673,6 +735,7 @@ async function updateWorkoutInGitHubFile({
   userId: string;
   input: Parameters<typeof createUpdatedWorkout>[1];
   imageFiles: File[];
+  retainedImageSrcs?: string[];
 }) {
   const existingWorkout = fileData.workouts.find(
     (workout) =>
@@ -695,7 +758,7 @@ async function updateWorkoutInGitHubFile({
   const optimizedImages = await prepareWorkoutImages(
     imageFiles,
     input.date,
-    existingWorkout.images?.length ?? 0,
+    getRetainedWorkoutImages(existingWorkout, retainedImageSrcs).length,
   );
 
   const workout = await createUpdatedWorkout(
@@ -703,10 +766,15 @@ async function updateWorkoutInGitHubFile({
     input,
     optimizedImages,
     userId,
+    retainedImageSrcs,
   );
   const nextData = replaceWorkout(fileData, workout);
+  const deletedFilePaths = getImagesToDelete(
+    getRemovedWorkoutImages(existingWorkout, retainedImageSrcs),
+    nextData,
+  ).map(getWorkoutImageRepositoryPath);
 
-  if (optimizedImages.length === 0) {
+  if (optimizedImages.length === 0 && deletedFilePaths.length === 0) {
     await commitWorkoutDataToGitHub({
       data: nextData,
       sha,
@@ -723,6 +791,7 @@ async function updateWorkoutInGitHubFile({
       path: image.repositoryPath,
       content: image.buffer,
     })),
+    deletedFilePaths,
     message: `Update workout for ${workout.date}`,
   });
 
