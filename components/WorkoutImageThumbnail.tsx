@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 import type { WorkoutImage } from "@/lib/workout-types";
 
 type WorkoutImageThumbnailProps = {
   className?: string;
   image: WorkoutImage;
   imageClassName?: string;
+  imageStyle?: CSSProperties;
   workoutDate: string;
 };
 
@@ -14,6 +15,7 @@ export function WorkoutImageThumbnail({
   className = "h-full w-full",
   image,
   imageClassName = "h-full w-full object-cover",
+  imageStyle,
   workoutDate,
 }: WorkoutImageThumbnailProps) {
   const [src, setSrc] = useState(image.src);
@@ -47,6 +49,7 @@ export function WorkoutImageThumbnail({
       loading="lazy"
       onError={handleImageError}
       src={src}
+      style={imageStyle}
       width={image.width}
     />
   );

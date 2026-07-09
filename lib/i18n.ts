@@ -130,9 +130,13 @@ export const translations = {
       addMoreImages: (count: number) => `Thêm tối đa ${count} ảnh nữa.`,
       closeWorkoutDetail: "Đóng chi tiết buổi tập",
       dayDetail: "Chi tiết ngày",
+      nextWorkoutImage: "Xem ảnh tiếp theo",
+      previousWorkoutImage: "Xem ảnh trước",
       loggedWorkoutCount: (count: number) => `${count} buổi tập đã ghi`,
       noWorkoutLogged: "Chưa ghi buổi tập.",
       showWorkoutImage: (index: number) => `Xem ảnh buổi tập ${index}`,
+      zoomInWorkoutImage: "Phóng to ảnh",
+      zoomOutWorkoutImage: "Thu nhỏ ảnh",
     },
     stats: {
       activeDays: "Ngày có tập",
@@ -264,10 +268,14 @@ export const translations = {
         `Add up to ${count} more image${count === 1 ? "" : "s"}.`,
       closeWorkoutDetail: "Close workout detail",
       dayDetail: "Day detail",
+      nextWorkoutImage: "Show next image",
+      previousWorkoutImage: "Show previous image",
       loggedWorkoutCount: (count: number) =>
         `${count} workout${count === 1 ? "" : "s"} logged`,
       noWorkoutLogged: "No workout logged.",
       showWorkoutImage: (index: number) => `Show workout image ${index}`,
+      zoomInWorkoutImage: "Zoom image in",
+      zoomOutWorkoutImage: "Zoom image out",
     },
     stats: {
       activeDays: "Active days",
