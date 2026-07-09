@@ -37,11 +37,11 @@
     {
       "id": "2026-07-07-1783390773564-f6e64bb2",
       "date": "2026-07-07",
-      "type": "test",
-      "startTime": "10:00",
-      "endTime": "10:30",
-      "durationMinutes": 30,
-      "note": "",
+      "type": "Đạp xe gần nhà tiếp",
+      "startTime": "07:30",
+      "endTime": "08:30",
+      "durationMinutes": 60,
+      "note": "route Dưỡng chỉ hồi đi bộ",
       "images": [
         {
           "src": "/uploads/2026/07/2026-07-07-workout-7096fc8e.avif",
@@ -49,9 +49,24 @@
           "width": 1200,
           "height": 420,
           "sizeBytes": 3429
+        },
+        {
+          "src": "/uploads/2026/07/2026-07-07-workout-3b0d5b36.avif",
+          "format": "avif",
+          "width": 900,
+          "height": 1200,
+          "sizeBytes": 215124
+        },
+        {
+          "src": "/uploads/2026/07/2026-07-07-workout-f9185ec1.avif",
+          "format": "avif",
+          "width": 900,
+          "height": 1200,
+          "sizeBytes": 83363
         }
       ],
-      "createdAt": "2026-07-07T02:19:33.564Z"
+      "createdAt": "2026-07-07T02:19:33.564Z",
+      "userId": "hoang"
     },
     {
       "id": "2026-07-07-1783435109180-055695c6",
