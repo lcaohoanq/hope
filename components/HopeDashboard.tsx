@@ -12,6 +12,7 @@ import {
 } from "react-icons/fa";
 import type { IconType } from "react-icons";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ContributionHeatmap } from "@/components/ContributionHeatmap";
 import { Loading } from "@/components/Loading";
 import { StatsCards } from "@/components/StatsCards";
@@ -24,7 +25,7 @@ import {
   type Language,
 } from "@/lib/i18n";
 import { getAvatarUrl } from "@/lib/profile-utils";
-import type { AppUser, HeatmapView, UserLocation } from "@/lib/users";
+import type { HeatmapView, PublicAppUser, UserLocation } from "@/lib/users";
 import type {
   Workout,
   WorkoutData,
@@ -59,7 +60,7 @@ type UploadAvatarResponse =
   | ApiErrorResponse;
 
 type HopeDashboardProps = {
-  user: AppUser;
+  user: PublicAppUser;
 };
 
 type ProfileLink = {
@@ -69,6 +70,7 @@ type ProfileLink = {
 };
 
 export function HopeDashboard({ user }: HopeDashboardProps) {
+  const router = useRouter();
   const todayDateKey = getTodayInTimezone();
   const currentYear = Number(todayDateKey.slice(0, 4));
   const birthYear = user.birthYear ?? currentYear;
@@ -285,6 +287,14 @@ export function HopeDashboard({ user }: HopeDashboardProps) {
     }
   }
 
+  async function handleSignOut() {
+    await fetch("/api/auth/logout", {
+      method: "POST",
+    });
+    router.push("/login");
+    router.refresh();
+  }
+
   return (
     <main className="min-h-[100dvh] bg-paper text-stone-950">
       {isUploadingWorkoutImages ? (
@@ -295,6 +305,7 @@ export function HopeDashboard({ user }: HopeDashboardProps) {
         copy={copy}
         language={language}
         onLanguageChange={setLanguage}
+        onSignOut={() => void handleSignOut()}
         user={user}
       />
       <div className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:px-8">
@@ -426,7 +437,7 @@ export function HopeDashboard({ user }: HopeDashboardProps) {
 }
 
 function resolveDefaultHeatmapView(
-  user: AppUser,
+  user: PublicAppUser,
   currentYear: number,
 ): HeatmapView {
   const defaultView = user.heatmapSettings.defaultView;
@@ -464,13 +475,15 @@ function TopHeader({
   copy,
   language,
   onLanguageChange,
+  onSignOut,
   user,
 }: {
   avatarUrl: string;
   copy: AppCopy;
   language: Language;
   onLanguageChange: (language: Language) => void;
-  user: AppUser;
+  onSignOut: () => void;
+  user: PublicAppUser;
 }) {
   return (
     <header className="flex w-full flex-col gap-3 border-b border-stone-300 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
@@ -516,6 +529,13 @@ function TopHeader({
             ))}
           </select>
         </label>
+        <button
+          className="h-10 rounded-md border border-stone-300 px-3 text-sm font-semibold text-stone-700 transition hover:bg-stone-100 hover:text-stone-950 active:scale-[0.98]"
+          onClick={onSignOut}
+          type="button"
+        >
+          {copy.common.signOut}
+        </button>
       </div>
     </header>
   );
@@ -542,7 +562,7 @@ function UserProfileSidebar({
   isUploadingAvatar: boolean;
   language: Language;
   onAvatarLoad: (avatarUrl: string) => void;
-  user: AppUser;
+  user: PublicAppUser;
   onAddWorkout: () => void;
   onUploadAvatar: (file: File) => Promise<void>;
 }) {

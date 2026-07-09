@@ -34,9 +34,15 @@ export type UserSocialLinks = {
   linkedin?: string;
 };
 
+export type UserCredentials = {
+  username: string;
+  password: string;
+};
+
 export type AppUser = UserProfile & {
   id: string;
   slug: string;
+  credentials: UserCredentials;
   avatarUrl?: string;
   bio: LocalizedText;
   location?: UserLocation;
@@ -56,6 +62,10 @@ export const APP_USERS = [
     displayName: "Test User",
     birthYear: 2004,
     avatarSeed: "test",
+    credentials: {
+      username: "test",
+      password: "123",
+    },
     bio: {
       en: "Testing the quiet little rituals that make movement easier to repeat.",
       vi: "Thử những nhịp nhỏ, đều và đủ nhẹ để việc vận động dễ lặp lại hơn.",
@@ -94,6 +104,10 @@ export const APP_USERS = [
     displayName: "Hoang Cao Luu",
     birthYear: 2004,
     avatarSeed: "lcaohoanq",
+    credentials: {
+      username: "hoang",
+      password: "123",
+    },
     avatarUrl: "/uploads/avatars/hoang-8fc5a8df-b32.png",
     bio: {
       en: "Expect the Not Expected.",
@@ -133,6 +147,10 @@ export const APP_USERS = [
     displayName: "Linh",
     birthYear: 2005,
     avatarSeed: "linh",
+    credentials: {
+      username: "linh",
+      password: "123",
+    },
     bio: {
       en: "Building a steady rhythm one logged workout at a time.",
       vi: "Xây nhịp sống đều hơn qua từng buổi tập được ghi lại.",
@@ -167,16 +185,40 @@ export const APP_USERS = [
   },
 ] as const satisfies readonly AppUser[];
 
+export type PublicAppUser = Omit<AppUser, "credentials">;
+
 export const DEFAULT_USER_ID = "hoang";
 
 export function getDefaultUser() {
   return APP_USERS[0];
 }
 
+export function getUserById(userId: string) {
+  return APP_USERS.find((user) => user.id === userId);
+}
+
 export function getUserBySlug(slug: string) {
   const normalizedSlug = normalizeUserSlug(slug);
 
   return APP_USERS.find((user) => user.slug === normalizedSlug);
+}
+
+export function getUserByUsername(username: string) {
+  const normalizedUsername = normalizeUsername(username);
+
+  return APP_USERS.find(
+    (user) => user.credentials.username === normalizedUsername,
+  );
+}
+
+export function authenticateUser(username: string, password: string) {
+  const user = getUserByUsername(username);
+
+  if (!user || user.credentials.password !== password) {
+    return null;
+  }
+
+  return user;
 }
 
 export function isKnownUserId(userId: string) {
@@ -195,6 +237,28 @@ export function normalizeUserId(value: unknown) {
 
 export function isWorkoutVisibleForUser(workout: Workout, userId: string) {
   return workout.userId ? workout.userId === userId : userId === DEFAULT_USER_ID;
+}
+
+export function toPublicUser(user: AppUser): PublicAppUser {
+  return {
+    id: user.id,
+    slug: user.slug,
+    displayName: user.displayName,
+    birthYear: user.birthYear,
+    avatarSeed: user.avatarSeed,
+    avatarUrl: user.avatarUrl,
+    bio: user.bio,
+    location: user.location,
+    pronouns: user.pronouns,
+    preferredLanguage: user.preferredLanguage,
+    socialLinks: user.socialLinks,
+    website: user.website,
+    heatmapSettings: user.heatmapSettings,
+  };
+}
+
+function normalizeUsername(value: string) {
+  return value.trim().toLowerCase();
 }
 
 function normalizeUserSlug(value: string) {

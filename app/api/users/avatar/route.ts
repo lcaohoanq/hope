@@ -7,6 +7,7 @@ import {
   isUsingGitHubDataSource,
   readGitHubRepositoryFile,
 } from "@/lib/github-json";
+import { isUserAuthorized } from "@/lib/auth";
 import { normalizeUserId } from "@/lib/users";
 
 export const runtime = "nodejs";
@@ -44,6 +45,16 @@ export async function POST(request: Request) {
         error: "A valid user is required.",
       },
       { status: 400 },
+    );
+  }
+
+  if (!isUserAuthorized(request.headers.get("cookie"), userId)) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Authentication is required.",
+      },
+      { status: 401 },
     );
   }
 

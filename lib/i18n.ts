@@ -29,6 +29,7 @@ export const translations = {
       retry: "Thử lại",
       saveChanges: "Lưu thay đổi",
       saving: "Đang lưu...",
+      signOut: "Đăng xuất",
     },
     dashboard: {
       addWorkout: "Thêm buổi tập",
@@ -156,6 +157,7 @@ export const translations = {
       retry: "Retry",
       saveChanges: "Save changes",
       saving: "Saving...",
+      signOut: "Sign out",
     },
     dashboard: {
       addWorkout: "Add a workout",
