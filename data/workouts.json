@@ -1,6 +1,40 @@
 {
   "workouts": [
     {
+      "id": "2026-07-01-1783578345533-bf2e82ee",
+      "userId": "hoang",
+      "date": "2026-07-01",
+      "type": "Đạp xe Đông Thăng Long",
+      "startTime": "17:00",
+      "endTime": "18:00",
+      "durationMinutes": 60,
+      "note": "",
+      "images": [
+        {
+          "src": "/uploads/2026/07/2026-07-01-workout-3f179296.avif",
+          "format": "avif",
+          "width": 900,
+          "height": 1200,
+          "sizeBytes": 87191
+        },
+        {
+          "src": "/uploads/2026/07/2026-07-01-workout-c090cfa9.avif",
+          "format": "avif",
+          "width": 900,
+          "height": 1200,
+          "sizeBytes": 156850
+        },
+        {
+          "src": "/uploads/2026/07/2026-07-01-workout-39125610.avif",
+          "format": "avif",
+          "width": 1200,
+          "height": 900,
+          "sizeBytes": 150054
+        }
+      ],
+      "createdAt": "2026-07-09T06:25:45.533Z"
+    },
+    {
       "id": "2026-07-07-1783390773564-f6e64bb2",
       "date": "2026-07-07",
       "type": "test",
