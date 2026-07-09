@@ -58,6 +58,26 @@
         }
       ],
       "createdAt": "2026-07-07T14:26:24.193Z"
+    },
+    {
+      "id": "2026-07-09-1783577150780-c72327d5",
+      "userId": "hoang",
+      "date": "2026-07-09",
+      "type": "độp xe gần nhà hehe",
+      "startTime": "08:00",
+      "endTime": "08:33",
+      "durationMinutes": 33,
+      "note": "Hôm nay đi trễ nên hơi nắng, ráng đi sớm nha",
+      "images": [
+        {
+          "src": "/uploads/2026/07/2026-07-09-workout-32b3e8f0.avif",
+          "format": "avif",
+          "width": 1200,
+          "height": 900,
+          "sizeBytes": 108933
+        }
+      ],
+      "createdAt": "2026-07-09T06:05:50.780Z"
     }
   ],
   "settings": {
