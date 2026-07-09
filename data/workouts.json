@@ -44,13 +44,6 @@
       "note": "route Dưỡng chỉ hồi đi bộ",
       "images": [
         {
-          "src": "/uploads/2026/07/2026-07-07-workout-7096fc8e.avif",
-          "format": "avif",
-          "width": 1200,
-          "height": 420,
-          "sizeBytes": 3429
-        },
-        {
           "src": "/uploads/2026/07/2026-07-07-workout-3b0d5b36.avif",
           "format": "avif",
           "width": 900,
@@ -63,6 +56,13 @@
           "width": 900,
           "height": 1200,
           "sizeBytes": 83363
+        },
+        {
+          "src": "/uploads/2026/07/2026-07-07-workout-9a288f11.avif",
+          "format": "avif",
+          "width": 1200,
+          "height": 900,
+          "sizeBytes": 60624
         }
       ],
       "createdAt": "2026-07-07T02:19:33.564Z",
