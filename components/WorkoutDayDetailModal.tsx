@@ -1,8 +1,15 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { FaPen, FaTrash } from "react-icons/fa";
+import {
+  FaChevronLeft,
+  FaChevronRight,
+  FaPen,
+  FaSearchMinus,
+  FaSearchPlus,
+  FaTrash,
+} from "react-icons/fa";
 import { formatDisplayDate } from "@/lib/date-utils";
 import type { AppCopy, Language } from "@/lib/i18n";
 import type { Workout, WorkoutUpdateInput } from "@/lib/workout-types";
@@ -34,6 +41,9 @@ type EditWorkoutForm = {
 };
 
 const MAX_WORKOUT_IMAGES = 3;
+const MIN_IMAGE_ZOOM = 1;
+const MAX_IMAGE_ZOOM = 3;
+const IMAGE_ZOOM_STEP = 0.25;
 
 export function WorkoutDayDetailModal({
   allowPastWorkoutEdits,
@@ -58,6 +68,7 @@ export function WorkoutDayDetailModal({
     [workouts],
   );
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [imageZoom, setImageZoom] = useState(1);
   const clampedSelectedImageIndex = Math.min(
     selectedImageIndex,
     Math.max(0, galleryImages.length - 1),
@@ -74,16 +85,80 @@ export function WorkoutDayDetailModal({
   const [editSuccess, setEditSuccess] = useState("");
   const [isSavingEdit, setIsSavingEdit] = useState(false);
 
+  const updateSelectedImage = useCallback(
+    (direction: -1 | 1) => {
+      if (galleryImages.length === 0) {
+        setSelectedImageIndex(0);
+        return;
+      }
+
+      setImageZoom(1);
+      setSelectedImageIndex((currentIndex) => {
+        const safeCurrentIndex = Math.min(
+          Math.max(0, currentIndex),
+          galleryImages.length - 1,
+        );
+
+        return (
+          (safeCurrentIndex + direction + galleryImages.length) %
+          galleryImages.length
+        );
+      });
+    },
+    [galleryImages.length],
+  );
+
+  const showPreviousImage = useCallback(() => {
+    updateSelectedImage(-1);
+  }, [updateSelectedImage]);
+
+  const showNextImage = useCallback(() => {
+    updateSelectedImage(1);
+  }, [updateSelectedImage]);
+
+  const updateImageZoom = useCallback((direction: -1 | 1) => {
+    setImageZoom((currentZoom) =>
+      clampImageZoom(currentZoom + IMAGE_ZOOM_STEP * direction),
+    );
+  }, []);
+
+  const zoomImageOut = useCallback(() => {
+    updateImageZoom(-1);
+  }, [updateImageZoom]);
+
+  const zoomImageIn = useCallback(() => {
+    updateImageZoom(1);
+  }, [updateImageZoom]);
+
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
         onClose();
+        return;
+      }
+
+      if (isEditableKeyboardTarget(event.target)) {
+        return;
+      }
+
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        showPreviousImage();
+      } else if (event.key === "ArrowRight") {
+        event.preventDefault();
+        showNextImage();
+      } else if (event.key === "+" || event.key === "=") {
+        event.preventDefault();
+        zoomImageIn();
+      } else if (event.key === "-" || event.key === "_") {
+        event.preventDefault();
+        zoomImageOut();
       }
     }
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onClose]);
+  }, [onClose, showNextImage, showPreviousImage, zoomImageIn, zoomImageOut]);
 
   useEffect(() => {
     return () => {
@@ -300,16 +375,71 @@ export function WorkoutDayDetailModal({
         <div className="max-h-[calc(88dvh-88px)] overflow-y-auto p-4 sm:p-5">
           {selectedImage ? (
             <div className="overflow-hidden rounded-lg border border-stone-300 bg-stone-950">
-              <div className="aspect-[16/10]">
+              <div className="relative aspect-[16/10] overflow-auto">
                 <WorkoutImageThumbnail
                   image={selectedImage.image}
-                  imageClassName="h-full w-full object-contain"
+                  imageClassName="h-full w-full object-contain transition-transform duration-150"
+                  imageStyle={{
+                    transform: `scale(${imageZoom})`,
+                    transformOrigin: "center",
+                  }}
+                  key={selectedImage.image.src}
                   workoutDate={date}
                 />
+                {galleryImages.length > 1 ? (
+                  <>
+                    <button
+                      aria-label={copy.modal.previousWorkoutImage}
+                      className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-md border border-white/15 bg-stone-950/70 text-white backdrop-blur transition hover:bg-stone-900 active:scale-95"
+                      onClick={showPreviousImage}
+                      type="button"
+                    >
+                      <FaChevronLeft aria-hidden="true" className="h-4 w-4" />
+                    </button>
+                    <button
+                      aria-label={copy.modal.nextWorkoutImage}
+                      className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-md border border-white/15 bg-stone-950/70 text-white backdrop-blur transition hover:bg-stone-900 active:scale-95"
+                      onClick={showNextImage}
+                      type="button"
+                    >
+                      <FaChevronRight aria-hidden="true" className="h-4 w-4" />
+                    </button>
+                  </>
+                ) : null}
+                <div className="absolute right-3 top-3 flex items-center overflow-hidden rounded-md border border-white/15 bg-stone-950/70 text-white backdrop-blur">
+                  <button
+                    aria-label={copy.modal.zoomOutWorkoutImage}
+                    className="flex h-9 w-9 items-center justify-center transition hover:bg-white/10 disabled:cursor-not-allowed disabled:text-white/35"
+                    disabled={imageZoom <= MIN_IMAGE_ZOOM}
+                    onClick={zoomImageOut}
+                    type="button"
+                  >
+                    <FaSearchMinus aria-hidden="true" className="h-4 w-4" />
+                  </button>
+                  <span className="min-w-12 border-x border-white/10 px-2 text-center font-mono text-xs">
+                    {Math.round(imageZoom * 100)}%
+                  </span>
+                  <button
+                    aria-label={copy.modal.zoomInWorkoutImage}
+                    className="flex h-9 w-9 items-center justify-center transition hover:bg-white/10 disabled:cursor-not-allowed disabled:text-white/35"
+                    disabled={imageZoom >= MAX_IMAGE_ZOOM}
+                    onClick={zoomImageIn}
+                    type="button"
+                  >
+                    <FaSearchPlus aria-hidden="true" className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
               <div className="border-t border-white/10 px-3 py-2 text-xs text-stone-200">
-                {selectedImage.workout.type} - {selectedImage.workout.startTime} -{" "}
-                {selectedImage.workout.endTime}
+                <span>
+                  {selectedImage.workout.type} - {selectedImage.workout.startTime} -{" "}
+                  {selectedImage.workout.endTime}
+                </span>
+                {galleryImages.length > 1 ? (
+                  <span className="float-right font-mono text-stone-400">
+                    {clampedSelectedImageIndex + 1}/{galleryImages.length}
+                  </span>
+                ) : null}
               </div>
             </div>
           ) : null}
@@ -326,7 +456,10 @@ export function WorkoutDayDetailModal({
                         : "border-stone-300 hover:border-stone-300"
                     }`}
                     key={`${workout.id}-${image.src}`}
-                    onClick={() => setSelectedImageIndex(index)}
+                    onClick={() => {
+                      setImageZoom(1);
+                      setSelectedImageIndex(index);
+                    }}
                     type="button"
                   >
                     <WorkoutImageThumbnail image={image} workoutDate={date} />
@@ -624,6 +757,23 @@ function getSpawnOffset(origin?: { x: number; y: number }) {
     x: origin.x - window.innerWidth / 2,
     y: origin.y - window.innerHeight / 2,
   };
+}
+
+function clampImageZoom(value: number) {
+  return Math.min(MAX_IMAGE_ZOOM, Math.max(MIN_IMAGE_ZOOM, value));
+}
+
+function isEditableKeyboardTarget(target: EventTarget | null) {
+  if (!(target instanceof HTMLElement)) {
+    return false;
+  }
+
+  return (
+    target.isContentEditable ||
+    target.tagName === "INPUT" ||
+    target.tagName === "TEXTAREA" ||
+    target.tagName === "SELECT"
+  );
 }
 
 function canEditWorkoutDate(
