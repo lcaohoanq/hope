@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import {
   isUserAuthorized,
 } from "@/lib/auth";
+import { getTodayInTimezone } from "@/lib/date-utils";
 import {
   commitWorkoutDataAndFilesToGitHub,
   commitWorkoutDataToGitHub,
@@ -26,6 +27,7 @@ import {
   validateUpdateWorkoutRequest,
 } from "@/lib/workout-utils";
 import {
+  canUserEditWorkoutDate,
   isWorkoutVisibleForUser,
   normalizeUserId,
 } from "@/lib/users";
@@ -36,6 +38,13 @@ class WorkoutNotFoundError extends Error {
   constructor() {
     super("Workout was not found.");
     this.name = "WorkoutNotFoundError";
+  }
+}
+
+class PastWorkoutEditForbiddenError extends Error {
+  constructor() {
+    super("Editing past workouts is not enabled for this user.");
+    this.name = "PastWorkoutEditForbiddenError";
   }
 }
 
@@ -65,7 +74,9 @@ export async function GET(request: Request) {
         isWorkoutVisibleForUser(workout, userId),
       ),
     });
-  } catch {
+  } catch (error) {
+    console.error("Unable to load workout data.", error);
+
     return NextResponse.json(
       {
         success: false,
@@ -277,6 +288,19 @@ export async function PATCH(request: Request) {
         );
       }
 
+      const todayDateKey = getTodayInTimezone();
+
+      if (
+        !canUserEditWorkoutDate(userId, existingWorkout.date, todayDateKey) ||
+        !canUserEditWorkoutDate(
+          userId,
+          validation.workoutInput.date,
+          todayDateKey,
+        )
+      ) {
+        return createPastWorkoutEditForbiddenResponse();
+      }
+
       const optimizedImages = await prepareWorkoutImages(
         payload.imageFiles,
         validation.workoutInput.date,
@@ -348,6 +372,10 @@ export async function PATCH(request: Request) {
         },
         { status: 404 },
       );
+    }
+
+    if (error instanceof PastWorkoutEditForbiddenError) {
+      return createPastWorkoutEditForbiddenResponse();
     }
 
     console.error("Unable to update workout.", error);
@@ -438,6 +466,16 @@ function createUnauthorizedResponse() {
       error: "Authentication is required.",
     },
     { status: 401 },
+  );
+}
+
+function createPastWorkoutEditForbiddenResponse() {
+  return NextResponse.json(
+    {
+      success: false,
+      error: "Editing past workouts is not enabled for this user.",
+    },
+    { status: 403 },
   );
 }
 
@@ -643,6 +681,15 @@ async function updateWorkoutInGitHubFile({
 
   if (!existingWorkout) {
     throw new WorkoutNotFoundError();
+  }
+
+  const todayDateKey = getTodayInTimezone();
+
+  if (
+    !canUserEditWorkoutDate(userId, existingWorkout.date, todayDateKey) ||
+    !canUserEditWorkoutDate(userId, input.date, todayDateKey)
+  ) {
+    throw new PastWorkoutEditForbiddenError();
   }
 
   const optimizedImages = await prepareWorkoutImages(

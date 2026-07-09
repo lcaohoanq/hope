@@ -47,7 +47,7 @@ export function Loading({ message = "Uploading images..." }: LoadingProps) {
         .overlay {
           position: fixed;
           inset: 0;
-          z-index: 100;
+          z-index: 20000;
           display: flex;
           flex-direction: column;
           align-items: center;

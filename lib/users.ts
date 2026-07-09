@@ -39,6 +39,15 @@ export type UserCredentials = {
   password: string;
 };
 
+export type UserSettings = {
+  heatmap: {
+    defaultView: HeatmapDefaultView;
+  };
+  workouts: {
+    allowPastWorkoutEdits: boolean;
+  };
+};
+
 export type AppUser = UserProfile & {
   id: string;
   slug: string;
@@ -50,9 +59,7 @@ export type AppUser = UserProfile & {
   preferredLanguage: Language;
   socialLinks?: UserSocialLinks;
   website?: string;
-  heatmapSettings: {
-    defaultView: HeatmapDefaultView;
-  };
+  settings: UserSettings;
 };
 
 export const APP_USERS = [
@@ -92,9 +99,14 @@ export const APP_USERS = [
       instagram: "https://instagram.com/test.fitlog",
       linkedin: "https://linkedin.com/in/test-fitlog",
     },
-    heatmapSettings: {
-      defaultView: {
-        mode: "year",
+    settings: {
+      heatmap: {
+        defaultView: {
+          mode: "year",
+        },
+      },
+      workouts: {
+        allowPastWorkoutEdits: false,
       },
     },
   },
@@ -135,9 +147,14 @@ export const APP_USERS = [
       instagram: "https://instagram.com/lcaohoanq",
       linkedin: "https://linkedin.com/in/lcaohoanq",
     },
-    heatmapSettings: {
-      defaultView: {
-        mode: "year",
+    settings: {
+      heatmap: {
+        defaultView: {
+          mode: "year",
+        },
+      },
+      workouts: {
+        allowPastWorkoutEdits: true,
       },
     },
   },
@@ -177,9 +194,14 @@ export const APP_USERS = [
       instagram: "https://instagram.com/linh.fitlog",
       linkedin: "https://linkedin.com/in/linh-fitlog",
     },
-    heatmapSettings: {
-      defaultView: {
-        mode: "year",
+    settings: {
+      heatmap: {
+        defaultView: {
+          mode: "year",
+        },
+      },
+      workouts: {
+        allowPastWorkoutEdits: false,
       },
     },
   },
@@ -239,6 +261,20 @@ export function isWorkoutVisibleForUser(workout: Workout, userId: string) {
   return workout.userId ? workout.userId === userId : userId === DEFAULT_USER_ID;
 }
 
+export function canUserEditWorkoutDate(
+  userId: string,
+  workoutDate: string,
+  todayDateKey: string,
+) {
+  const user = getUserById(userId);
+
+  if (!user) {
+    return false;
+  }
+
+  return user.settings.workouts.allowPastWorkoutEdits || workoutDate >= todayDateKey;
+}
+
 export function toPublicUser(user: AppUser): PublicAppUser {
   return {
     id: user.id,
@@ -253,7 +289,7 @@ export function toPublicUser(user: AppUser): PublicAppUser {
     preferredLanguage: user.preferredLanguage,
     socialLinks: user.socialLinks,
     website: user.website,
-    heatmapSettings: user.heatmapSettings,
+    settings: user.settings,
   };
 }
 

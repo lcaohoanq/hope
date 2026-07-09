@@ -191,6 +191,7 @@ export function HopeDashboard({ user }: HopeDashboardProps) {
         }),
       );
       await loadWorkouts();
+      setIsWorkoutDialogOpen(false);
     } finally {
       setIsSubmittingWorkout(false);
       setIsUploadingWorkoutImages(false);
@@ -297,8 +298,14 @@ export function HopeDashboard({ user }: HopeDashboardProps) {
 
   return (
     <main className="min-h-[100dvh] bg-paper text-stone-950">
-      {isUploadingWorkoutImages ? (
-        <Loading message={copy.dashboard.loadingImages} />
+      {isSubmittingWorkout || isUploadingWorkoutImages ? (
+        <Loading
+          message={
+            isUploadingWorkoutImages
+              ? copy.dashboard.loadingImages
+              : copy.dashboard.savingWorkout
+          }
+        />
       ) : null}
       <TopHeader
         avatarUrl={displayedAvatarUrl}
@@ -380,6 +387,7 @@ export function HopeDashboard({ user }: HopeDashboardProps) {
               </section>
             ) : (
               <ContributionHeatmap
+                allowPastWorkoutEdits={user.settings.workouts.allowPastWorkoutEdits}
                 birthYear={birthYear}
                 copy={copy}
                 language={language}
@@ -440,7 +448,7 @@ function resolveDefaultHeatmapView(
   user: PublicAppUser,
   currentYear: number,
 ): HeatmapView {
-  const defaultView = user.heatmapSettings.defaultView;
+  const defaultView = user.settings.heatmap.defaultView;
 
   if (defaultView.mode === "lifetime") {
     return defaultView;

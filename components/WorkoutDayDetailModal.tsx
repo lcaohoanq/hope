@@ -10,8 +10,10 @@ import { calculateDurationMinutes } from "@/lib/workout-utils";
 import { WorkoutImageThumbnail } from "@/components/WorkoutImageThumbnail";
 
 type WorkoutDayDetailModalProps = {
+  allowPastWorkoutEdits: boolean;
   copy: AppCopy;
   date: string;
+  todayDateKey: string;
   language: Language;
   workouts: Workout[];
   isTrackable: boolean;
@@ -34,8 +36,10 @@ type EditWorkoutForm = {
 const MAX_WORKOUT_IMAGES = 3;
 
 export function WorkoutDayDetailModal({
+  allowPastWorkoutEdits,
   copy,
   date,
+  todayDateKey,
   language,
   workouts,
   isTrackable,
@@ -360,14 +364,20 @@ export function WorkoutDayDetailModal({
                           {workout.note}
                         </p>
                       ) : null}
-                      <button
-                        className="mt-4 inline-flex h-9 items-center gap-2 rounded-md border border-stone-300 bg-white px-3 text-sm font-semibold text-stone-700 transition hover:bg-stone-100 active:scale-[0.98]"
-                        onClick={() => startEditing(workout)}
-                        type="button"
-                      >
-                        <FaPen aria-hidden="true" className="h-3 w-3" />
-                        {copy.form.editWorkout}
-                      </button>
+                      {canEditWorkoutDate(
+                        workout.date,
+                        todayDateKey,
+                        allowPastWorkoutEdits,
+                      ) ? (
+                        <button
+                          className="mt-4 inline-flex h-9 items-center gap-2 rounded-md border border-stone-300 bg-white px-3 text-sm font-semibold text-stone-700 transition hover:bg-stone-100 active:scale-[0.98]"
+                          onClick={() => startEditing(workout)}
+                          type="button"
+                        >
+                          <FaPen aria-hidden="true" className="h-3 w-3" />
+                          {copy.form.editWorkout}
+                        </button>
+                      ) : null}
                     </>
                   )}
                 </article>
@@ -560,4 +570,12 @@ function getSpawnOffset(origin?: { x: number; y: number }) {
     x: origin.x - window.innerWidth / 2,
     y: origin.y - window.innerHeight / 2,
   };
+}
+
+function canEditWorkoutDate(
+  workoutDate: string,
+  todayDateKey: string,
+  allowPastWorkoutEdits: boolean,
+) {
+  return allowPastWorkoutEdits || workoutDate >= todayDateKey;
 }
