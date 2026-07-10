@@ -243,7 +243,7 @@ export function ContributionHeatmap({
                       return (
                         <button
                           aria-label={`${day.date}: ${label}`}
-                          className={`relative z-0 h-2.5 w-2.5 rounded-[2px] outline-none ring-offset-2 ring-offset-white transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:z-10 hover:scale-150 focus:z-10 focus-visible:ring-2 focus-visible:ring-moss ${
+                          className={`relative z-0 h-2.5 w-2.5 rounded-[2px] outline-none ring-offset-2 ring-offset-white transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:z-10 hover:ring-2 hover:ring-stone-950/20 focus:z-10 focus-visible:ring-2 focus-visible:ring-moss ${
                             hasWorkout
                               ? "bg-moss"
                               : isTrackable

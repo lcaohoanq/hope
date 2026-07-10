@@ -1,10 +1,14 @@
 import { Resend } from "resend";
 
+import { renderWorkoutReminderEmail } from "@/emails/render-email";
+
 type SendReminderEmailOptions = {
   apiKey: string;
   to: string;
   from: string;
   today: string;
+  appUrl?: string;
+  recipientName?: string;
 };
 
 export async function sendReminderEmail({
@@ -12,23 +16,22 @@ export async function sendReminderEmail({
   to,
   from,
   today,
+  appUrl,
+  recipientName,
 }: SendReminderEmailOptions) {
   const resend = new Resend(apiKey);
+  const email = await renderWorkoutReminderEmail({
+    today,
+    appUrl,
+    recipientName,
+  });
 
   const { error } = await resend.emails.send({
     from,
     to,
-    subject: "Nhac tap hom nay",
-    text: [
-      `Hom nay (${today}) ban chua ghi nhan buoi tap nao.`,
-      "",
-      "Chi can van dong nhe 10-15 phut cung duoc.",
-      "Mo app va ghi lai buoi tap hom nay nhe.",
-    ].join("\n"),
-    html: [
-      `<p>Hom nay (${today}) ban chua ghi nhan buoi tap nao.</p>`,
-      "<p>Chi can van dong nhe 10-15 phut cung duoc.<br />Mo app va ghi lai buoi tap hom nay nhe.</p>",
-    ].join(""),
+    subject: email.subject,
+    text: email.text,
+    html: email.html,
   });
 
   if (error) {
