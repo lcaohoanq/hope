@@ -127,6 +127,26 @@
         }
       ],
       "createdAt": "2026-07-09T06:05:50.780Z"
+    },
+    {
+      "id": "2026-07-10-1783652791730-f9ba6441",
+      "userId": "hoang",
+      "date": "2026-07-10",
+      "type": "Done module 2",
+      "startTime": "09:30",
+      "endTime": "10:00",
+      "durationMinutes": 30,
+      "note": "",
+      "images": [
+        {
+          "src": "/uploads/2026/07/2026-07-10-workout-0d895e46.avif",
+          "format": "avif",
+          "width": 1200,
+          "height": 675,
+          "sizeBytes": 27503
+        }
+      ],
+      "createdAt": "2026-07-10T03:06:31.730Z"
     }
   ],
   "settings": {
