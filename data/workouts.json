@@ -147,6 +147,40 @@
         }
       ],
       "createdAt": "2026-07-10T03:06:31.730Z"
+    },
+    {
+      "id": "2026-07-10-1783700407714-9cf2d762",
+      "userId": "hoang",
+      "date": "2026-07-10",
+      "type": "Đạp xe Đông Thăng Long",
+      "startTime": "17:00",
+      "endTime": "18:00",
+      "durationMinutes": 60,
+      "note": "",
+      "images": [
+        {
+          "src": "/uploads/2026/07/2026-07-10-workout-8caf5cf5.avif",
+          "format": "avif",
+          "width": 900,
+          "height": 1200,
+          "sizeBytes": 87039
+        },
+        {
+          "src": "/uploads/2026/07/2026-07-10-workout-b4c81751.avif",
+          "format": "avif",
+          "width": 900,
+          "height": 1200,
+          "sizeBytes": 117624
+        },
+        {
+          "src": "/uploads/2026/07/2026-07-10-workout-56bd0d34.avif",
+          "format": "avif",
+          "width": 900,
+          "height": 1200,
+          "sizeBytes": 78617
+        }
+      ],
+      "createdAt": "2026-07-10T16:20:07.714Z"
     }
   ],
   "settings": {
