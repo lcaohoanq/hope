@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import type { HeatmapDay, Workout, WorkoutUpdateInput } from "@/lib/workout-types";
 import {
@@ -82,6 +82,47 @@ export function ContributionHeatmap({
     view.mode === "lifetime" ? copy.heatmap.lifetime : copy.heatmap.yearTitle(view.year);
   const [activeTooltip, setActiveTooltip] = useState<ActiveTooltip | null>(null);
   const [selectedDay, setSelectedDay] = useState<SelectedDay | null>(null);
+  const [isViewPickerOpen, setIsViewPickerOpen] = useState(false);
+  const viewPickerRef = useRef<HTMLDivElement | null>(null);
+  const viewOptions = [
+    { label: copy.heatmap.lifetime, value: "lifetime" },
+    ...availableYears.map((year) => ({
+      label: String(year),
+      value: String(year),
+    })),
+  ];
+  const selectedViewLabel =
+    viewOptions.find((option) => option.value === selectedViewValue)?.label ??
+    selectedViewValue;
+
+  useEffect(() => {
+    if (!isViewPickerOpen) {
+      return;
+    }
+
+    function handlePointerDown(event: PointerEvent) {
+      if (
+        viewPickerRef.current &&
+        !viewPickerRef.current.contains(event.target as Node)
+      ) {
+        setIsViewPickerOpen(false);
+      }
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setIsViewPickerOpen(false);
+      }
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isViewPickerOpen]);
 
   function showTooltip({
     element,
@@ -152,6 +193,7 @@ export function ContributionHeatmap({
         ? { mode: "lifetime" }
         : { mode: "year", year: Number(value) },
     );
+    setIsViewPickerOpen(false);
   }
 
   return (
@@ -163,21 +205,63 @@ export function ContributionHeatmap({
           </h2>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <label className="flex items-center gap-2 text-xs font-medium text-stone-500">
-            {copy.heatmap.view}
-            <select
-              className="h-9 rounded-md border border-stone-300 bg-white px-3 text-sm font-semibold text-stone-800 outline-none transition focus:border-moss focus:ring-2 focus:ring-moss/15"
-              onChange={(event) => handleViewChange(event.target.value)}
-              value={selectedViewValue}
+          <div
+            className="relative flex items-center gap-2 text-xs font-medium text-stone-500"
+            ref={viewPickerRef}
+          >
+            <span>{copy.heatmap.view}</span>
+            <button
+              aria-expanded={isViewPickerOpen}
+              aria-haspopup="listbox"
+              className="group inline-flex h-9 min-w-[116px] items-center justify-between gap-3 rounded-md border border-stone-300 bg-white px-3 text-sm font-semibold text-stone-800 shadow-[0_1px_0_rgba(17,17,17,0.04)] outline-none transition hover:border-stone-400 hover:bg-stone-50 focus-visible:border-moss focus-visible:ring-2 focus-visible:ring-moss/20 active:scale-[0.99]"
+              onClick={() => setIsViewPickerOpen((current) => !current)}
+              type="button"
             >
-              <option value="lifetime">{copy.heatmap.lifetime}</option>
-              {availableYears.map((year) => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              ))}
-            </select>
-          </label>
+              <span>{selectedViewLabel}</span>
+              <span
+                aria-hidden="true"
+                className={`h-2 w-2 border-b-2 border-r-2 border-stone-500 transition group-hover:border-stone-700 ${
+                  isViewPickerOpen ? "-rotate-[135deg]" : "rotate-45"
+                }`}
+              />
+            </button>
+            {isViewPickerOpen ? (
+              <div className="absolute right-0 top-11 z-50 w-[148px] overflow-hidden rounded-lg border border-stone-200 bg-white shadow-[0_18px_45px_rgba(17,17,17,0.14)]">
+                <div
+                  aria-label={copy.heatmap.view}
+                  className="max-h-72 overflow-y-auto p-1.5 [scrollbar-color:#a8a29e_transparent] [scrollbar-width:thin]"
+                  role="listbox"
+                >
+                  {viewOptions.map((option) => {
+                    const isSelected = option.value === selectedViewValue;
+
+                    return (
+                      <button
+                        aria-selected={isSelected}
+                        className={`flex h-8 w-full items-center justify-between rounded-md px-2.5 text-left text-sm transition ${
+                          isSelected
+                            ? "bg-stone-950 font-semibold text-white"
+                            : "font-medium text-stone-700 hover:bg-stone-100 hover:text-stone-950"
+                        }`}
+                        key={option.value}
+                        onClick={() => handleViewChange(option.value)}
+                        role="option"
+                        type="button"
+                      >
+                        <span>{option.label}</span>
+                        {isSelected ? (
+                          <span
+                            aria-hidden="true"
+                            className="h-1.5 w-3 rotate-[-45deg] border-b-2 border-l-2 border-white"
+                          />
+                        ) : null}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : null}
+          </div>
           <div className="flex flex-wrap items-center gap-2 text-xs text-stone-500">
             <span>{copy.heatmap.noData}</span>
             <span className="h-3 w-3 rounded-[3px] border border-stone-300 bg-stone-100" />
