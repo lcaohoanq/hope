@@ -24,6 +24,7 @@ import {
   type AppCopy,
   type Language,
 } from "@/lib/i18n";
+import { prepareWorkoutImageUploads } from "@/lib/image-previews";
 import { getAvatarUrl } from "@/lib/profile-utils";
 import type { HeatmapView, PublicAppUser, UserLocation } from "@/lib/users";
 import type {
@@ -164,9 +165,10 @@ export function HopeDashboard({ user }: HopeDashboardProps) {
     setIsUploadingWorkoutImages(hasWorkoutImages(input));
 
     try {
+      const requestInit = await createWorkoutRequestInit(input, user.id);
       const response = await fetch("/api/workouts", {
         method: "POST",
-        ...createWorkoutRequestInit(input, user.id),
+        ...requestInit,
       });
       const payload = await readApiJson<CreateWorkoutResponse>(
         response,
@@ -202,9 +204,10 @@ export function HopeDashboard({ user }: HopeDashboardProps) {
     setIsUploadingWorkoutImages(hasWorkoutImages(input));
 
     try {
+      const requestInit = await createWorkoutRequestInit(input, user.id);
       const response = await fetch("/api/workouts", {
         method: "PATCH",
-        ...createWorkoutRequestInit(input, user.id),
+        ...requestInit,
       });
       const payload = await readApiJson<UpdateWorkoutResponse>(
         response,
@@ -802,7 +805,7 @@ function hasWorkoutImages(input: WorkoutInput | WorkoutUpdateInput) {
   return Boolean(input.images?.length);
 }
 
-function createWorkoutRequestInit(
+async function createWorkoutRequestInit(
   input: WorkoutInput | WorkoutUpdateInput,
   userId: string,
 ) {
@@ -839,7 +842,9 @@ function createWorkoutRequestInit(
     body.append("imageSrcs", src);
   });
 
-  input.images?.forEach((image) => {
+  const uploadImages = await prepareWorkoutImageUploads(input.images ?? []);
+
+  uploadImages.forEach((image) => {
     body.append("images", image);
   });
 
