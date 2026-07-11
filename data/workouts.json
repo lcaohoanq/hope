@@ -181,6 +181,26 @@
         }
       ],
       "createdAt": "2026-07-10T16:20:07.714Z"
+    },
+    {
+      "id": "2026-07-11-1783756226598-6a170a8f",
+      "userId": "mviet",
+      "date": "2026-07-11",
+      "type": "walking around galaxy hub",
+      "startTime": "09:48",
+      "endTime": "18:49",
+      "durationMinutes": 541,
+      "note": "hackathon and go farming goods",
+      "images": [
+        {
+          "src": "/uploads/2026/07/2026-07-11-workout-462e9d9e.avif",
+          "format": "avif",
+          "width": 900,
+          "height": 1200,
+          "sizeBytes": 82481
+        }
+      ],
+      "createdAt": "2026-07-11T07:50:26.598Z"
     }
   ],
   "settings": {
