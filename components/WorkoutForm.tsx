@@ -2,6 +2,10 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { AppCopy } from "@/lib/i18n";
+import {
+  createImagePreviewUrls,
+  revokeImagePreviewUrls,
+} from "@/lib/image-previews";
 import type { WorkoutInput } from "@/lib/workout-types";
 import { calculateDurationMinutes } from "@/lib/workout-utils";
 
@@ -33,6 +37,7 @@ export function WorkoutForm({
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [imageInputKey, setImageInputKey] = useState(0);
   const previewUrlsRef = useRef<string[]>([]);
+  const imageSelectionIdRef = useRef(0);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -46,7 +51,7 @@ export function WorkoutForm({
 
   useEffect(() => {
     return () => {
-      previewUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
+      revokeImagePreviewUrls(previewUrlsRef.current);
     };
   }, []);
 
@@ -71,12 +76,31 @@ export function WorkoutForm({
     setSuccess("");
   }
 
-  function setImageSelection(images: File[]) {
-    const nextPreviewUrls = images.map((image) => URL.createObjectURL(image));
-    previewUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
-    previewUrlsRef.current = nextPreviewUrls;
+  async function setImageSelection(images: File[]) {
+    const selectionId = imageSelectionIdRef.current + 1;
+    imageSelectionIdRef.current = selectionId;
+    revokeImagePreviewUrls(previewUrlsRef.current);
+    previewUrlsRef.current = [];
     setSelectedImages(images);
-    setPreviewUrls(nextPreviewUrls);
+    setPreviewUrls([]);
+
+    try {
+      const nextPreviewUrls = await createImagePreviewUrls(images);
+
+      if (selectionId !== imageSelectionIdRef.current) {
+        revokeImagePreviewUrls(nextPreviewUrls);
+        return;
+      }
+
+      previewUrlsRef.current = nextPreviewUrls;
+      setPreviewUrls(nextPreviewUrls);
+    } catch {
+      if (selectionId !== imageSelectionIdRef.current) {
+        return;
+      }
+
+      setError(copy.errors.imagePreviewFailed);
+    }
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
