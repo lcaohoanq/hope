@@ -211,6 +211,7 @@ export const APP_USERS = [
     displayName: "Minh Viet",
     birthYear: 2004,
     avatarSeed: "mviet",
+    avatarUrl: "/uploads/avatars/mviet-c85b618b-2d6.jpg",
     credentials: {
       username: "mviet",
       password: "123456",
