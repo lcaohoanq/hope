@@ -57,6 +57,8 @@ export const translations = {
     },
     errors: {
       imageLimit: (limit: number) => `Chọn tối đa ${limit} ảnh.`,
+      imagePreviewFailed:
+        "Chưa thể tạo preview cho ảnh HEIC này. Vui lòng thử ảnh khác.",
       invalidJson: (fallback: string) =>
         `${fallback} Máy chủ trả về dữ liệu JSON không hợp lệ.`,
       nonJson: (fallback: string) =>
@@ -191,6 +193,8 @@ export const translations = {
     },
     errors: {
       imageLimit: (limit: number) => `Choose up to ${limit} images.`,
+      imagePreviewFailed:
+        "Unable to preview this HEIC image. Please try another image.",
       invalidJson: (fallback: string) =>
         `${fallback} The server returned invalid JSON.`,
       nonJson: (fallback: string) =>
