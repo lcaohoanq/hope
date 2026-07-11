@@ -205,6 +205,43 @@ export const APP_USERS = [
       },
     },
   },
+  {
+    id: "mviet",
+    slug: "@mviet",
+    displayName: "Minh Viet",
+    birthYear: 2004,
+    avatarSeed: "mviet",
+    credentials: {
+      username: "mviet",
+      password: "123456",
+    },
+    bio: {
+      en: "dù vỏ kẹo nó nhăn, nhưng bên trong vẫn ngọt",
+      vi: "dù vỏ kẹo nó nhăn, nhưng bên trong vẫn ngọt",
+    },
+    location: {
+      label: {
+        en: "Vietnam",
+        vi: "Việt Nam",
+      },
+      coordinates: {
+        latitude: 16.0,
+        longitude: 106.0,
+      },
+      zoom: 6,
+    },
+    preferredLanguage: "en",
+    settings: {
+      heatmap: {
+        defaultView: {
+          mode: "year",
+        },
+      },
+      workouts: {
+        allowPastWorkoutEdits: false,
+      },
+    },
+  },
 ] as const satisfies readonly AppUser[];
 
 export type PublicAppUser = Omit<AppUser, "credentials">;
