@@ -11,6 +11,10 @@ import {
   FaTrash,
 } from "react-icons/fa";
 import { formatDisplayDate } from "@/lib/date-utils";
+import {
+  createImagePreviewUrls,
+  revokeImagePreviewUrls,
+} from "@/lib/image-previews";
 import type { AppCopy, Language } from "@/lib/i18n";
 import type { Workout, WorkoutUpdateInput } from "@/lib/workout-types";
 import { calculateDurationMinutes } from "@/lib/workout-utils";
@@ -81,6 +85,7 @@ export function WorkoutDayDetailModal({
   const [editImages, setEditImages] = useState<File[]>([]);
   const [editPreviewUrls, setEditPreviewUrls] = useState<string[]>([]);
   const editPreviewUrlsRef = useRef<string[]>([]);
+  const editImageSelectionIdRef = useRef(0);
   const [editError, setEditError] = useState("");
   const [editSuccess, setEditSuccess] = useState("");
   const [isSavingEdit, setIsSavingEdit] = useState(false);
@@ -162,7 +167,7 @@ export function WorkoutDayDetailModal({
 
   useEffect(() => {
     return () => {
-      editPreviewUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
+      revokeImagePreviewUrls(editPreviewUrlsRef.current);
     };
   }, []);
 
@@ -212,12 +217,31 @@ export function WorkoutDayDetailModal({
     setEditSuccess("");
   }
 
-  function setEditImageSelection(images: File[]) {
-    const nextPreviewUrls = images.map((image) => URL.createObjectURL(image));
-    editPreviewUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
-    editPreviewUrlsRef.current = nextPreviewUrls;
+  async function setEditImageSelection(images: File[]) {
+    const selectionId = editImageSelectionIdRef.current + 1;
+    editImageSelectionIdRef.current = selectionId;
+    revokeImagePreviewUrls(editPreviewUrlsRef.current);
+    editPreviewUrlsRef.current = [];
     setEditImages(images);
-    setEditPreviewUrls(nextPreviewUrls);
+    setEditPreviewUrls([]);
+
+    try {
+      const nextPreviewUrls = await createImagePreviewUrls(images);
+
+      if (selectionId !== editImageSelectionIdRef.current) {
+        revokeImagePreviewUrls(nextPreviewUrls);
+        return;
+      }
+
+      editPreviewUrlsRef.current = nextPreviewUrls;
+      setEditPreviewUrls(nextPreviewUrls);
+    } catch {
+      if (selectionId !== editImageSelectionIdRef.current) {
+        return;
+      }
+
+      setEditError(copy.errors.imagePreviewFailed);
+    }
   }
 
   function removeExistingImage(src: string) {
