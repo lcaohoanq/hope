@@ -322,6 +322,7 @@ export function HopeDashboard({
         language={language}
         onLanguageChange={setLanguage}
         onSignOut={() => void handleSignOut()}
+        showProfileShortcut={isEditable}
         showSignOut={isAuthenticated}
         user={user}
       />
@@ -496,6 +497,7 @@ function TopHeader({
   language,
   onLanguageChange,
   onSignOut,
+  showProfileShortcut,
   showSignOut,
   user,
 }: {
@@ -504,6 +506,7 @@ function TopHeader({
   language: Language;
   onLanguageChange: (language: Language) => void;
   onSignOut: () => void;
+  showProfileShortcut: boolean;
   showSignOut: boolean;
   user: PublicAppUser;
 }) {
@@ -518,21 +521,23 @@ function TopHeader({
         {copy.common.home}
       </Link>
       <div className="flex flex-wrap items-center gap-3">
-        <Link
-          className="inline-flex h-10 items-center gap-2 rounded-md  px-3 text-sm font-semibold text-stone-800 transition hover:bg-stone-100"
-          href={profilePath}
-        >
-          <span className="h-6 w-6 overflow-hidden rounded-full border border-stone-300 bg-stone-100">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              alt={`${user.displayName}'s avatar`}
-              className="h-full w-full object-cover"
-              src={avatarUrl}
-            />
-          </span>
-          <span className="sr-only">{copy.common.profile}</span>
-          {/* <span>{user.displayName}</span> */}
-        </Link>
+        {showProfileShortcut ? (
+          <Link
+            className="inline-flex h-10 items-center gap-2 rounded-md  px-3 text-sm font-semibold text-stone-800 transition hover:bg-stone-100"
+            href={profilePath}
+          >
+            <span className="h-6 w-6 overflow-hidden rounded-full border border-stone-300 bg-stone-100">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                alt={`${user.displayName}'s avatar`}
+                className="h-full w-full object-cover"
+                src={avatarUrl}
+              />
+            </span>
+            <span className="sr-only">{copy.common.profile}</span>
+            {/* <span>{user.displayName}</span> */}
+          </Link>
+        ) : null}
         <label className="flex h-10 items-center gap-2 rounded-md px-3 text-sm font-semibold text-stone-800">
           {/* <span className="text-xs font-medium text-stone-500">
             {copy.common.language}
@@ -745,8 +750,8 @@ function UserProfileSidebar({
         </div>
       </div> */}
 
-      <div className="mt-5 grid gap-3 border-t border-stone-300 pt-5 text-sm text-stone-600">
-        {profileLinks.length > 0 ? (
+      {profileLinks.length > 0 ? (
+        <div className="mt-5 grid gap-3 border-t border-stone-300 pt-5 text-sm text-stone-600">
           <div className="grid gap-2">
             {profileLinks.map(({ href, Icon, label }) => (
               <a
@@ -770,8 +775,8 @@ function UserProfileSidebar({
               </a>
             ))}
           </div>
-        ) : null}
-      </div>
+        </div>
+      ) : null}
 
       {user.location ? (
         <div className="mt-5 border-t border-stone-300 pt-5">
