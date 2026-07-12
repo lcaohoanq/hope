@@ -235,6 +235,26 @@
         }
       ],
       "createdAt": "2026-07-11T07:50:26.598Z"
+    },
+    {
+      "id": "2026-07-12-1783869375537-6a261d8e",
+      "userId": "hoang",
+      "date": "2026-07-12",
+      "type": "new CISCO cert",
+      "startTime": "15:00",
+      "endTime": "17:30",
+      "durationMinutes": 150,
+      "note": "",
+      "images": [
+        {
+          "src": "/uploads/2026/07/2026-07-12-workout-8dd1b094.avif",
+          "format": "avif",
+          "width": 1200,
+          "height": 676,
+          "sizeBytes": 32050
+        }
+      ],
+      "createdAt": "2026-07-12T15:16:15.537Z"
     }
   ],
   "settings": {
