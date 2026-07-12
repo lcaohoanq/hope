@@ -120,7 +120,7 @@ export const APP_USERS = [
       username: "hoang",
       password: "123",
     },
-    avatarUrl: "/uploads/avatars/hoang-1cf3de80-b2b.jpg",
+    avatarUrl: "/uploads/avatars/hoang-1cf3de80-b2b.webp",
     bio: {
       en: "Expect the Not Expected.",
       vi: "Expect the Not Expected.",
@@ -211,7 +211,7 @@ export const APP_USERS = [
     displayName: "Minh Viet",
     birthYear: 2004,
     avatarSeed: "mviet",
-    avatarUrl: "/uploads/avatars/mviet-c85b618b-2d6.jpg",
+    avatarUrl: "/uploads/avatars/mviet-c85b618b-2d6.webp",
     credentials: {
       username: "mviet",
       password: "123456",

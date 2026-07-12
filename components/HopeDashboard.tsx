@@ -11,6 +11,7 @@ import {
   FaLinkedinIn,
 } from "react-icons/fa";
 import type { IconType } from "react-icons";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ContributionHeatmap } from "@/components/ContributionHeatmap";
@@ -526,11 +527,11 @@ function TopHeader({
             className="inline-flex h-10 items-center gap-2 rounded-md  px-3 text-sm font-semibold text-stone-800 transition hover:bg-stone-100"
             href={profilePath}
           >
-            <span className="h-6 w-6 overflow-hidden rounded-full border border-stone-300 bg-stone-100">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+            <span className="relative h-6 w-6 overflow-hidden rounded-full border border-stone-300 bg-stone-100">
+              <AvatarImage
                 alt={`${user.displayName}'s avatar`}
                 className="h-full w-full object-cover"
+                sizes="24px"
                 src={avatarUrl}
               />
             </span>
@@ -649,13 +650,14 @@ function UserProfileSidebar({
     <aside className="rounded-lg p-5 lg:sticky lg:top-6">
       <div className="flex gap-4 lg:block">
         <div className="group relative h-24 w-24 shrink-0 overflow-hidden rounded-full border border-stone-300 bg-stone-100 sm:h-28 sm:w-28 lg:h-auto lg:w-full">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          <AvatarImage
             alt={`${user.displayName}'s avatar`}
             className={`aspect-square h-full w-full object-cover ${
               hasPendingAvatarPreview ? "opacity-90" : ""
             }`}
             onLoad={() => onAvatarLoad(avatarUrl)}
+            priority
+            sizes="(min-width: 1024px) 248px, (min-width: 640px) 112px, 96px"
             src={avatarUrl}
           />
           {isUploadingAvatar ? (
@@ -809,6 +811,35 @@ function UserProfileSidebar({
         </div>
       ) : null}
     </aside>
+  );
+}
+
+function AvatarImage({
+  alt,
+  className,
+  onLoad,
+  priority = false,
+  sizes,
+  src,
+}: {
+  alt: string;
+  className: string;
+  onLoad?: () => void;
+  priority?: boolean;
+  sizes: string;
+  src: string;
+}) {
+  return (
+    <Image
+      alt={alt}
+      className={className}
+      fill
+      onLoad={onLoad}
+      priority={priority}
+      sizes={sizes}
+      src={src}
+      unoptimized={src.startsWith("blob:")}
+    />
   );
 }
 
