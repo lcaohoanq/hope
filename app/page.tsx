@@ -8,6 +8,7 @@ import {
   FaLeaf,
 } from "react-icons/fa";
 import { AUTH_COOKIE_NAME, getAuthenticatedUser } from "@/lib/auth";
+import { getCanonicalUserPath } from "@/lib/users";
 
 const featureCards = [
   {
