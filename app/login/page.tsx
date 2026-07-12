@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { LoginForm } from "@/components/LoginForm";
 import { AUTH_COOKIE_NAME, getAuthenticatedUser, sanitizeNextPath } from "@/lib/auth";
-import { APP_USERS } from "@/lib/users";
+import { APP_USERS, getCanonicalUserPath } from "@/lib/users";
 
 type LoginPageProps = {
   searchParams: Promise<{
@@ -21,11 +21,11 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   );
 
   if (authenticatedUser) {
-    redirect(`/${authenticatedUser.slug}`);
+    redirect(getCanonicalUserPath(authenticatedUser));
   }
 
   const { next } = await searchParams;
-  const nextPath = sanitizeNextPath(next) ?? `/${APP_USERS[0].slug}`;
+  const nextPath = sanitizeNextPath(next) ?? getCanonicalUserPath(APP_USERS[0]);
 
   return <LoginForm nextPath={nextPath} />;
 }

@@ -245,7 +245,9 @@ export const APP_USERS = [
   },
 ] as const satisfies readonly AppUser[];
 
-export type PublicAppUser = Omit<AppUser, "credentials">;
+export type PublicAppUser = Omit<AppUser, "credentials"> & {
+  username: string;
+};
 
 export const DEFAULT_USER_ID = "hoang";
 
@@ -261,6 +263,20 @@ export function getUserBySlug(slug: string) {
   const normalizedSlug = normalizeUserSlug(slug);
 
   return APP_USERS.find((user) => user.slug === normalizedSlug);
+}
+
+export function getUserByProfilePath(pathSegment: string) {
+  const normalizedValue = normalizeProfilePathSegment(pathSegment);
+
+  return APP_USERS.find(
+    (user) =>
+      user.credentials.username === normalizedValue ||
+      user.slug === normalizeUserSlug(normalizedValue),
+  );
+}
+
+export function getCanonicalUserPath(user: AppUser | PublicAppUser) {
+  return `/${"credentials" in user ? user.credentials.username : user.username}`;
 }
 
 export function getUserByUsername(username: string) {
@@ -317,6 +333,7 @@ export function toPublicUser(user: AppUser): PublicAppUser {
   return {
     id: user.id,
     slug: user.slug,
+    username: user.credentials.username,
     displayName: user.displayName,
     birthYear: user.birthYear,
     avatarSeed: user.avatarSeed,
@@ -340,6 +357,13 @@ function normalizeUserSlug(value: string) {
   const trimmedValue = decodedValue.trim().toLowerCase();
 
   return trimmedValue.startsWith("@") ? trimmedValue : `@${trimmedValue}`;
+}
+
+function normalizeProfilePathSegment(value: string) {
+  const decodedValue = safeDecodeURIComponent(value);
+  const trimmedValue = decodedValue.trim().toLowerCase();
+
+  return trimmedValue.startsWith("@") ? trimmedValue.slice(1) : trimmedValue;
 }
 
 function safeDecodeURIComponent(value: string) {
