@@ -73,6 +73,8 @@ type ProfileLink = {
   Icon: IconType;
 };
 
+const WORKOUT_LOAD_RETRY_DELAYS_MS = [500, 1000];
+
 export function HopeDashboard({
   isAuthenticated,
   isEditable,
@@ -112,20 +114,10 @@ export function HopeDashboard({
     setWorkoutLoadError("");
 
     try {
-      const response = await fetch(`/api/workouts?userId=${user.id}`, {
-        cache: "no-store",
-      });
-      const payload = await readApiJson<WorkoutData | ApiErrorResponse>(
-        response,
+      const payload = await fetchWorkoutDataWithRetry(
+        user.id,
         copy.errors.workoutLoad,
       );
-
-      if (!response.ok || "success" in payload) {
-        throw new Error(
-          "error" in payload ? payload.error : copy.errors.workoutLoad,
-        );
-      }
-
       setWorkouts(payload.workouts);
     } catch (error) {
       setWorkoutLoadError(
@@ -890,6 +882,53 @@ function getGoogleMaps3dUrl(location: UserLocation) {
 
 function hasWorkoutImages(input: WorkoutInput | WorkoutUpdateInput) {
   return Boolean(input.images?.length);
+}
+
+async function fetchWorkoutDataWithRetry(
+  userId: string,
+  fallbackMessage: string,
+) {
+  let lastError: unknown;
+
+  for (
+    let attempt = 0;
+    attempt <= WORKOUT_LOAD_RETRY_DELAYS_MS.length;
+    attempt += 1
+  ) {
+    try {
+      const response = await fetch(`/api/workouts?userId=${userId}`, {
+        cache: "no-store",
+      });
+      const payload = await readApiJson<WorkoutData | ApiErrorResponse>(
+        response,
+        fallbackMessage,
+      );
+
+      if (!response.ok || "success" in payload) {
+        throw new Error(
+          "error" in payload ? payload.error : fallbackMessage,
+        );
+      }
+
+      return payload;
+    } catch (error) {
+      lastError = error;
+
+      const retryDelay = WORKOUT_LOAD_RETRY_DELAYS_MS[attempt];
+
+      if (retryDelay === undefined) {
+        break;
+      }
+
+      await wait(retryDelay);
+    }
+  }
+
+  throw lastError instanceof Error ? lastError : new Error(fallbackMessage);
+}
+
+function wait(milliseconds: number) {
+  return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
 }
 
 async function createWorkoutRequestInit(
