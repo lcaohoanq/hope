@@ -22,6 +22,7 @@ import { WorkoutImageThumbnail } from "@/components/WorkoutImageThumbnail";
 
 type WorkoutDayDetailModalProps = {
   allowPastWorkoutEdits: boolean;
+  canEditWorkouts: boolean;
   copy: AppCopy;
   date: string;
   todayDateKey: string;
@@ -51,6 +52,7 @@ const IMAGE_ZOOM_STEP = 0.25;
 
 export function WorkoutDayDetailModal({
   allowPastWorkoutEdits,
+  canEditWorkouts,
   copy,
   date,
   todayDateKey,
@@ -541,7 +543,8 @@ export function WorkoutDayDetailModal({
                           {workout.note}
                         </p>
                       ) : null}
-                      {canEditWorkoutDate(
+                      {canEditWorkouts &&
+                      canEditWorkoutDate(
                         workout.date,
                         todayDateKey,
                         allowPastWorkoutEdits,
