@@ -3,7 +3,7 @@ import {
   AUTH_COOKIE_NAME,
   sanitizeNextPath,
 } from "@/lib/auth";
-import { authenticateUser } from "@/lib/users";
+import { authenticateUser, getCanonicalUserPath } from "@/lib/users";
 
 export const runtime = "nodejs";
 
@@ -43,9 +43,10 @@ export async function POST(request: Request) {
   }
 
   const nextPath = sanitizeNextPath(body.nextPath);
+  const canonicalUserPath = getCanonicalUserPath(user);
   const response = NextResponse.json({
     success: true,
-    redirectTo: nextPath === `/${user.slug}` ? nextPath : `/${user.slug}`,
+    redirectTo: nextPath === canonicalUserPath ? nextPath : canonicalUserPath,
   });
 
   response.cookies.set(AUTH_COOKIE_NAME, user.id, {
