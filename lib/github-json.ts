@@ -48,6 +48,8 @@ export class GitHubJsonConflictError extends Error {
   }
 }
 
+const GITHUB_READ_RETRY_DELAYS_MS = [500, 1000];
+
 function getDataPath() {
   return process.env.WORKOUT_DATA_PATH || "data/workouts.json";
 }
@@ -326,24 +328,71 @@ export async function commitRepositoryFilesToGitHub({
 async function readWorkoutDataFromGitHub(
   config: GitHubConfig,
 ): Promise<GitHubFile> {
-  const response = await fetch(
-    `${getGitHubContentsUrl(config)}?ref=${encodeURIComponent(config.branch)}`,
-    {
-      headers: createGitHubHeaders(config),
-    },
-  );
+  return retryGitHubRead(async () => {
+    const response = await fetch(
+      `${getGitHubContentsUrl(config)}?ref=${encodeURIComponent(config.branch)}`,
+      {
+        headers: createGitHubHeaders(config),
+      },
+    );
 
-  if (!response.ok) {
-    throw new Error(`GitHub read failed with status ${response.status}.`);
+    if (!response.ok) {
+      throw new GitHubReadError(response.status);
+    }
+
+    const payload: unknown = await response.json();
+    assertGitHubObject(payload);
+
+    return {
+      data: validateWorkoutData(JSON.parse(decodeBase64(payload.content))),
+      sha: payload.sha,
+    };
+  });
+}
+
+class GitHubReadError extends Error {
+  constructor(readonly status: number) {
+    super(`GitHub read failed with status ${status}.`);
+    this.name = "GitHubReadError";
+  }
+}
+
+async function retryGitHubRead<T>(operation: () => Promise<T>) {
+  let lastError: unknown;
+
+  for (
+    let attempt = 0;
+    attempt <= GITHUB_READ_RETRY_DELAYS_MS.length;
+    attempt += 1
+  ) {
+    try {
+      return await operation();
+    } catch (error) {
+      lastError = error;
+
+      const retryDelay = GITHUB_READ_RETRY_DELAYS_MS[attempt];
+
+      if (retryDelay === undefined || !isRetryableGitHubReadError(error)) {
+        break;
+      }
+
+      await sleep(retryDelay);
+    }
   }
 
-  const payload: unknown = await response.json();
-  assertGitHubObject(payload);
+  throw lastError instanceof Error ? lastError : new Error("GitHub read failed.");
+}
 
-  return {
-    data: validateWorkoutData(JSON.parse(decodeBase64(payload.content))),
-    sha: payload.sha,
-  };
+function isRetryableGitHubReadError(error: unknown) {
+  if (!(error instanceof GitHubReadError)) {
+    return true;
+  }
+
+  return error.status === 408 || error.status === 429 || error.status >= 500;
+}
+
+function sleep(milliseconds: number) {
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
 }
 
 async function readGitHubHeadSha(config: GitHubConfig) {
