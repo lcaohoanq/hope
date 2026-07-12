@@ -42,7 +42,9 @@ export default async function Home() {
   const authenticatedUser = getAuthenticatedUser(
     cookieStore.get(AUTH_COOKIE_NAME)?.value,
   );
-  const primaryHref = authenticatedUser ? `/${authenticatedUser.slug}` : "/login";
+  const primaryHref = authenticatedUser
+    ? getCanonicalUserPath(authenticatedUser)
+    : "/login";
   const primaryLabel = authenticatedUser ? "Open dashboard" : "Sign in";
 
   return (
