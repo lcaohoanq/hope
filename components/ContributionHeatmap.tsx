@@ -14,6 +14,7 @@ import { WorkoutTooltip } from "@/components/WorkoutTooltip";
 
 type ContributionHeatmapProps = {
   allowPastWorkoutEdits: boolean;
+  canEditWorkouts: boolean;
   copy: AppCopy;
   language: Language;
   workouts: Workout[];
@@ -48,6 +49,7 @@ type SelectedDay = {
 
 export function ContributionHeatmap({
   allowPastWorkoutEdits,
+  canEditWorkouts,
   copy,
   language,
   workouts,
@@ -404,6 +406,7 @@ export function ContributionHeatmap({
         {selectedDay ? (
           <WorkoutDayDetailModal
             allowPastWorkoutEdits={allowPastWorkoutEdits}
+            canEditWorkouts={canEditWorkouts}
             copy={copy}
             date={selectedDay.date}
             isTrackable={selectedDay.isTrackable}
