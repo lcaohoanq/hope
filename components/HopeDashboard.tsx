@@ -284,6 +284,8 @@ export function HopeDashboard({
       }
 
       setAvatarUrl(payload.avatarUrl);
+      URL.revokeObjectURL(previewUrl);
+      setPendingAvatarPreviewUrl("");
       setAvatarUploadMessage(copy.dashboard.avatarUpdated);
     } catch (error) {
       URL.revokeObjectURL(previewUrl);
@@ -649,7 +651,7 @@ function UserProfileSidebar({
   return (
     <aside className="rounded-lg p-5 lg:sticky lg:top-6">
       <div className="flex gap-4 lg:block">
-        <div className="group relative h-24 w-24 shrink-0 overflow-hidden rounded-full border border-stone-300 bg-stone-100 sm:h-28 sm:w-28 lg:h-auto lg:w-full">
+        <div className="group relative aspect-square h-24 w-24 shrink-0 overflow-hidden rounded-full border border-stone-300 bg-stone-100 sm:h-28 sm:w-28 lg:h-auto lg:w-full">
           <AvatarImage
             alt={`${user.displayName}'s avatar`}
             className={`aspect-square h-full w-full object-cover ${
@@ -829,16 +831,37 @@ function AvatarImage({
   sizes: string;
   src: string;
 }) {
+  const [failedSrc, setFailedSrc] = useState("");
+  const renderedSrc =
+    failedSrc === src && src.startsWith("/uploads/avatars/") ? `/api${src}` : src;
+
+  if (src.startsWith("blob:")) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        alt={alt}
+        className={className}
+        onLoad={onLoad}
+        src={src}
+      />
+    );
+  }
+
   return (
     <Image
       alt={alt}
       className={className}
       fill
+      onError={() => {
+        if (src.startsWith("/uploads/avatars/")) {
+          setFailedSrc(src);
+        }
+      }}
       onLoad={onLoad}
       priority={priority}
       sizes={sizes}
-      src={src}
-      unoptimized={src.startsWith("blob:")}
+      src={renderedSrc}
+      unoptimized={renderedSrc.startsWith("/api/uploads/avatars/")}
     />
   );
 }

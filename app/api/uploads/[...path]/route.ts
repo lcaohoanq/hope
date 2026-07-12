@@ -11,6 +11,8 @@ export const runtime = "nodejs";
 const YEAR_PATTERN = /^\d{4}$/;
 const MONTH_PATTERN = /^\d{2}$/;
 const FILENAME_PATTERN = /^\d{4}-\d{2}-\d{2}-workout-[a-z0-9-]+\.avif$/;
+const AVATAR_DIRECTORY = "avatars";
+const AVATAR_FILENAME_PATTERN = /^[a-z0-9-]+\.webp$/;
 
 type UploadRouteContext = {
   params: Promise<{
@@ -32,18 +34,11 @@ export async function GET(_request: Request, context: UploadRouteContext) {
     );
   }
 
-  const localPath = path.join(
-    process.cwd(),
-    "public",
-    "uploads",
-    safePath.year,
-    safePath.month,
-    safePath.filename,
-  );
+  const uploadPaths = getUploadPaths(safePath);
 
   try {
-    const localImage = await fs.readFile(localPath);
-    return createAvifResponse(localImage);
+    const localImage = await fs.readFile(uploadPaths.localPath);
+    return createImageResponse(localImage, safePath.contentType);
   } catch (error) {
     if (!isMissingFileError(error)) {
       return NextResponse.json(
@@ -68,10 +63,10 @@ export async function GET(_request: Request, context: UploadRouteContext) {
 
   try {
     const repositoryImage = await readGitHubRepositoryFile(
-      `public/uploads/${safePath.year}/${safePath.month}/${safePath.filename}`,
+      uploadPaths.repositoryPath,
     );
 
-    return createAvifResponse(repositoryImage);
+    return createImageResponse(repositoryImage, safePath.contentType);
   } catch {
     return NextResponse.json(
       {
@@ -84,6 +79,24 @@ export async function GET(_request: Request, context: UploadRouteContext) {
 }
 
 function getSafeUploadPath(segments: string[]) {
+  if (segments.length === 2) {
+    const [directory, filename] = segments;
+
+    if (
+      directory !== AVATAR_DIRECTORY ||
+      !AVATAR_FILENAME_PATTERN.test(filename)
+    ) {
+      return null;
+    }
+
+    return {
+      contentType: "image/webp",
+      directory,
+      filename,
+      kind: "avatar" as const,
+    };
+  }
+
   if (segments.length !== 3) {
     return null;
   }
@@ -99,18 +112,49 @@ function getSafeUploadPath(segments: string[]) {
   }
 
   return {
+    contentType: "image/avif",
+    kind: "workout" as const,
     year,
     month,
     filename,
   };
 }
 
-function createAvifResponse(image: Buffer) {
+type SafeUploadPath = NonNullable<ReturnType<typeof getSafeUploadPath>>;
+
+function getUploadPaths(safePath: SafeUploadPath) {
+  if (safePath.kind === "avatar") {
+    return {
+      localPath: path.join(
+        process.cwd(),
+        "public",
+        "uploads",
+        "avatars",
+        safePath.filename,
+      ),
+      repositoryPath: `public/uploads/${safePath.directory}/${safePath.filename}`,
+    };
+  }
+
+  return {
+    localPath: path.join(
+      process.cwd(),
+      "public",
+      "uploads",
+      safePath.year,
+      safePath.month,
+      safePath.filename,
+    ),
+    repositoryPath: `public/uploads/${safePath.year}/${safePath.month}/${safePath.filename}`,
+  };
+}
+
+function createImageResponse(image: Buffer, contentType: string) {
   return new Response(new Uint8Array(image), {
     headers: {
       "Cache-Control": "public, max-age=300",
       "Content-Length": String(image.byteLength),
-      "Content-Type": "image/avif",
+      "Content-Type": contentType,
     },
   });
 }
