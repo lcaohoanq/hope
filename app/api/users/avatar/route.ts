@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { NextResponse } from "next/server";
+import sharp from "sharp";
 import {
   commitRepositoryFilesToGitHub,
   isUsingGitHubDataSource,
@@ -13,6 +14,7 @@ import { normalizeUserId } from "@/lib/users";
 export const runtime = "nodejs";
 
 const MAX_AVATAR_BYTES = 5 * 1024 * 1024;
+const AVATAR_SIZE = 512;
 const USERS_SOURCE_PATH = "lib/users.ts";
 const AVATAR_MIME_TYPES = new Map([
   ["image/jpeg", "jpg"],
@@ -90,7 +92,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const filename = `${userId}-${randomUUID().slice(0, 12)}.${extension}`;
+  const filename = `${userId}-${randomUUID().slice(0, 12)}.webp`;
   const uploadDirectory = path.join(
     process.cwd(),
     "public",
@@ -100,7 +102,22 @@ export async function POST(request: Request) {
   const localPath = path.join(uploadDirectory, filename);
   const avatarUrl = `/uploads/avatars/${filename}`;
   const repositoryAvatarPath = `public/uploads/avatars/${filename}`;
-  const avatarBuffer = Buffer.from(await avatar.arrayBuffer());
+
+  let avatarBuffer: Buffer;
+
+  try {
+    avatarBuffer = await optimizeAvatarImage(
+      Buffer.from(await avatar.arrayBuffer()),
+    );
+  } catch {
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Unable to process avatar image.",
+      },
+      { status: 400 },
+    );
+  }
 
   try {
     if (isUsingGitHubDataSource()) {
@@ -155,6 +172,21 @@ export async function POST(request: Request) {
       { status: 500 },
     );
   }
+}
+
+async function optimizeAvatarImage(input: Buffer) {
+  return sharp(input, { limitInputPixels: 24_000_000 })
+    .rotate()
+    .resize(AVATAR_SIZE, AVATAR_SIZE, {
+      fit: "cover",
+      position: "attention",
+      withoutEnlargement: true,
+    })
+    .webp({
+      effort: 4,
+      quality: 80,
+    })
+    .toBuffer();
 }
 
 function updateUsersSourceAvatarUrl({

@@ -29,6 +29,7 @@ export const translations = {
       retry: "Thử lại",
       saveChanges: "Lưu thay đổi",
       saving: "Đang lưu...",
+      signIn: "Đăng nhập",
       signOut: "Đăng xuất",
     },
     dashboard: {
@@ -165,6 +166,7 @@ export const translations = {
       retry: "Retry",
       saveChanges: "Save changes",
       saving: "Saving...",
+      signIn: "Sign in",
       signOut: "Sign out",
     },
     dashboard: {

@@ -64,10 +64,6 @@ export async function GET(request: Request) {
     );
   }
 
-  if (!isUserAuthorized(request.headers.get("cookie"), userId)) {
-    return createUnauthorizedResponse();
-  }
-
   try {
     const data = await readWorkoutData();
 

@@ -11,6 +11,7 @@ import {
   FaLinkedinIn,
 } from "react-icons/fa";
 import type { IconType } from "react-icons";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ContributionHeatmap } from "@/components/ContributionHeatmap";
@@ -61,6 +62,8 @@ type UploadAvatarResponse =
   | ApiErrorResponse;
 
 type HopeDashboardProps = {
+  isAuthenticated: boolean;
+  isEditable: boolean;
   user: PublicAppUser;
 };
 
@@ -70,7 +73,11 @@ type ProfileLink = {
   Icon: IconType;
 };
 
-export function HopeDashboard({ user }: HopeDashboardProps) {
+export function HopeDashboard({
+  isAuthenticated,
+  isEditable,
+  user,
+}: HopeDashboardProps) {
   const router = useRouter();
   const todayDateKey = getTodayInTimezone();
   const currentYear = Number(todayDateKey.slice(0, 4));
@@ -316,6 +323,8 @@ export function HopeDashboard({ user }: HopeDashboardProps) {
         language={language}
         onLanguageChange={setLanguage}
         onSignOut={() => void handleSignOut()}
+        showProfileShortcut={isEditable}
+        showSignOut={isAuthenticated}
         user={user}
       />
       <div className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:px-8">
@@ -327,6 +336,7 @@ export function HopeDashboard({ user }: HopeDashboardProps) {
             copy={copy}
             hasPendingAvatarPreview={Boolean(pendingAvatarPreviewUrl)}
             isUploadingAvatar={isUploadingAvatar}
+            isEditable={isEditable}
             language={language}
             onAvatarLoad={(loadedAvatarUrl) => {
               if (pendingAvatarPreviewUrl && loadedAvatarUrl === avatarUrl) {
@@ -392,6 +402,7 @@ export function HopeDashboard({ user }: HopeDashboardProps) {
               <ContributionHeatmap
                 allowPastWorkoutEdits={user.settings.workouts.allowPastWorkoutEdits}
                 birthYear={birthYear}
+                canEditWorkouts={isEditable}
                 copy={copy}
                 language={language}
                 onUpdateWorkout={handleUpdateWorkout}
@@ -405,7 +416,7 @@ export function HopeDashboard({ user }: HopeDashboardProps) {
         </div>
       </div>
       <AnimatePresence>
-        {isWorkoutDialogOpen ? (
+        {isEditable && isWorkoutDialogOpen ? (
           <motion.div
             aria-label={copy.form.logWorkout}
             aria-modal="true"
@@ -487,6 +498,8 @@ function TopHeader({
   language,
   onLanguageChange,
   onSignOut,
+  showProfileShortcut,
+  showSignOut,
   user,
 }: {
   avatarUrl: string;
@@ -494,8 +507,12 @@ function TopHeader({
   language: Language;
   onLanguageChange: (language: Language) => void;
   onSignOut: () => void;
+  showProfileShortcut: boolean;
+  showSignOut: boolean;
   user: PublicAppUser;
 }) {
+  const profilePath = `/${user.username}`;
+
   return (
     <header className="flex w-full flex-col gap-3 border-b border-stone-300 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
       <Link
@@ -505,21 +522,23 @@ function TopHeader({
         {copy.common.home}
       </Link>
       <div className="flex flex-wrap items-center gap-3">
-        <Link
-          className="inline-flex h-10 items-center gap-2 rounded-md  px-3 text-sm font-semibold text-stone-800 transition hover:bg-stone-100"
-          href={`/${user.slug}`}
-        >
-          <span className="h-6 w-6 overflow-hidden rounded-full border border-stone-300 bg-stone-100">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              alt={`${user.displayName}'s avatar`}
-              className="h-full w-full object-cover"
-              src={avatarUrl}
-            />
-          </span>
-          <span className="sr-only">{copy.common.profile}</span>
-          {/* <span>{user.displayName}</span> */}
-        </Link>
+        {showProfileShortcut ? (
+          <Link
+            className="inline-flex h-10 items-center gap-2 rounded-md  px-3 text-sm font-semibold text-stone-800 transition hover:bg-stone-100"
+            href={profilePath}
+          >
+            <span className="relative h-6 w-6 overflow-hidden rounded-full border border-stone-300 bg-stone-100">
+              <AvatarImage
+                alt={`${user.displayName}'s avatar`}
+                className="h-full w-full object-cover"
+                sizes="24px"
+                src={avatarUrl}
+              />
+            </span>
+            <span className="sr-only">{copy.common.profile}</span>
+            {/* <span>{user.displayName}</span> */}
+          </Link>
+        ) : null}
         <label className="flex h-10 items-center gap-2 rounded-md px-3 text-sm font-semibold text-stone-800">
           {/* <span className="text-xs font-medium text-stone-500">
             {copy.common.language}
@@ -540,13 +559,22 @@ function TopHeader({
             ))}
           </select>
         </label>
-        <button
-          className="h-10 rounded-md border border-stone-300 px-3 text-sm font-semibold text-stone-700 transition hover:bg-stone-100 hover:text-stone-950 active:scale-[0.98]"
-          onClick={onSignOut}
-          type="button"
-        >
-          {copy.common.signOut}
-        </button>
+        {showSignOut ? (
+          <button
+            className="h-10 rounded-md border border-stone-300 px-3 text-sm font-semibold text-stone-700 transition hover:bg-stone-100 hover:text-stone-950 active:scale-[0.98]"
+            onClick={onSignOut}
+            type="button"
+          >
+            {copy.common.signOut}
+          </button>
+        ) : (
+          <Link
+            className="inline-flex h-10 items-center rounded-md border border-stone-300 px-3 text-sm font-semibold text-stone-700 transition hover:bg-stone-100 hover:text-stone-950 active:scale-[0.98]"
+            href={`/login?next=${encodeURIComponent(profilePath)}`}
+          >
+            {copy.common.signIn}
+          </Link>
+        )}
       </div>
     </header>
   );
@@ -558,6 +586,7 @@ function UserProfileSidebar({
   avatarUrl,
   copy,
   hasPendingAvatarPreview,
+  isEditable,
   isUploadingAvatar,
   language,
   onAvatarLoad,
@@ -570,6 +599,7 @@ function UserProfileSidebar({
   avatarUrl: string;
   copy: AppCopy;
   hasPendingAvatarPreview: boolean;
+  isEditable: boolean;
   isUploadingAvatar: boolean;
   language: Language;
   onAvatarLoad: (avatarUrl: string) => void;
@@ -620,13 +650,14 @@ function UserProfileSidebar({
     <aside className="rounded-lg p-5 lg:sticky lg:top-6">
       <div className="flex gap-4 lg:block">
         <div className="group relative h-24 w-24 shrink-0 overflow-hidden rounded-full border border-stone-300 bg-stone-100 sm:h-28 sm:w-28 lg:h-auto lg:w-full">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          <AvatarImage
             alt={`${user.displayName}'s avatar`}
             className={`aspect-square h-full w-full object-cover ${
               hasPendingAvatarPreview ? "opacity-90" : ""
             }`}
             onLoad={() => onAvatarLoad(avatarUrl)}
+            priority
+            sizes="(min-width: 1024px) 248px, (min-width: 640px) 112px, 96px"
             src={avatarUrl}
           />
           {isUploadingAvatar ? (
@@ -634,31 +665,33 @@ function UserProfileSidebar({
               <span className="h-8 w-8 animate-spin rounded-full border-2 border-white/40 border-t-white" />
             </div>
           ) : null}
-          <label
-            className="absolute inset-x-0 bottom-0 flex cursor-pointer items-center justify-center gap-2 bg-stone-950/75 px-3 py-2 text-xs font-semibold text-white opacity-100 transition group-hover:bg-stone-950/85 lg:opacity-0 lg:group-hover:opacity-100"
-            title={copy.dashboard.uploadAvatar}
-          >
-            <FaCamera aria-hidden="true" className="h-3.5 w-3.5" />
-            <span className="sr-only lg:not-sr-only lg:truncate">
-              {isUploadingAvatar
-                ? copy.dashboard.uploadingAvatar
-                : copy.dashboard.uploadAvatar}
-            </span>
-            <input
-              accept="image/jpeg,image/png,image/webp"
-              className="sr-only"
-              disabled={isUploadingAvatar}
-              onChange={(event) => {
-                const [file] = Array.from(event.target.files ?? []);
-                event.currentTarget.value = "";
+          {isEditable ? (
+            <label
+              className="absolute inset-x-0 bottom-0 flex cursor-pointer items-center justify-center gap-2 bg-stone-950/75 px-3 py-2 text-xs font-semibold text-white opacity-100 transition group-hover:bg-stone-950/85 lg:opacity-0 lg:group-hover:opacity-100"
+              title={copy.dashboard.uploadAvatar}
+            >
+              <FaCamera aria-hidden="true" className="h-3.5 w-3.5" />
+              <span className="sr-only lg:not-sr-only lg:truncate">
+                {isUploadingAvatar
+                  ? copy.dashboard.uploadingAvatar
+                  : copy.dashboard.uploadAvatar}
+              </span>
+              <input
+                accept="image/jpeg,image/png,image/webp"
+                className="sr-only"
+                disabled={isUploadingAvatar}
+                onChange={(event) => {
+                  const [file] = Array.from(event.target.files ?? []);
+                  event.currentTarget.value = "";
 
-                if (file) {
-                  void onUploadAvatar(file);
-                }
-              }}
-              type="file"
-            />
-          </label>
+                  if (file) {
+                    void onUploadAvatar(file);
+                  }
+                }}
+                type="file"
+              />
+            </label>
+          ) : null}
         </div>
         <div className="min-w-0 flex-1 lg:mt-5">
           {/* <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-stone-500">
@@ -692,13 +725,15 @@ function UserProfileSidebar({
         </div>
       </div>
 
-      <button
-        className="mt-5 h-11 w-full rounded-md bg-stone-950 px-4 text-sm font-semibold text-white transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-stone-800 active:scale-[0.98]"
-        onClick={onAddWorkout}
-        type="button"
-      >
-        {copy.dashboard.addWorkout}
-      </button>
+      {isEditable ? (
+        <button
+          className="mt-5 h-11 w-full rounded-md bg-stone-950 px-4 text-sm font-semibold text-white transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-stone-800 active:scale-[0.98]"
+          onClick={onAddWorkout}
+          type="button"
+        >
+          {copy.dashboard.addWorkout}
+        </button>
+      ) : null}
 
       {/* <div className="mt-5 grid gap-3 border-t border-stone-100 pt-5 text-sm text-stone-600">
         <div className="flex items-center justify-between gap-3">
@@ -717,8 +752,8 @@ function UserProfileSidebar({
         </div>
       </div> */}
 
-      <div className="mt-5 grid gap-3 border-t border-stone-300 pt-5 text-sm text-stone-600">
-        {profileLinks.length > 0 ? (
+      {profileLinks.length > 0 ? (
+        <div className="mt-5 grid gap-3 border-t border-stone-300 pt-5 text-sm text-stone-600">
           <div className="grid gap-2">
             {profileLinks.map(({ href, Icon, label }) => (
               <a
@@ -742,8 +777,8 @@ function UserProfileSidebar({
               </a>
             ))}
           </div>
-        ) : null}
-      </div>
+        </div>
+      ) : null}
 
       {user.location ? (
         <div className="mt-5 border-t border-stone-300 pt-5">
@@ -776,6 +811,35 @@ function UserProfileSidebar({
         </div>
       ) : null}
     </aside>
+  );
+}
+
+function AvatarImage({
+  alt,
+  className,
+  onLoad,
+  priority = false,
+  sizes,
+  src,
+}: {
+  alt: string;
+  className: string;
+  onLoad?: () => void;
+  priority?: boolean;
+  sizes: string;
+  src: string;
+}) {
+  return (
+    <Image
+      alt={alt}
+      className={className}
+      fill
+      onLoad={onLoad}
+      priority={priority}
+      sizes={sizes}
+      src={src}
+      unoptimized={src.startsWith("blob:")}
+    />
   );
 }
 
