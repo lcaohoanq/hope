@@ -18,6 +18,10 @@ import {
 import type { AppCopy, Language } from "@/lib/i18n";
 import type { Workout, WorkoutUpdateInput } from "@/lib/workout-types";
 import { calculateDurationMinutes } from "@/lib/workout-utils";
+import {
+  ActivityTypeSelector,
+  formatActivityType,
+} from "@/components/ActivityTypeSelector";
 import { WorkoutImageThumbnail } from "@/components/WorkoutImageThumbnail";
 
 type WorkoutDayDetailModalProps = {
@@ -458,8 +462,8 @@ export function WorkoutDayDetailModal({
               </div>
               <div className="border-t border-white/10 px-3 py-2 text-xs text-stone-200">
                 <span>
-                  {selectedImage.workout.type} - {selectedImage.workout.startTime} -{" "}
-                  {selectedImage.workout.endTime}
+                  {formatActivityType(selectedImage.workout.type, copy)} -{" "}
+                  {selectedImage.workout.startTime} - {selectedImage.workout.endTime}
                 </span>
                 {galleryImages.length > 1 ? (
                   <span className="float-right font-mono text-stone-400">
@@ -529,7 +533,7 @@ export function WorkoutDayDetailModal({
                     <>
                       <div className="flex flex-wrap items-baseline justify-between gap-2">
                         <h4 className="text-base font-semibold text-stone-950">
-                          {workout.type}
+                          {formatActivityType(workout.type, copy)}
                         </h4>
                         <p className="text-sm text-stone-500">
                           {workout.startTime} - {workout.endTime}
@@ -626,14 +630,14 @@ function EditWorkoutPanel({
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <label className="grid gap-1.5 text-sm font-medium text-stone-800">
-          {copy.form.type}
-          <input
-            className="h-10 rounded-md border border-stone-300 bg-white px-3 text-sm font-normal text-stone-950 outline-none focus:border-moss focus:ring-2 focus:ring-moss/15"
-            onChange={(event) => onUpdateField("type", event.target.value)}
-            value={editForm.type}
-          />
-        </label>
+        <ActivityTypeSelector
+          copy={copy}
+          disabled={isSavingEdit}
+          label={copy.form.type}
+          onChange={(value) => onUpdateField("type", value)}
+          value={editForm.type}
+          variant="compact"
+        />
         <label className="grid gap-1.5 text-sm font-medium text-stone-800">
           {copy.form.date}
           <input
