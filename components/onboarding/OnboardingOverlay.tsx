@@ -255,10 +255,10 @@ function StepDots({ currentStepIndex }: { currentStepIndex: number }) {
             <motion.span
               animate={{
                 backgroundColor: isComplete
-                  ? "rgb(var(--color-accent))"
+                  ? "oklch(var(--color-accent))"
                   : isCurrent
-                    ? "rgb(var(--color-text))"
-                    : "rgb(var(--color-panel-muted))",
+                    ? "oklch(var(--color-text))"
+                    : "oklch(var(--color-panel-muted))",
                 opacity: isComplete ? 0.72 : 1,
                 scale: isCurrent ? 1.16 : 1,
                 width: isCurrent ? 26 : 10,
