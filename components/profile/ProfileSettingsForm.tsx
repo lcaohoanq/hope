@@ -10,6 +10,7 @@ import {
   profileUpdateSchema,
 } from "@/lib/profile-update";
 import { getCanonicalUserPath, type PublicAppUser } from "@/lib/users";
+import { PrivacySettingsCard } from "./PrivacySettingsCard";
 
 type ProfileSettingsFormProps = {
   user: PublicAppUser;
@@ -171,6 +172,7 @@ export function ProfileSettingsForm({ user }: ProfileSettingsFormProps) {
           </p>
         </header>
 
+        <div className="mb-6"><PrivacySettingsCard user={user} /></div>
         <form className="grid gap-6" noValidate onSubmit={handleSubmit}>
           <FormSection
             description={copy.profileSettings.basicDescription}

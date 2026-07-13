@@ -33,6 +33,7 @@ const initialForm = (defaultDate: string): WorkoutInput => ({
   startTime: getCurrentTimeInputValue(),
   endTime: "",
   note: "",
+  isPublic: true,
 });
 
 const MAX_SELECTED_IMAGES = 3;
@@ -183,6 +184,7 @@ export function WorkoutForm({
         startTime: form.startTime,
         endTime: form.endTime,
         note,
+        isPublic: form.isPublic,
         images: selectedImages,
       });
 
@@ -263,6 +265,19 @@ export function WorkoutForm({
             />
           </label>
         </div>
+
+        <label className="flex items-center justify-between gap-4 rounded-md border border-border bg-panel-muted p-3 text-sm">
+          <span>
+            <span className="block font-semibold text-text">{copy.form.publicWorkout}</span>
+            <span className="mt-0.5 block text-xs font-normal text-muted">{copy.form.publicWorkoutHelp}</span>
+          </span>
+          <input
+            checked={form.isPublic}
+            className="h-5 w-5 accent-[var(--color-accent)]"
+            onChange={(event) => setForm((current) => ({ ...current, isPublic: event.target.checked }))}
+            type="checkbox"
+          />
+        </label>
 
         <label className="grid gap-2 text-sm font-medium text-text">
           {copy.form.note}

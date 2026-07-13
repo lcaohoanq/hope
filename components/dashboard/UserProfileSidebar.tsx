@@ -16,6 +16,9 @@ import {
   getGoogleMapsEmbedUrl,
 } from "./dashboard-utils";
 import { AvatarImage } from "./AvatarImage";
+import { ConnectionsDialog } from "@/components/social/ConnectionsDialog";
+import { FollowButton } from "@/components/social/FollowButton";
+import type { SocialSummary } from "@/lib/social-types";
 
 type ProfileLink = {
   label: string;
@@ -36,6 +39,9 @@ type UserProfileSidebarProps = {
   user: PublicAppUser;
   onAddWorkout: () => void;
   onSelectAvatar: (file: File) => void;
+  isAuthenticated: boolean;
+  socialSummary: SocialSummary;
+  canViewDetails: boolean;
 };
 
 export function UserProfileSidebar({
@@ -51,6 +57,9 @@ export function UserProfileSidebar({
   user,
   onAddWorkout,
   onSelectAvatar,
+  isAuthenticated,
+  socialSummary,
+  canViewDetails,
 }: UserProfileSidebarProps) {
   const profileLinks: ProfileLink[] = [
     ...(user.website
@@ -146,7 +155,7 @@ export function UserProfileSidebar({
             <h1 className="text-2xl font-semibold tracking-[-0.03em] text-text">
               {user.displayName}
             </h1>
-            {user.plan === "pro" ? (
+            {canViewDetails && user.plan === "pro" ? (
               <span className="rounded-full border border-accent/30 bg-accent/10 px-2 py-0.5 text-[10px] font-bold tracking-[0.08em] text-accent">
                 PRO
               </span>
@@ -155,7 +164,7 @@ export function UserProfileSidebar({
           <div className="flex items-center gap-3">
             <p className="mt-1 truncate text-sm text-muted">{user.slug}</p>
             <span className="mt-1 text-sm text-muted">·</span>
-            {user.pronouns ? (
+            {canViewDetails && user.pronouns ? (
               <span className="mt-1 text-sm text-muted">
                 {user.pronouns[language]}
               </span>
@@ -175,6 +184,18 @@ export function UserProfileSidebar({
             </p>
           ) : null}
         </div>
+      </div>
+
+      <div className="mt-5 grid gap-3">
+        <ConnectionsDialog
+          canView={socialSummary.canViewConnections}
+          followersCount={socialSummary.followersCount}
+          followingCount={socialSummary.followingCount}
+          language={language}
+          profileId={user.id}
+          username={user.username}
+        />
+        {!isEditable ? <FollowButton authenticated={isAuthenticated} initialStatus={socialSummary.relationshipStatus} language={language} profileId={user.id} profilePath={`/${user.username}`} /> : null}
       </div>
 
       {isEditable ? (
@@ -213,7 +234,7 @@ export function UserProfileSidebar({
         </div>
       </div> */}
 
-      {profileLinks.length > 0 ? (
+      {canViewDetails && profileLinks.length > 0 ? (
         <div className="mt-5 grid gap-3 border-t border-border pt-5 text-sm text-muted">
           <div className="grid gap-2">
             {profileLinks.map(({ href, Icon, label }) => (
@@ -241,7 +262,7 @@ export function UserProfileSidebar({
         </div>
       ) : null}
 
-      {user.location ? (
+      {canViewDetails && user.location ? (
         <div className="mt-5 border-t border-border pt-5">
           <div className="flex items-start justify-between gap-3 text-sm">
             <div>

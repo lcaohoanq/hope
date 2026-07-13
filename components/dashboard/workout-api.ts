@@ -113,6 +113,7 @@ export async function createWorkoutRequestInit(
   body.set("startTime", input.startTime);
   body.set("endTime", input.endTime);
   body.set("note", input.note);
+  body.set("isPublic", String(input.isPublic));
 
   imageSrcs?.forEach((src) => {
     body.append("imageSrcs", src);

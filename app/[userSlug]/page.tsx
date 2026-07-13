@@ -2,7 +2,8 @@ import { auth } from "@clerk/nextjs/server";
 import { notFound, redirect } from "next/navigation";
 import { HopeDashboard } from "@/components/dashboard/HopeDashboard";
 import { getProfileByClerkId, getProfileByPath } from "@/lib/repositories/profiles";
-import { getCanonicalUserPath, toPublicUser } from "@/lib/users";
+import { getCanonicalUserPath, toPrivateProfileShell, toPublicUser } from "@/lib/users";
+import { resolveProfileAccess } from "@/lib/profile-access";
 
 type UserPageProps = { params: Promise<{ userSlug: string }> };
 
@@ -24,12 +25,15 @@ export default async function UserPage({ params }: UserPageProps) {
 
   const { userId } = await auth();
   const authenticatedProfile = userId ? await getProfileByClerkId(userId) : undefined;
+  const socialSummary = await resolveProfileAccess(user, authenticatedProfile);
   return (
     <HopeDashboard
       isAuthenticated={Boolean(userId)}
       isEditable={authenticatedProfile?.id === user.id}
       key={user.id}
-      user={toPublicUser(user)}
+      socialSummary={socialSummary}
+      user={socialSummary.canViewWorkouts ? toPublicUser(user) : toPrivateProfileShell(user)}
+      viewer={authenticatedProfile ? toPublicUser(authenticatedProfile) : undefined}
     />
   );
 }
