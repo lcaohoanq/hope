@@ -74,6 +74,36 @@ type ProfileLink = {
 };
 
 const WORKOUT_LOAD_RETRY_DELAYS_MS = [500, 1000];
+const WORKOUT_DIALOG_BACKDROP_TRANSITION = {
+  duration: 0.24,
+  ease: [0.16, 1, 0.3, 1],
+} as const;
+const WORKOUT_DIALOG_PANEL_TRANSITION = {
+  duration: 0.34,
+  ease: [0.16, 1, 0.3, 1],
+} as const;
+const WORKOUT_DIALOG_BACKDROP_VARIANTS = {
+  closed: {
+    backdropFilter: "blur(0px)",
+    opacity: 0,
+  },
+  open: {
+    backdropFilter: "blur(8px)",
+    opacity: 1,
+  },
+};
+const WORKOUT_DIALOG_PANEL_VARIANTS = {
+  closed: {
+    opacity: 0,
+    scale: 0.94,
+    y: 24,
+  },
+  open: {
+    opacity: 1,
+    scale: 1,
+    y: 0,
+  },
+};
 
 export function HopeDashboard({
   isAuthenticated,
@@ -414,21 +444,20 @@ export function HopeDashboard({
           <motion.div
             aria-label={copy.form.logWorkout}
             aria-modal="true"
-            animate={{ opacity: 1 }}
-            className="fixed inset-0 z-[10000] flex items-center justify-center bg-stone-950/35 p-4 backdrop-blur-sm"
-            exit={{ opacity: 0 }}
-            initial={{ opacity: 0 }}
+            animate="open"
+            className="fixed inset-0 z-[10000] flex items-center justify-center bg-stone-950/35 p-4"
+            exit="closed"
+            initial="closed"
             onClick={() => setIsWorkoutDialogOpen(false)}
             role="dialog"
-            transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+            transition={WORKOUT_DIALOG_BACKDROP_TRANSITION}
+            variants={WORKOUT_DIALOG_BACKDROP_VARIANTS}
           >
             <motion.div
-              animate={{ opacity: 1, scale: 1, y: 0 }}
               className="relative max-h-[90dvh] w-full max-w-xl overflow-y-auto rounded-lg shadow-[0_30px_120px_rgba(17,17,17,0.22)]"
-              exit={{ opacity: 0, scale: 0.96, y: 12 }}
-              initial={{ opacity: 0, scale: 0.96, y: 12 }}
               onClick={(event) => event.stopPropagation()}
-              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              transition={WORKOUT_DIALOG_PANEL_TRANSITION}
+              variants={WORKOUT_DIALOG_PANEL_VARIANTS}
             >
               <button
                 aria-label={copy.dashboard.closeWorkoutForm}

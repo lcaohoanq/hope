@@ -8,6 +8,7 @@ import {
 } from "@/lib/image-previews";
 import type { WorkoutInput } from "@/lib/workout-types";
 import { calculateDurationMinutes } from "@/lib/workout-utils";
+import { ActivityTypeSelector } from "@/components/ActivityTypeSelector";
 
 type WorkoutFormProps = {
   copy: AppCopy;
@@ -166,16 +167,13 @@ export function WorkoutForm({
       </div>
 
       <fieldset className="mt-6 grid gap-4" disabled={isSubmitting}>
-        <label className="grid gap-2 text-sm font-medium text-stone-800">
-          {copy.form.workoutType}
-          <input
-            className="h-11 rounded-md border border-stone-300 bg-stone-50 px-3 text-base font-normal text-stone-950 outline-none transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] placeholder:text-stone-400 focus:border-moss focus:bg-white focus:ring-2 focus:ring-moss/15 disabled:cursor-not-allowed disabled:opacity-60"
-            onChange={(event) => updateField("type", event.target.value)}
-            placeholder={copy.form.workoutTypePlaceholder}
-            type="text"
-            value={form.type}
-          />
-        </label>
+        <ActivityTypeSelector
+          copy={copy}
+          disabled={isSubmitting}
+          label={copy.form.workoutType}
+          onChange={(value) => updateField("type", value)}
+          value={form.type}
+        />
 
         <label className="grid gap-2 text-sm font-medium text-stone-800">
           {copy.form.date}
