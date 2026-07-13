@@ -16,6 +16,18 @@ test("rejects signed-out workout and settings mutations", async ({ request }) =>
   const settings = await request.patch("/api/users/settings", { data: { theme: "dark" } });
   expect(settings.status()).toBe(401);
 
+  const privacy = await request.patch("/api/users/privacy", { data: { isPrivate: true } });
+  expect(privacy.status()).toBe(401);
+
+  const follow = await request.post("/api/profiles/some-profile/follow");
+  expect(follow.status()).toBe(401);
+
+  const feed = await request.get("/api/feed");
+  expect(feed.status()).toBe(401);
+
+  const notifications = await request.get("/api/notifications");
+  expect(notifications.status()).toBe(401);
+
   const profile = await request.patch("/api/users/profile", {
     data: {
       displayName: "Signed out user",
