@@ -2,6 +2,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
 import type { Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import { AppShell } from "@/components/layouts/AppShell";
 import "./globals.css";
 
@@ -54,6 +55,7 @@ export default function RootLayout({
         <ClerkProvider afterSignOutUrl="/" signInUrl="/login" signUpUrl="/sign-up">
           <AppShell>{children}</AppShell>
         </ClerkProvider>
+        <Analytics />
       </body>
     </html>
   );
