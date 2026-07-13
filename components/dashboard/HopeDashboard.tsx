@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useClerk } from "@clerk/nextjs";
 import { ContributionHeatmap } from "@/components/ContributionHeatmap";
 import { Loading } from "@/components/shared/Loading";
 import { StatsCards } from "@/components/StatsCards";
@@ -45,7 +45,7 @@ export function HopeDashboard({
   isEditable,
   user,
 }: HopeDashboardProps) {
-  const router = useRouter();
+  const { signOut } = useClerk();
   const todayDateKey = getTodayInTimezone();
   const currentYear = Number(todayDateKey.slice(0, 4));
   const birthYear = user.birthYear ?? currentYear;
@@ -136,7 +136,7 @@ export function HopeDashboard({
     setIsUploadingWorkoutImages(hasWorkoutImages(input));
 
     try {
-      const requestInit = await createWorkoutRequestInit(input, user.id);
+      const requestInit = await createWorkoutRequestInit(input);
       const response = await fetch("/api/workouts", {
         method: "POST",
         ...requestInit,
@@ -175,7 +175,7 @@ export function HopeDashboard({
     setIsUploadingWorkoutImages(hasWorkoutImages(input));
 
     try {
-      const requestInit = await createWorkoutRequestInit(input, user.id);
+      const requestInit = await createWorkoutRequestInit(input);
       const response = await fetch("/api/workouts", {
         method: "PATCH",
         ...requestInit,
@@ -219,7 +219,6 @@ export function HopeDashboard({
     const previewUrl = URL.createObjectURL(file);
     const previousPreviewUrl = pendingAvatarPreviewUrl;
 
-    formData.set("userId", user.id);
     formData.set("avatar", file);
 
     if (previousPreviewUrl) {
@@ -265,11 +264,7 @@ export function HopeDashboard({
   }
 
   async function handleSignOut() {
-    await fetch("/api/auth/logout", {
-      method: "POST",
-    });
-    router.push("/login");
-    router.refresh();
+    await signOut({ redirectUrl: "/login" });
   }
 
   async function handleThemeChange(nextTheme: AppTheme) {
@@ -291,7 +286,6 @@ export function HopeDashboard({
       const response = await fetch("/api/users/settings", {
         body: JSON.stringify({
           theme: nextTheme,
-          userId: user.id,
         }),
         headers: {
           "Content-Type": "application/json",
