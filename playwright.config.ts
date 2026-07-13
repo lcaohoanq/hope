@@ -1,12 +1,25 @@
 import { defineConfig } from "@playwright/test";
+import { loadEnvConfig } from "@next/env";
+
+loadEnvConfig(process.cwd());
+const e2ePort = process.env.E2E_PORT ?? "3000";
+const e2eBaseUrl = process.env.E2E_BASE_URL ?? `http://localhost:${e2ePort}`;
 
 export default defineConfig({
   fullyParallel: true,
+  projects: [
+    { name: "setup", testMatch: /global\.setup\.ts/ },
+    {
+      name: "chromium",
+      dependencies: ["setup"],
+      testIgnore: /global\.setup\.ts/,
+      use: { channel: "chromium" },
+    },
+  ],
   reporter: "list",
   testDir: "./tests/e2e",
   use: {
-    baseURL: "http://localhost:3000",
-    channel: "chromium",
+    baseURL: e2eBaseUrl,
     launchOptions: {
       args: ["--use-gl=swiftshader", "--enable-unsafe-swiftshader"],
     },
@@ -19,9 +32,9 @@ export default defineConfig({
     video: "retain-on-failure",
   },
   webServer: {
-    command: "pnpm dev",
+    command: `pnpm dev --port ${e2ePort}`,
     reuseExistingServer: true,
     timeout: 120_000,
-    url: "http://localhost:3000",
+    url: e2eBaseUrl,
   },
 });
