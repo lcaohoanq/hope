@@ -27,7 +27,8 @@ jobs:
       - name: Send reminder if needed
         run: pnpm run reminder
         env:
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
-          REMINDER_EMAIL: ${{ secrets.REMINDER_EMAIL }}
           RESEND_FROM: ${{ secrets.RESEND_FROM }}
           TIMEZONE: Asia/Ho_Chi_Minh

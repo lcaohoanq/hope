@@ -8,6 +8,11 @@ const nextConfig: NextConfig = {
         hostname: "api.dicebear.com",
         pathname: "/10.x/notionists/svg",
       },
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+        pathname: "/**",
+      },
     ],
   },
 };

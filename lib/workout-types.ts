@@ -17,6 +17,7 @@ export type Workout = {
   note?: string;
   images?: WorkoutImage[];
   createdAt: string;
+  isPublic: boolean;
 };
 
 export type WorkoutData = {
@@ -33,6 +34,7 @@ export type CreateWorkoutRequest = {
   startTime?: unknown;
   endTime?: unknown;
   note?: unknown;
+  isPublic?: unknown;
 };
 
 export type UpdateWorkoutRequest = CreateWorkoutRequest & {
@@ -46,6 +48,7 @@ export type WorkoutInput = {
   startTime: string;
   endTime: string;
   note: string;
+  isPublic: boolean;
   images?: File[];
 };
 

@@ -52,6 +52,7 @@ type EditWorkoutForm = {
   startTime: string;
   endTime: string;
   note: string;
+  isPublic: boolean;
 };
 
 type EditGalleryImage =
@@ -265,6 +266,7 @@ export function WorkoutDayDetailModal({
       startTime: workout.startTime,
       endTime: workout.endTime,
       note: workout.note ?? "",
+      isPublic: workout.isPublic,
     });
     setEditImageSrcs((workout.images ?? []).map((image) => image.src));
     setEditImageSelection([]);
@@ -272,7 +274,7 @@ export function WorkoutDayDetailModal({
     setEditSuccess("");
   }
 
-  function updateEditField(field: keyof EditWorkoutForm, value: string) {
+  function updateEditField(field: keyof EditWorkoutForm, value: string | boolean) {
     setEditForm((current) =>
       current ? { ...current, [field]: value } : current,
     );
@@ -369,6 +371,7 @@ export function WorkoutDayDetailModal({
         startTime: editForm.startTime,
         endTime: editForm.endTime,
         note,
+        isPublic: editForm.isPublic,
         imageSrcs: editImageSrcs,
         images: editImages,
       });
@@ -670,7 +673,7 @@ function EditWorkoutPanel({
   onCancel: () => void;
   onRemoveExistingImage: (src: string) => void;
   onSubmit: () => void;
-  onUpdateField: (field: keyof EditWorkoutForm, value: string) => void;
+  onUpdateField: (field: keyof EditWorkoutForm, value: string | boolean) => void;
   onUpdateImages: (files: FileList | null, remainingImageSlots: number) => void;
 }) {
   const existingImageCount = existingImages?.length ?? 0;
@@ -904,6 +907,18 @@ function EditWorkoutPanel({
               onChange={(event) => onUpdateField("note", event.target.value)}
               placeholder={copy.form.notePlaceholder}
               value={editForm.note}
+            />
+          </label>
+          <label className="flex items-center justify-between gap-4 rounded-md border border-border bg-panel-muted p-3 text-sm">
+            <span>
+              <span className="block font-semibold text-text">{copy.form.publicWorkout}</span>
+              <span className="mt-0.5 block text-xs font-normal text-muted">{copy.form.publicWorkoutHelp}</span>
+            </span>
+            <input
+              checked={editForm.isPublic}
+              className="h-5 w-5 accent-[var(--color-accent)]"
+              onChange={(event) => onUpdateField("isPublic", event.target.checked)}
+              type="checkbox"
             />
           </label>
           <div className="grid gap-2">
