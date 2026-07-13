@@ -22,7 +22,7 @@ type LoginResponse =
 
 const LoginPersonScene = dynamic(
   () =>
-    import("@/components/LoginPersonScene").then(
+    import("@/components/auth/LoginPersonScene").then(
       (module) => module.LoginPersonScene,
     ),
   {

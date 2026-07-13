@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { AppFooter } from "@/components/AppFooter";
+import { AppFooter } from "@/components/layouts/AppFooter";
 
 type AppShellProps = {
   children: React.ReactNode;
