@@ -23,6 +23,9 @@ export function AvatarImage({
   const [failedSrc, setFailedSrc] = useState("");
   const renderedSrc =
     failedSrc === src && src.startsWith("/uploads/avatars/") ? `/api${src}` : src;
+  const isDiceBearSvg = renderedSrc.startsWith(
+    "https://api.dicebear.com/10.x/notionists/svg",
+  );
 
   if (src.startsWith("blob:")) {
     return (
@@ -45,7 +48,9 @@ export function AvatarImage({
       priority={priority}
       sizes={sizes}
       src={renderedSrc}
-      unoptimized={renderedSrc.startsWith("/api/uploads/avatars/")}
+      unoptimized={
+        isDiceBearSvg || renderedSrc.startsWith("/api/uploads/avatars/")
+      }
     />
   );
 }

@@ -51,9 +51,14 @@ export type UserSettings = {
 
 export type AppTheme = "light" | "dark";
 
+export type UserPlan = "standard" | "pro";
+
+export const DEFAULT_USER_PLAN: UserPlan = "standard";
+
 export type AppUser = UserProfile & {
   id: string;
   slug: string;
+  plan?: UserPlan;
   credentials: UserCredentials;
   avatarUrl?: string;
   bio: LocalizedText;
@@ -117,6 +122,7 @@ export const APP_USERS = [
   {
     id: "hoang",
     slug: "@hoang",
+    plan: "pro",
     displayName: "Hoang Cao Luu",
     birthYear: 2004,
     avatarSeed: "lcaohoanq",
@@ -252,8 +258,9 @@ export const APP_USERS = [
   },
 ] as const satisfies readonly AppUser[];
 
-export type PublicAppUser = Omit<AppUser, "credentials"> & {
+export type PublicAppUser = Omit<AppUser, "credentials" | "plan"> & {
   username: string;
+  plan: UserPlan;
 };
 
 export const DEFAULT_USER_ID = "hoang";
@@ -344,6 +351,7 @@ export function toPublicUser(user: AppUser): PublicAppUser {
   return {
     id: user.id,
     slug: user.slug,
+    plan: user.plan ?? DEFAULT_USER_PLAN,
     username: user.credentials.username,
     displayName: user.displayName,
     birthYear: user.birthYear,
