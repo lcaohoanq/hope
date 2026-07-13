@@ -140,9 +140,16 @@ export function UserProfileSidebar({
           {/* <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted">
             {copy.dashboard.appName}
           </p> */}
-          <h1 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-text">
-            {user.displayName}
-          </h1>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <h1 className="text-2xl font-semibold tracking-[-0.03em] text-text">
+              {user.displayName}
+            </h1>
+            {user.plan === "pro" ? (
+              <span className="rounded-full border border-accent/30 bg-accent/10 px-2 py-0.5 text-[10px] font-bold tracking-[0.08em] text-accent">
+                PRO
+              </span>
+            ) : null}
+          </div>
           <div className="flex items-center gap-3">
             <p className="mt-1 truncate text-sm text-muted">{user.slug}</p>
             <span className="mt-1 text-sm text-muted">·</span>

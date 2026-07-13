@@ -39,6 +39,14 @@ test("redirects legacy slug URLs to canonical username URLs", async ({ page }) =
   await expect(page).toHaveURL("/hoang");
 });
 
+test("shows the PRO chip only for the pro user", async ({ page }) => {
+  await page.goto("/hoang");
+  await expect(page.getByText("PRO", { exact: true })).toBeVisible();
+
+  await page.goto("/mviet");
+  await expect(page.getByText("PRO", { exact: true })).toHaveCount(0);
+});
+
 test("shows other signed-in user profiles as read-only", async ({ page }) => {
   await signIn(page, "hoang", "123");
 
