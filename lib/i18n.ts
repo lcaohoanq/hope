@@ -113,7 +113,12 @@ export const translations = {
       workoutUpdated: "Đã cập nhật buổi tập.",
     },
     header: {
+      dark: "Tối",
       english: "English",
+      light: "Sáng",
+      savingTheme: "Đang lưu giao diện...",
+      theme: "Giao diện",
+      themeUpdateFailed: "Chưa thể lưu giao diện.",
       vietnamese: "Tiếng Việt",
     },
     heatmap: {
@@ -264,7 +269,12 @@ export const translations = {
       workoutUpdated: "Workout updated.",
     },
     header: {
+      dark: "Dark",
       english: "English",
+      light: "Light",
+      savingTheme: "Saving theme...",
+      theme: "Theme",
+      themeUpdateFailed: "Unable to save theme.",
       vietnamese: "Tiếng Việt",
     },
     heatmap: {

@@ -7,8 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "A personal workout consistency tracker for Hope.",
     start_url: "/",
     display: "standalone",
-    background_color: "#f7f5f0",
-    theme_color: "#f7f5f0",
+    background_color: "#f8fafc",
+    theme_color: "#f8fafc",
     icons: [
       {
         src: "/favicon.ico",

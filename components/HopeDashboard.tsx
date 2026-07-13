@@ -27,7 +27,13 @@ import {
 } from "@/lib/i18n";
 import { prepareWorkoutImageUploads } from "@/lib/image-previews";
 import { getAvatarUrl } from "@/lib/profile-utils";
-import type { HeatmapView, PublicAppUser, UserLocation } from "@/lib/users";
+import type {
+  AppTheme,
+  HeatmapView,
+  PublicAppUser,
+  UserLocation,
+  UserSettings,
+} from "@/lib/users";
 import type {
   Workout,
   WorkoutData,
@@ -58,6 +64,13 @@ type UploadAvatarResponse =
   | {
       success: true;
       avatarUrl: string;
+    }
+  | ApiErrorResponse;
+
+type UpdateSettingsResponse =
+  | {
+      success: true;
+      settings: UserSettings;
     }
   | ApiErrorResponse;
 
@@ -116,6 +129,17 @@ export function HopeDashboard({
   const birthYear = user.birthYear ?? currentYear;
   const [language, setLanguage] = useState<Language>(user.preferredLanguage);
   const copy = translations[language];
+  const themeStorageKey = `hope:theme:${user.id}`;
+  const [theme, setTheme] = useState<AppTheme>(() =>
+    getInitialTheme({
+      fallbackTheme: user.settings.theme,
+      isEditable,
+      storageKey: themeStorageKey,
+    }),
+  );
+  const [themeMessage, setThemeMessage] = useState("");
+  const [themeError, setThemeError] = useState("");
+  const [isSavingTheme, setIsSavingTheme] = useState(false);
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [isLoadingWorkouts, setIsLoadingWorkouts] = useState(true);
   const [isSubmittingWorkout, setIsSubmittingWorkout] = useState(false);
@@ -157,6 +181,13 @@ export function HopeDashboard({
       setIsLoadingWorkouts(false);
     }
   }, [copy.errors.workoutLoad, user.id]);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    return () => {
+      delete document.documentElement.dataset.theme;
+    };
+  }, [theme]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -330,8 +361,61 @@ export function HopeDashboard({
     router.refresh();
   }
 
+  async function handleThemeChange(nextTheme: AppTheme) {
+    if (nextTheme === theme || isSavingTheme) {
+      return;
+    }
+
+    const previousTheme = theme;
+
+    setTheme(nextTheme);
+    if (isEditable) {
+      window.localStorage.setItem(themeStorageKey, nextTheme);
+    }
+    setThemeError("");
+    setThemeMessage(copy.header.savingTheme);
+    setIsSavingTheme(true);
+
+    try {
+      const response = await fetch("/api/users/settings", {
+        body: JSON.stringify({
+          theme: nextTheme,
+          userId: user.id,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: "PATCH",
+      });
+      const payload = await readApiJson<UpdateSettingsResponse>(
+        response,
+        copy.header.themeUpdateFailed,
+      );
+
+      if (!response.ok || !payload.success) {
+        throw new Error(
+          "error" in payload ? payload.error : copy.header.themeUpdateFailed,
+        );
+      }
+
+      setTheme(payload.settings.theme);
+      setThemeMessage("");
+    } catch (error) {
+      setTheme(previousTheme);
+      if (isEditable) {
+        window.localStorage.setItem(themeStorageKey, previousTheme);
+      }
+      setThemeMessage("");
+      setThemeError(
+        error instanceof Error ? error.message : copy.header.themeUpdateFailed,
+      );
+    } finally {
+      setIsSavingTheme(false);
+    }
+  }
+
   return (
-    <main className="min-h-[100dvh] bg-paper text-stone-950">
+    <main className="min-h-[100dvh] bg-app text-text">
       {isSubmittingWorkout || isUploadingWorkoutImages ? (
         <Loading
           message={
@@ -347,8 +431,14 @@ export function HopeDashboard({
         language={language}
         onLanguageChange={setLanguage}
         onSignOut={() => void handleSignOut()}
+        onThemeChange={(nextTheme) => void handleThemeChange(nextTheme)}
         showProfileShortcut={isEditable}
         showSignOut={isAuthenticated}
+        showThemeControl={isEditable}
+        theme={theme}
+        themeError={themeError}
+        themeMessage={themeMessage}
+        isSavingTheme={isSavingTheme}
         user={user}
       />
       <div className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:px-8">
@@ -375,11 +465,11 @@ export function HopeDashboard({
 
           <div className="grid min-w-0 gap-6">
             {workoutLoadError ? (
-              <section className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+              <section className="rounded-lg border border-danger-border bg-danger-soft p-4 text-sm text-danger">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <p>{workoutLoadError}</p>
                   <button
-                    className="h-9 rounded-md border border-red-200 bg-white px-3 font-semibold text-red-800 transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-red-100 active:scale-[0.98]"
+                    className="h-9 rounded-md border border-danger-border bg-panel px-3 font-semibold text-danger transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-danger-soft active:scale-[0.98]"
                     onClick={() => void loadWorkouts()}
                     type="button"
                   >
@@ -401,18 +491,18 @@ export function HopeDashboard({
             )}
 
             {isLoadingWorkouts ? (
-              <section className="min-h-[480px] rounded-lg border border-stone-300 bg-white p-5 sm:p-6">
-                <div className="h-5 w-40 animate-pulse rounded bg-stone-100" />
+              <section className="min-h-[480px] rounded-lg border border-border bg-panel p-5 sm:p-6">
+                <div className="h-5 w-40 animate-pulse rounded bg-panel-muted" />
                 <div className="mt-8 grid gap-5">
                   {Array.from({ length: 8 }, (_, index) => (
                     <div className="grid gap-2" key={index}>
-                      <div className="ml-24 h-3 w-80 rounded bg-stone-100" />
+                      <div className="ml-24 h-3 w-80 rounded bg-panel-muted" />
                       <div className="flex gap-3">
-                        <div className="h-3 w-10 rounded bg-stone-100" />
+                        <div className="h-3 w-10 rounded bg-panel-muted" />
                         <div className="grid flex-1 grid-cols-12 gap-1">
                           {Array.from({ length: 48 }, (_, cellIndex) => (
                             <div
-                              className="h-2.5 rounded-[2px] bg-stone-100"
+                              className="h-2.5 rounded-[2px] bg-panel-muted"
                               key={cellIndex}
                             />
                           ))}
@@ -445,7 +535,7 @@ export function HopeDashboard({
             aria-label={copy.form.logWorkout}
             aria-modal="true"
             animate="open"
-            className="fixed inset-0 z-[10000] flex items-center justify-center bg-stone-950/35 p-4"
+            className="fixed inset-0 z-[10000] flex items-center justify-center bg-text/35 p-4"
             exit="closed"
             initial="closed"
             onClick={() => setIsWorkoutDialogOpen(false)}
@@ -461,7 +551,7 @@ export function HopeDashboard({
             >
               <button
                 aria-label={copy.dashboard.closeWorkoutForm}
-                className="absolute right-4 top-4 z-10 h-9 w-9 rounded-md border border-stone-300 bg-white text-xl leading-none text-stone-500 transition hover:bg-stone-100 hover:text-stone-950"
+                className="absolute right-4 top-4 z-10 h-9 w-9 rounded-md border border-border bg-panel text-xl leading-none text-muted transition hover:bg-panel-muted hover:text-text"
                 onClick={() => setIsWorkoutDialogOpen(false)}
                 type="button"
               >
@@ -479,6 +569,26 @@ export function HopeDashboard({
       </AnimatePresence>
     </main>
   );
+}
+
+function getInitialTheme({
+  fallbackTheme,
+  isEditable,
+  storageKey,
+}: {
+  fallbackTheme: AppTheme;
+  isEditable: boolean;
+  storageKey: string;
+}) {
+  if (!isEditable || typeof window === "undefined") {
+    return fallbackTheme;
+  }
+
+  const storedTheme = window.localStorage.getItem(storageKey);
+
+  return storedTheme === "light" || storedTheme === "dark"
+    ? storedTheme
+    : fallbackTheme;
 }
 
 function resolveDefaultHeatmapView(
@@ -518,28 +628,44 @@ function clampYear(year: number, minYear: number, maxYear: number) {
 function TopHeader({
   avatarUrl,
   copy,
+  isSavingTheme,
   language,
   onLanguageChange,
   onSignOut,
+  onThemeChange,
   showProfileShortcut,
   showSignOut,
+  showThemeControl,
+  theme,
+  themeError,
+  themeMessage,
   user,
 }: {
   avatarUrl: string;
   copy: AppCopy;
+  isSavingTheme: boolean;
   language: Language;
   onLanguageChange: (language: Language) => void;
   onSignOut: () => void;
+  onThemeChange: (theme: AppTheme) => void;
   showProfileShortcut: boolean;
   showSignOut: boolean;
+  showThemeControl: boolean;
+  theme: AppTheme;
+  themeError: string;
+  themeMessage: string;
   user: PublicAppUser;
 }) {
   const profilePath = `/${user.username}`;
+  const themeOptions: Array<{ label: string; value: AppTheme }> = [
+    { label: copy.header.light, value: "light" },
+    { label: copy.header.dark, value: "dark" },
+  ];
 
   return (
-    <header className="flex w-full flex-col gap-3 border-b border-stone-300 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
+    <header className="flex w-full flex-col gap-3 border-b border-border bg-app px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
       <Link
-        className="inline-flex h-10 items-center rounded-md px-3 text-sm font-semibold text-stone-700 transition hover:bg-stone-100 hover:text-stone-950"
+        className="inline-flex h-10 items-center rounded-md px-3 text-sm font-semibold text-muted transition hover:bg-panel-muted hover:text-text"
         href="/"
       >
         {copy.common.home}
@@ -547,10 +673,10 @@ function TopHeader({
       <div className="flex flex-wrap items-center gap-3">
         {showProfileShortcut ? (
           <Link
-            className="inline-flex h-10 items-center gap-2 rounded-md  px-3 text-sm font-semibold text-stone-800 transition hover:bg-stone-100"
+            className="inline-flex h-10 items-center gap-2 rounded-md px-3 text-sm font-semibold text-text transition hover:bg-panel-muted"
             href={profilePath}
           >
-            <span className="relative h-6 w-6 overflow-hidden rounded-full border border-stone-300 bg-stone-100">
+            <span className="relative h-6 w-6 overflow-hidden rounded-full border border-border bg-panel-muted">
               <AvatarImage
                 alt={`${user.displayName}'s avatar`}
                 className="h-full w-full object-cover"
@@ -562,12 +688,47 @@ function TopHeader({
             {/* <span>{user.displayName}</span> */}
           </Link>
         ) : null}
-        <label className="flex h-10 items-center gap-2 rounded-md px-3 text-sm font-semibold text-stone-800">
-          {/* <span className="text-xs font-medium text-stone-500">
+        {showThemeControl ? (
+          <div className="grid gap-1">
+            <div
+              aria-label={copy.header.theme}
+              className="inline-flex h-10 items-center rounded-md border border-border bg-panel-muted p-1"
+              role="group"
+            >
+              {themeOptions.map((option) => (
+                <button
+                  aria-pressed={theme === option.value}
+                  className={`h-8 rounded px-3 text-xs font-semibold transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                    theme === option.value
+                      ? "bg-panel text-text shadow-[0_1px_0_rgb(15_23_42/0.08)]"
+                      : "text-muted hover:text-text"
+                  }`}
+                  disabled={isSavingTheme}
+                  key={option.value}
+                  onClick={() => onThemeChange(option.value)}
+                  type="button"
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+            {themeMessage || themeError ? (
+              <p
+                className={`text-xs font-medium ${
+                  themeError ? "text-danger" : "text-muted"
+                }`}
+              >
+                {themeError || themeMessage}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
+        <label className="flex h-10 items-center gap-2 rounded-md px-3 text-sm font-semibold text-text">
+          {/* <span className="text-xs font-medium text-muted">
             {copy.common.language}
           </span> */}
           <select
-            className="bg-transparent text-sm font-semibold text-stone-800 outline-none"
+            className="bg-transparent text-sm font-semibold text-text outline-none"
             onChange={(event) =>
               onLanguageChange(event.target.value as Language)
             }
@@ -584,7 +745,7 @@ function TopHeader({
         </label>
         {showSignOut ? (
           <button
-            className="h-10 rounded-md border border-stone-300 px-3 text-sm font-semibold text-stone-700 transition hover:bg-stone-100 hover:text-stone-950 active:scale-[0.98]"
+            className="h-10 rounded-md border border-border px-3 text-sm font-semibold text-muted transition hover:bg-panel-muted hover:text-text active:scale-[0.98]"
             onClick={onSignOut}
             type="button"
           >
@@ -592,7 +753,7 @@ function TopHeader({
           </button>
         ) : (
           <Link
-            className="inline-flex h-10 items-center rounded-md border border-stone-300 px-3 text-sm font-semibold text-stone-700 transition hover:bg-stone-100 hover:text-stone-950 active:scale-[0.98]"
+            className="inline-flex h-10 items-center rounded-md border border-border px-3 text-sm font-semibold text-muted transition hover:bg-panel-muted hover:text-text active:scale-[0.98]"
             href={`/login?next=${encodeURIComponent(profilePath)}`}
           >
             {copy.common.signIn}
@@ -672,7 +833,7 @@ function UserProfileSidebar({
   return (
     <aside className="rounded-lg p-5 lg:sticky lg:top-6">
       <div className="flex gap-4 lg:block">
-        <div className="group relative aspect-square h-24 w-24 shrink-0 overflow-hidden rounded-full border border-stone-300 bg-stone-100 sm:h-28 sm:w-28 lg:h-auto lg:w-full">
+        <div className="group relative aspect-square h-24 w-24 shrink-0 overflow-hidden rounded-full border border-border bg-panel-muted sm:h-28 sm:w-28 lg:h-auto lg:w-full">
           <AvatarImage
             alt={`${user.displayName}'s avatar`}
             className={`aspect-square h-full w-full object-cover ${
@@ -684,13 +845,13 @@ function UserProfileSidebar({
             src={avatarUrl}
           />
           {isUploadingAvatar ? (
-            <div className="absolute inset-0 grid place-items-center bg-stone-950/20">
+            <div className="absolute inset-0 grid place-items-center bg-text/20">
               <span className="h-8 w-8 animate-spin rounded-full border-2 border-white/40 border-t-white" />
             </div>
           ) : null}
           {isEditable ? (
             <label
-              className="absolute inset-x-0 bottom-0 flex cursor-pointer items-center justify-center gap-2 bg-stone-950/75 px-3 py-2 text-xs font-semibold text-white opacity-100 transition group-hover:bg-stone-950/85 lg:opacity-0 lg:group-hover:opacity-100"
+              className="absolute inset-x-0 bottom-0 flex cursor-pointer items-center justify-center gap-2 bg-text/75 px-3 py-2 text-xs font-semibold text-white opacity-100 transition group-hover:bg-accent/90 lg:opacity-0 lg:group-hover:opacity-100"
               title={copy.dashboard.uploadAvatar}
             >
               <FaCamera aria-hidden="true" className="h-3.5 w-3.5" />
@@ -717,31 +878,31 @@ function UserProfileSidebar({
           ) : null}
         </div>
         <div className="min-w-0 flex-1 lg:mt-5">
-          {/* <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-stone-500">
+          {/* <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted">
             {copy.dashboard.appName}
           </p> */}
-          <h1 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-stone-950">
+          <h1 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-text">
             {user.displayName}
           </h1>
           <div className="flex items-center gap-3">
-            <p className="mt-1 truncate text-sm text-stone-500">{user.slug}</p>
-            <span className="mt-1 text-sm text-stone-500">·</span>
+            <p className="mt-1 truncate text-sm text-muted">{user.slug}</p>
+            <span className="mt-1 text-sm text-muted">·</span>
           {user.pronouns ? (
-            <span className="mt-1 text-sm text-stone-500">
+            <span className="mt-1 text-sm text-muted">
               {user.pronouns[language]}
             </span>
         ) : null}
             </div>
-          <p className="mt-4 max-w-sm text-sm leading-6 text-stone-950">
+          <p className="mt-4 max-w-sm text-sm leading-6 text-text">
             {user.bio[language]}
           </p>
           {avatarUploadMessage ? (
-            <p className="mt-3 text-sm font-medium text-moss">
+            <p className="mt-3 text-sm font-medium text-accent">
               {avatarUploadMessage}
             </p>
           ) : null}
           {avatarUploadError ? (
-            <p className="mt-3 text-sm font-medium text-red-700">
+            <p className="mt-3 text-sm font-medium text-danger">
               {avatarUploadError}
             </p>
           ) : null}
@@ -750,7 +911,7 @@ function UserProfileSidebar({
 
       {isEditable ? (
         <button
-          className="mt-5 h-11 w-full rounded-md bg-stone-950 px-4 text-sm font-semibold text-white transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-stone-800 active:scale-[0.98]"
+          className="mt-5 h-11 w-full rounded-md bg-accent px-4 text-sm font-semibold text-accent-contrast transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-accent/90 active:scale-[0.98]"
           onClick={onAddWorkout}
           type="button"
         >
@@ -758,29 +919,29 @@ function UserProfileSidebar({
         </button>
       ) : null}
 
-      {/* <div className="mt-5 grid gap-3 border-t border-stone-100 pt-5 text-sm text-stone-600">
+      {/* <div className="mt-5 grid gap-3 border-t border-border pt-5 text-sm text-muted">
         <div className="flex items-center justify-between gap-3">
           <span>{copy.dashboard.birthYear}</span>
-          <span className="font-medium text-stone-950">{user.birthYear}</span>
+          <span className="font-medium text-text">{user.birthYear}</span>
         </div>
         <div className="flex items-center justify-between gap-3">
           <span>{copy.dashboard.ageMap}</span>
-          <span className="font-medium text-stone-950">
+          <span className="font-medium text-text">
             {userAge} {copy.dashboard.years}
           </span>
         </div>
         <div className="flex items-center justify-between gap-3">
           <span>{copy.dashboard.trackingFrom}</span>
-          <span className="font-medium text-stone-950">{trackingStartYear}</span>
+          <span className="font-medium text-text">{trackingStartYear}</span>
         </div>
       </div> */}
 
       {profileLinks.length > 0 ? (
-        <div className="mt-5 grid gap-3 border-t border-stone-300 pt-5 text-sm text-stone-600">
+        <div className="mt-5 grid gap-3 border-t border-border pt-5 text-sm text-muted">
           <div className="grid gap-2">
             {profileLinks.map(({ href, Icon, label }) => (
               <a
-                className="group flex items-center justify-between gap-3 py-1.5 text-stone-600 transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:text-stone-950"
+                className="group flex items-center justify-between gap-3 py-1.5 text-muted transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:text-text"
                 href={href}
                 key={label}
                 rel="noreferrer"
@@ -789,13 +950,13 @@ function UserProfileSidebar({
                 <span className="flex min-w-0 items-center gap-2">
                   <Icon
                     aria-hidden="true"
-                    className="h-4 w-4 shrink-0 text-stone-400 transition group-hover:text-stone-700"
+                    className="h-4 w-4 shrink-0 text-muted transition group-hover:text-muted"
                   />
                   <span className="truncate font-medium">{label}</span>
                 </span>
                 <FaExternalLinkAlt
                   aria-hidden="true"
-                  className="h-3 w-3 shrink-0 text-stone-300 transition group-hover:text-stone-500"
+                  className="h-3 w-3 shrink-0 text-muted transition group-hover:text-muted"
                 />
               </a>
             ))}
@@ -804,16 +965,16 @@ function UserProfileSidebar({
       ) : null}
 
       {user.location ? (
-        <div className="mt-5 border-t border-stone-300 pt-5">
+        <div className="mt-5 border-t border-border pt-5">
           <div className="flex items-start justify-between gap-3 text-sm">
             <div>
-              <p className="text-stone-500">{copy.dashboard.location}</p>
-              <p className="mt-1 font-medium text-stone-950">
+              <p className="text-muted">{copy.dashboard.location}</p>
+              <p className="mt-1 font-medium text-text">
                 {user.location.label[language]}
               </p>
             </div>
             <a
-              className="shrink-0 rounded-md border border-stone-300 px-3 py-2 text-xs font-semibold text-stone-700 transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-stone-300 hover:bg-stone-50 hover:text-stone-950"
+              className="shrink-0 rounded-md border border-border px-3 py-2 text-xs font-semibold text-muted transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-border hover:bg-panel-muted hover:text-text"
               href={getGoogleMaps3dUrl(user.location)}
               rel="noreferrer"
               target="_blank"
@@ -821,7 +982,7 @@ function UserProfileSidebar({
               {copy.dashboard.open3dMap}
             </a>
           </div>
-          <div className="mt-3 overflow-hidden rounded-md border border-stone-300 bg-stone-100">
+          <div className="mt-3 overflow-hidden rounded-md border border-border bg-panel-muted">
             <iframe
               allowFullScreen
               className="block h-48 w-full border-0"
@@ -1027,12 +1188,12 @@ function WorkoutLoadingState() {
     <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
       {Array.from({ length: 4 }, (_, index) => (
         <div
-          className="rounded-lg border border-stone-300 bg-white p-5"
+          className="rounded-lg border border-border bg-panel p-5"
           key={index}
         >
-          <div className="h-3 w-24 animate-pulse rounded bg-stone-100" />
-          <div className="mt-5 h-8 w-16 animate-pulse rounded bg-stone-100" />
-          <div className="mt-3 h-3 w-32 animate-pulse rounded bg-stone-100" />
+          <div className="h-3 w-24 animate-pulse rounded bg-panel-muted" />
+          <div className="mt-5 h-8 w-16 animate-pulse rounded bg-panel-muted" />
+          <div className="mt-3 h-3 w-32 animate-pulse rounded bg-panel-muted" />
         </div>
       ))}
     </section>

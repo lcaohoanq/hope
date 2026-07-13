@@ -317,7 +317,7 @@ export function WorkoutDayDetailModal({
   return (
     <motion.div
       aria-modal="true"
-      className="fixed inset-0 z-[10000] flex items-center justify-center bg-stone-950/35 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-[10000] flex items-center justify-center bg-text/35 p-4 backdrop-blur-sm"
       exit={{ opacity: 0 }}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -334,7 +334,7 @@ export function WorkoutDayDetailModal({
           x: 0,
           y: 0,
         }}
-        className="max-h-[88dvh] w-full max-w-3xl overflow-hidden rounded-lg border border-stone-300 bg-white shadow-[0_30px_120px_rgba(17,17,17,0.22)]"
+        className="max-h-[88dvh] w-full max-w-3xl overflow-hidden rounded-lg border border-border bg-panel shadow-[0_30px_120px_rgba(17,17,17,0.22)]"
         exit={{
           opacity: 0,
           rotate: 0,
@@ -376,15 +376,15 @@ export function WorkoutDayDetailModal({
           y: { duration: 0.36, ease: [0.16, 1, 0.3, 1] },
         }}
       >
-        <div className="flex items-start justify-between gap-4 border-b border-stone-100 p-4 sm:p-5">
+        <div className="flex items-start justify-between gap-4 border-b border-border p-4 sm:p-5">
           <div>
-            <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-stone-500">
+            <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted">
               {copy.modal.dayDetail}
             </p>
-            <h3 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-stone-950">
+            <h3 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-text">
               {formatDisplayDate(date, language)}
             </h3>
-            <p className="mt-1 text-sm text-stone-500">
+            <p className="mt-1 text-sm text-muted">
               {!isTrackable
                 ? copy.heatmap.noTrackingYet
                 : workouts.length > 0
@@ -394,7 +394,7 @@ export function WorkoutDayDetailModal({
           </div>
           <button
             aria-label={copy.modal.closeWorkoutDetail}
-            className="h-9 w-9 rounded-md border border-stone-300 bg-white text-xl leading-none text-stone-500 transition hover:bg-stone-100 hover:text-stone-950"
+            className="h-9 w-9 rounded-md border border-border bg-panel text-xl leading-none text-muted transition hover:bg-panel-muted hover:text-text"
             onClick={onClose}
             type="button"
           >
@@ -404,7 +404,7 @@ export function WorkoutDayDetailModal({
 
         <div className="max-h-[calc(88dvh-88px)] overflow-y-auto p-4 sm:p-5">
           {selectedImage ? (
-            <div className="overflow-hidden rounded-lg border border-stone-300 bg-stone-950">
+            <div className="overflow-hidden rounded-lg border border-border bg-text">
               <div className="relative aspect-[16/10] overflow-auto">
                 <WorkoutImageThumbnail
                   image={selectedImage.image}
@@ -420,7 +420,7 @@ export function WorkoutDayDetailModal({
                   <>
                     <button
                       aria-label={copy.modal.previousWorkoutImage}
-                      className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-md border border-white/15 bg-stone-950/70 text-white backdrop-blur transition hover:bg-stone-900 active:scale-95"
+                      className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-md border border-white/15 bg-text/70 text-white backdrop-blur transition hover:bg-text/90 active:scale-95"
                       onClick={showPreviousImage}
                       type="button"
                     >
@@ -428,7 +428,7 @@ export function WorkoutDayDetailModal({
                     </button>
                     <button
                       aria-label={copy.modal.nextWorkoutImage}
-                      className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-md border border-white/15 bg-stone-950/70 text-white backdrop-blur transition hover:bg-stone-900 active:scale-95"
+                      className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-md border border-white/15 bg-text/70 text-white backdrop-blur transition hover:bg-text/90 active:scale-95"
                       onClick={showNextImage}
                       type="button"
                     >
@@ -436,10 +436,10 @@ export function WorkoutDayDetailModal({
                     </button>
                   </>
                 ) : null}
-                <div className="absolute right-3 top-3 flex items-center overflow-hidden rounded-md border border-white/15 bg-stone-950/70 text-white backdrop-blur">
+                <div className="absolute right-3 top-3 flex items-center overflow-hidden rounded-md border border-white/15 bg-text/70 text-white backdrop-blur">
                   <button
                     aria-label={copy.modal.zoomOutWorkoutImage}
-                    className="flex h-9 w-9 items-center justify-center transition hover:bg-white/10 disabled:cursor-not-allowed disabled:text-white/35"
+                    className="flex h-9 w-9 items-center justify-center transition hover:bg-panel/10 disabled:cursor-not-allowed disabled:text-white/35"
                     disabled={imageZoom <= MIN_IMAGE_ZOOM}
                     onClick={zoomImageOut}
                     type="button"
@@ -451,7 +451,7 @@ export function WorkoutDayDetailModal({
                   </span>
                   <button
                     aria-label={copy.modal.zoomInWorkoutImage}
-                    className="flex h-9 w-9 items-center justify-center transition hover:bg-white/10 disabled:cursor-not-allowed disabled:text-white/35"
+                    className="flex h-9 w-9 items-center justify-center transition hover:bg-panel/10 disabled:cursor-not-allowed disabled:text-white/35"
                     disabled={imageZoom >= MAX_IMAGE_ZOOM}
                     onClick={zoomImageIn}
                     type="button"
@@ -460,13 +460,13 @@ export function WorkoutDayDetailModal({
                   </button>
                 </div>
               </div>
-              <div className="border-t border-white/10 px-3 py-2 text-xs text-stone-200">
+              <div className="border-t border-white/10 px-3 py-2 text-xs text-muted">
                 <span>
                   {formatActivityType(selectedImage.workout.type, copy)} -{" "}
                   {selectedImage.workout.startTime} - {selectedImage.workout.endTime}
                 </span>
                 {galleryImages.length > 1 ? (
-                  <span className="float-right font-mono text-stone-400">
+                  <span className="float-right font-mono text-muted">
                     {clampedSelectedImageIndex + 1}/{galleryImages.length}
                   </span>
                 ) : null}
@@ -480,10 +480,10 @@ export function WorkoutDayDetailModal({
                 {galleryImages.map(({ image, workout }, index) => (
                   <button
                     aria-label={copy.modal.showWorkoutImage(index + 1)}
-                    className={`h-28 w-40 shrink-0 snap-start overflow-hidden rounded-md border bg-stone-100 transition ${
+                    className={`h-28 w-40 shrink-0 snap-start overflow-hidden rounded-md border bg-panel-muted transition ${
                       index === clampedSelectedImageIndex
-                        ? "border-moss ring-2 ring-moss/20"
-                        : "border-stone-300 hover:border-stone-300"
+                        ? "border-accent ring-2 ring-accent/20"
+                        : "border-border hover:border-border"
                     }`}
                     key={`${workout.id}-${image.src}`}
                     onClick={() => {
@@ -501,7 +501,7 @@ export function WorkoutDayDetailModal({
 
           <div className="mt-5 grid gap-3">
             {workouts.length === 0 ? (
-              <div className="rounded-lg border border-stone-300 bg-stone-50 p-4 text-sm text-stone-500">
+              <div className="rounded-lg border border-border bg-panel-muted p-4 text-sm text-muted">
                 {!isTrackable
                   ? `${copy.heatmap.noTrackingYet}.`
                   : copy.modal.noWorkoutLogged}
@@ -509,7 +509,7 @@ export function WorkoutDayDetailModal({
             ) : (
               workouts.map((workout) => (
                 <article
-                  className="rounded-lg border border-stone-300 bg-stone-50 p-4"
+                  className="rounded-lg border border-border bg-panel-muted p-4"
                   key={workout.id}
                 >
                   {editingWorkoutId === workout.id && editForm ? (
@@ -532,18 +532,18 @@ export function WorkoutDayDetailModal({
                   ) : (
                     <>
                       <div className="flex flex-wrap items-baseline justify-between gap-2">
-                        <h4 className="text-base font-semibold text-stone-950">
+                        <h4 className="text-base font-semibold text-text">
                           {formatActivityType(workout.type, copy)}
                         </h4>
-                        <p className="text-sm text-stone-500">
+                        <p className="text-sm text-muted">
                           {workout.startTime} - {workout.endTime}
                         </p>
                       </div>
-                      <p className="mt-1 text-sm text-stone-600">
+                      <p className="mt-1 text-sm text-muted">
                         {workout.durationMinutes} {copy.common.minutes}
                       </p>
                       {workout.note ? (
-                        <p className="mt-3 text-sm leading-6 text-stone-600">
+                        <p className="mt-3 text-sm leading-6 text-muted">
                           {workout.note}
                         </p>
                       ) : null}
@@ -554,7 +554,7 @@ export function WorkoutDayDetailModal({
                         allowPastWorkoutEdits,
                       ) ? (
                         <button
-                          className="mt-4 inline-flex h-9 items-center gap-2 rounded-md border border-stone-300 bg-white px-3 text-sm font-semibold text-stone-700 transition hover:bg-stone-100 active:scale-[0.98]"
+                          className="mt-4 inline-flex h-9 items-center gap-2 rounded-md border border-border bg-panel px-3 text-sm font-semibold text-muted transition hover:bg-panel-muted active:scale-[0.98]"
                           onClick={() => startEditing(workout)}
                           type="button"
                         >
@@ -620,11 +620,11 @@ function EditWorkoutPanel({
         onSubmit();
       }}
     >
-      <div className="flex flex-col gap-1 border-b border-stone-300 pb-3">
-        <p className="text-base font-semibold text-stone-950">
+      <div className="flex flex-col gap-1 border-b border-border pb-3">
+        <p className="text-base font-semibold text-text">
           {copy.form.editWorkout}
         </p>
-        <p className="text-sm text-stone-500">
+        <p className="text-sm text-muted">
           {copy.form.durationPreview}: {durationPreview}
         </p>
       </div>
@@ -638,10 +638,10 @@ function EditWorkoutPanel({
           value={editForm.type}
           variant="compact"
         />
-        <label className="grid gap-1.5 text-sm font-medium text-stone-800">
+        <label className="grid gap-1.5 text-sm font-medium text-text">
           {copy.form.date}
           <input
-            className="h-10 rounded-md border border-stone-300 bg-white px-3 text-sm font-normal text-stone-950 outline-none focus:border-moss focus:ring-2 focus:ring-moss/15"
+            className="h-10 rounded-md border border-border bg-panel px-3 text-sm font-normal text-text outline-none focus:border-accent focus:ring-2 focus:ring-accent/15"
             onChange={(event) => onUpdateField("date", event.target.value)}
             type="date"
             value={editForm.date}
@@ -650,19 +650,19 @@ function EditWorkoutPanel({
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <label className="grid gap-1.5 text-sm font-medium text-stone-800">
+        <label className="grid gap-1.5 text-sm font-medium text-text">
           {copy.form.start}
           <input
-            className="h-10 rounded-md border border-stone-300 bg-white px-3 text-sm font-normal text-stone-950 outline-none focus:border-moss focus:ring-2 focus:ring-moss/15"
+            className="h-10 rounded-md border border-border bg-panel px-3 text-sm font-normal text-text outline-none focus:border-accent focus:ring-2 focus:ring-accent/15"
             onChange={(event) => onUpdateField("startTime", event.target.value)}
             type="time"
             value={editForm.startTime}
           />
         </label>
-        <label className="grid gap-1.5 text-sm font-medium text-stone-800">
+        <label className="grid gap-1.5 text-sm font-medium text-text">
           {copy.form.end}
           <input
-            className="h-10 rounded-md border border-stone-300 bg-white px-3 text-sm font-normal text-stone-950 outline-none focus:border-moss focus:ring-2 focus:ring-moss/15"
+            className="h-10 rounded-md border border-border bg-panel px-3 text-sm font-normal text-text outline-none focus:border-accent focus:ring-2 focus:ring-accent/15"
             onChange={(event) => onUpdateField("endTime", event.target.value)}
             type="time"
             value={editForm.endTime}
@@ -670,10 +670,10 @@ function EditWorkoutPanel({
         </label>
       </div>
 
-      <label className="grid gap-1.5 text-sm font-medium text-stone-800">
+      <label className="grid gap-1.5 text-sm font-medium text-text">
         {copy.form.note}
         <textarea
-          className="min-h-20 resize-y rounded-md border border-stone-300 bg-white px-3 py-2 text-sm font-normal text-stone-950 outline-none focus:border-moss focus:ring-2 focus:ring-moss/15"
+          className="min-h-20 resize-y rounded-md border border-border bg-panel px-3 py-2 text-sm font-normal text-text outline-none focus:border-accent focus:ring-2 focus:ring-accent/15"
           onChange={(event) => onUpdateField("note", event.target.value)}
           value={editForm.note}
         />
@@ -681,13 +681,13 @@ function EditWorkoutPanel({
 
       {existingImages && existingImages.length > 0 ? (
         <div className="grid gap-2">
-          <p className="text-sm font-medium text-stone-800">
+          <p className="text-sm font-medium text-text">
             {copy.form.images}
           </p>
           <div className="grid grid-cols-3 gap-2">
             {existingImages.map((image, index) => (
               <div
-                className="group relative aspect-square overflow-hidden rounded-md border border-stone-300 bg-stone-100"
+                className="group relative aspect-square overflow-hidden rounded-md border border-border bg-panel-muted"
                 key={image.src}
               >
                 <WorkoutImageThumbnail
@@ -696,7 +696,7 @@ function EditWorkoutPanel({
                 />
                 <button
                   aria-label={copy.form.removeImage(index + 1)}
-                  className="absolute right-1.5 top-1.5 inline-flex h-8 w-8 items-center justify-center rounded-md border border-white/70 bg-stone-950/80 text-white opacity-100 shadow-sm transition hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-stone-500 sm:opacity-0 sm:group-hover:opacity-100"
+                  className="absolute right-1.5 top-1.5 inline-flex h-8 w-8 items-center justify-center rounded-md border border-white/70 bg-text/80 text-white opacity-100 shadow-sm transition hover:bg-danger disabled:cursor-not-allowed disabled:bg-muted sm:opacity-0 sm:group-hover:opacity-100"
                   disabled={isSavingEdit}
                   onClick={() => onRemoveExistingImage(image.src)}
                   title={copy.form.removeImage(index + 1)}
@@ -710,11 +710,11 @@ function EditWorkoutPanel({
         </div>
       ) : null}
 
-      <label className="grid gap-1.5 text-sm font-medium text-stone-800">
+      <label className="grid gap-1.5 text-sm font-medium text-text">
         {copy.form.newImages}
         <input
           accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
-          className="block w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm font-normal text-stone-700 file:mr-3 file:rounded-md file:border-0 file:bg-stone-950 file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-white disabled:cursor-not-allowed disabled:opacity-60"
+          className="block w-full rounded-md border border-border bg-panel px-3 py-2 text-sm font-normal text-muted file:mr-3 file:rounded-md file:border-0 file:bg-text file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-white disabled:cursor-not-allowed disabled:opacity-60"
           disabled={remainingImageSlots === 0 || isSavingEdit}
           multiple
           onChange={(event) =>
@@ -722,7 +722,7 @@ function EditWorkoutPanel({
           }
           type="file"
         />
-        <span className="text-xs font-normal text-stone-500">
+        <span className="text-xs font-normal text-muted">
           {copy.form.existingImages(existingImageCount)} ·{" "}
           {copy.form.imageSlotAvailable(remainingImageSlots)}
         </span>
@@ -732,7 +732,7 @@ function EditWorkoutPanel({
         <div className="grid grid-cols-3 gap-2">
           {editPreviewUrls.map((url, index) => (
             <div
-              className="aspect-square overflow-hidden rounded-md border border-stone-300 bg-stone-100"
+              className="aspect-square overflow-hidden rounded-md border border-border bg-panel-muted"
               key={url}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -748,23 +748,23 @@ function EditWorkoutPanel({
 
       <div className="min-h-5">
         {editError ? (
-          <p className="text-sm font-medium text-red-700">{editError}</p>
+          <p className="text-sm font-medium text-danger">{editError}</p>
         ) : null}
         {editSuccess ? (
-          <p className="text-sm font-medium text-moss">{editSuccess}</p>
+          <p className="text-sm font-medium text-accent">{editSuccess}</p>
         ) : null}
       </div>
 
       <div className="flex flex-wrap gap-2">
         <button
-          className="h-9 rounded-md bg-stone-950 px-3 text-sm font-semibold text-white transition hover:bg-stone-800 disabled:cursor-not-allowed disabled:bg-stone-400"
+          className="h-9 rounded-md bg-accent px-3 text-sm font-semibold text-accent-contrast transition hover:bg-accent/90 disabled:cursor-not-allowed disabled:bg-muted"
           disabled={isSavingEdit}
           type="submit"
         >
           {isSavingEdit ? copy.common.saving : copy.common.saveChanges}
         </button>
         <button
-          className="h-9 rounded-md border border-stone-300 bg-white px-3 text-sm font-semibold text-stone-700 transition hover:bg-stone-100"
+          className="h-9 rounded-md border border-border bg-panel px-3 text-sm font-semibold text-muted transition hover:bg-panel-muted"
           disabled={isSavingEdit}
           onClick={onCancel}
           type="button"

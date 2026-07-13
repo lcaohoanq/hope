@@ -25,6 +25,7 @@ test("renders a public username profile with workout data while logged out", asy
   await expect(
     page.getByRole("button", { name: "Add a workout" }),
   ).toHaveCount(0);
+  await expect(page.getByRole("group", { name: "Theme" })).toHaveCount(0);
 });
 
 test("redirects legacy slug URLs to canonical username URLs", async ({ page }) => {
@@ -44,6 +45,7 @@ test("shows other signed-in user profiles as read-only", async ({ page }) => {
   await expect(
     page.getByRole("button", { name: "Add a workout" }),
   ).toHaveCount(0);
+  await expect(page.getByRole("group", { name: "Theme" })).toHaveCount(0);
   await expect(page.getByTitle("Upload avatar")).toHaveCount(0);
 
   await page.getByLabel("2026-07-11: 1 workout").click();
@@ -59,8 +61,28 @@ test("keeps owner profile controls available", async ({ page }) => {
   await expect(
     page.getByRole("button", { name: "Add a workout" }),
   ).toBeVisible();
+  await expect(page.getByRole("group", { name: "Theme" })).toBeVisible();
   await expect(page.getByTitle("Upload avatar")).toBeVisible();
 
   await page.getByLabel("2026-07-10: 2 workouts").click();
   await expect(page.getByRole("button", { name: "Edit workout" }).first()).toBeVisible();
+});
+
+test("persists the owner theme setting across reloads", async ({ page }) => {
+  await signIn(page, "hoang", "123");
+
+  await page.getByRole("button", { name: "Dark" }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await expect(page.getByRole("button", { name: "Dark" })).toBeEnabled();
+
+  await page.reload();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await expect(page.getByRole("button", { name: "Dark" })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+
+  await page.getByRole("button", { name: "Light" }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  await expect(page.getByRole("button", { name: "Light" })).toBeEnabled();
 });
