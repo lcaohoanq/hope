@@ -33,7 +33,7 @@ export function WorkoutImageThumbnail({
   if (isUnavailable) {
     return (
       <div
-        className={`flex items-center justify-center bg-stone-100 px-1 text-center text-[9px] leading-tight text-stone-500 ${className}`}
+        className={`flex items-center justify-center bg-panel-muted px-1 text-center text-[9px] leading-tight text-muted ${className}`}
       >
         Image unavailable
       </div>
