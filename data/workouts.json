@@ -255,6 +255,40 @@
         }
       ],
       "createdAt": "2026-07-12T15:16:15.537Z"
+    },
+    {
+      "id": "2026-07-13-1783937044207-a8c94fc1",
+      "userId": "hoang",
+      "date": "2026-07-13",
+      "type": "workout",
+      "startTime": "07:30",
+      "endTime": "08:30",
+      "durationMinutes": 60,
+      "note": "Làm tí",
+      "images": [
+        {
+          "src": "/uploads/2026/07/2026-07-13-workout-7d600efc.avif",
+          "format": "avif",
+          "width": 900,
+          "height": 1200,
+          "sizeBytes": 85805
+        },
+        {
+          "src": "/uploads/2026/07/2026-07-13-workout-2c51dda2.avif",
+          "format": "avif",
+          "width": 900,
+          "height": 1200,
+          "sizeBytes": 105188
+        },
+        {
+          "src": "/uploads/2026/07/2026-07-13-workout-2aa5af34.avif",
+          "format": "avif",
+          "width": 900,
+          "height": 1200,
+          "sizeBytes": 108777
+        }
+      ],
+      "createdAt": "2026-07-13T10:04:04.207Z"
     }
   ],
   "settings": {
