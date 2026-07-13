@@ -44,7 +44,7 @@ async function convertHeicImageForPreview(image: File) {
   return Array.isArray(convertedImage) ? convertedImage[0] : convertedImage;
 }
 
-const WORKOUT_UPLOAD_MAX_BYTES = 1 * 1024 * 1024;
+const WORKOUT_UPLOAD_MAX_BYTES = 5 * 1024 * 1024;
 const WORKOUT_UPLOAD_MAX_DIMENSION = 1600;
 const WORKOUT_UPLOAD_INITIAL_QUALITY = 0.82;
 const WORKOUT_UPLOAD_MIN_QUALITY = 0.58;
