@@ -1,5 +1,6 @@
 @import "swiper/css";
 @import "swiper/css/effect-creative";
+@import "react-easy-crop/react-easy-crop.css";
 
 @tailwind base;
 @tailwind components;
@@ -58,6 +59,11 @@ body {
 ::selection {
   background: oklch(var(--color-accent) / 0.22);
   color: oklch(var(--color-text));
+}
+
+.avatar-crop-area {
+  border: 2px solid rgb(255 255 255 / 0.92) !important;
+  box-shadow: 0 0 0 9999px rgb(15 23 42 / 0.58) !important;
 }
 
 @keyframes onboarding-orbit {

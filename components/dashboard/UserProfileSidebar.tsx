@@ -35,7 +35,7 @@ type UserProfileSidebarProps = {
   onAvatarLoad: (avatarUrl: string) => void;
   user: PublicAppUser;
   onAddWorkout: () => void;
-  onUploadAvatar: (file: File) => Promise<void>;
+  onSelectAvatar: (file: File) => void;
 };
 
 export function UserProfileSidebar({
@@ -50,7 +50,7 @@ export function UserProfileSidebar({
   onAvatarLoad,
   user,
   onAddWorkout,
-  onUploadAvatar,
+  onSelectAvatar,
 }: UserProfileSidebarProps) {
   const profileLinks: ProfileLink[] = [
     ...(user.website
@@ -130,7 +130,7 @@ export function UserProfileSidebar({
                   event.currentTarget.value = "";
 
                   if (file) {
-                    void onUploadAvatar(file);
+                    onSelectAvatar(file);
                   }
                 }}
                 type="file"
