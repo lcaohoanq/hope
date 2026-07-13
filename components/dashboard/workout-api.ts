@@ -86,7 +86,6 @@ export async function fetchWorkoutDataWithRetry(
 
 export async function createWorkoutRequestInit(
   input: WorkoutInput | WorkoutUpdateInput,
-  userId: string,
 ) {
   const hasImages = input.images && input.images.length > 0;
   const imageSrcs = "imageSrcs" in input ? input.imageSrcs : undefined;
@@ -99,7 +98,6 @@ export async function createWorkoutRequestInit(
       body: JSON.stringify({
         ...input,
         ...(imageSrcs ? { imageSrcs } : {}),
-        userId,
       }),
     };
   }
@@ -110,7 +108,6 @@ export async function createWorkoutRequestInit(
     body.set("id", input.id);
   }
 
-  body.set("userId", userId);
   body.set("date", input.date);
   body.set("type", input.type);
   body.set("startTime", input.startTime);

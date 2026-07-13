@@ -9,6 +9,7 @@ tmp/
 
 .env
 .env*.local
+.migration-users.json
 
 *.tsbuildinfo
 npm-debug.log*

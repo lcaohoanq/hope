@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+import { auth } from "@clerk/nextjs/server";
 import Link from "next/link";
 import {
   FaArrowRight,
@@ -7,7 +7,7 @@ import {
   FaDumbbell,
   FaLeaf,
 } from "react-icons/fa";
-import { AUTH_COOKIE_NAME, getAuthenticatedUser } from "@/lib/auth";
+import { getProfileByClerkId } from "@/lib/repositories/profiles";
 import { getCanonicalUserPath } from "@/lib/users";
 
 const featureCards = [
@@ -38,14 +38,12 @@ export const metadata = {
 };
 
 export default async function Home() {
-  const cookieStore = await cookies();
-  const authenticatedUser = getAuthenticatedUser(
-    cookieStore.get(AUTH_COOKIE_NAME)?.value,
-  );
-  const primaryHref = authenticatedUser
-    ? getCanonicalUserPath(authenticatedUser)
+  const { userId } = await auth();
+  const authenticatedUser = userId ? await getProfileByClerkId(userId) : undefined;
+  const primaryHref = userId
+    ? authenticatedUser ? getCanonicalUserPath(authenticatedUser) : "/auth/continue"
     : "/login";
-  const primaryLabel = authenticatedUser ? "Open dashboard" : "Sign in";
+  const primaryLabel = userId ? "Open dashboard" : "Sign in";
 
   return (
     <main className="relative min-h-[100dvh] overflow-hidden bg-app text-text">
