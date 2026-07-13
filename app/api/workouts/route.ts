@@ -10,6 +10,7 @@ import {
 } from "@/lib/cloudinary";
 import { getTodayInTimezone } from "@/lib/date-utils";
 import { getProfileById } from "@/lib/repositories/profiles";
+import { resolveProfileAccess } from "@/lib/profile-access";
 import {
   getOwnedWorkout,
   insertWorkout,
@@ -43,6 +44,7 @@ function publicWorkout(workout: StoredWorkout): Workout {
     note: workout.note,
     images: workout.images,
     createdAt: workout.createdAt,
+    isPublic: workout.isPublic,
   };
 }
 
@@ -52,7 +54,13 @@ export async function GET(request: Request) {
   try {
     const profile = await getProfileById(userId);
     if (!profile) return NextResponse.json({ success: false, error: "User was not found." }, { status: 404 });
-    const data = await listWorkoutsByProfile(profile.id);
+    const owner = await resolveOwner();
+    const viewer = owner.status === "ready" ? owner.profile : undefined;
+    const access = await resolveProfileAccess(profile, viewer);
+    if (!access.canViewWorkouts) {
+      return NextResponse.json({ success: false, error: "This profile is private.", reason: "private-profile", relationshipStatus: access.relationshipStatus }, { status: 403 });
+    }
+    const data = await listWorkoutsByProfile(profile.id, viewer?.id === profile.id ? "all" : "public");
     return NextResponse.json({ workouts: data.map(publicWorkout), settings: { timezone: TIMEZONE } });
   } catch (error) {
     console.error("Unable to load workout data.", error);
@@ -171,6 +179,7 @@ function formDataToWorkoutBody(formData: FormData): CreateWorkoutRequest {
     startTime: formData.get("startTime"),
     endTime: formData.get("endTime"),
     note: formData.get("note"),
+    isPublic: formData.get("isPublic") === "true",
   };
 }
 
