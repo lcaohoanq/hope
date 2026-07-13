@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { LoginForm } from "@/components/LoginForm";
+import { LoginForm } from "@/components/auth/LoginForm";
 import { AUTH_COOKIE_NAME, getAuthenticatedUser, sanitizeNextPath } from "@/lib/auth";
 import { APP_USERS, getCanonicalUserPath } from "@/lib/users";
 

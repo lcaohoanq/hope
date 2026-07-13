@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { redirect } from "next/navigation";
-import { HopeDashboard } from "@/components/HopeDashboard";
+import { HopeDashboard } from "@/components/dashboard/HopeDashboard";
 import { AUTH_COOKIE_NAME, getAuthenticatedUser } from "@/lib/auth";
 import {
   APP_USERS,
