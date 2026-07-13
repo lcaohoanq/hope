@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import Image from "next/image";
 import Link from "next/link";
 import {
   FaChevronDown,
@@ -88,9 +89,18 @@ export function TopHeader({
   return (
     <header className="flex w-full items-center justify-between gap-3 border-b border-border bg-app px-4 py-3 sm:px-6 lg:px-8">
       <Link
-        className="inline-flex h-10 items-center rounded-md px-3 text-sm font-semibold text-muted transition hover:bg-panel-muted hover:text-text"
+        className="inline-flex h-10 items-center gap-2 rounded-md px-3 text-sm font-semibold text-muted transition hover:bg-panel-muted hover:text-text"
         href="/"
       >
+        <Image
+          alt=""
+          aria-hidden="true"
+          className="h-5 w-5 shrink-0"
+          height={20}
+          src="/favicon.ico"
+          unoptimized
+          width={20}
+        />
         {copy.common.home}
       </Link>
       <div
