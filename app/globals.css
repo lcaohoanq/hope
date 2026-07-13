@@ -7,35 +7,35 @@
 
 :root {
   color-scheme: light;
-  --color-app: 248 250 252;
-  --color-panel: 255 255 255;
-  --color-panel-muted: 241 245 249;
-  --color-text: 15 23 42;
-  --color-muted: 100 116 139;
-  --color-border: 203 213 225;
-  --color-accent: 13 148 136;
-  --color-accent-contrast: 255 255 255;
-  --color-danger: 185 28 28;
-  --color-danger-soft: 254 242 242;
-  --color-danger-border: 254 202 202;
-  --color-overlay: 15 23 42;
+  --color-app: 0.984 0.003 247.9;
+  --color-panel: 1 0 0;
+  --color-panel-muted: 0.968 0.007 247.9;
+  --color-text: 0.208 0.04 265.8;
+  --color-muted: 0.554 0.041 257.4;
+  --color-border: 0.869 0.02 252.9;
+  --color-accent: 0.701 0.213 145.7;
+  --color-accent-contrast: 0.13 0.027 261.7;
+  --color-danger: 0.505 0.19 27.5;
+  --color-danger-soft: 0.971 0.013 17.4;
+  --color-danger-border: 0.885 0.059 18.3;
+  --color-overlay: 0.208 0.04 265.8;
   --shadow-panel: 0 18px 52px rgb(15 23 42 / 0.08);
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --color-app: 3 7 18;
-  --color-panel: 15 23 42;
-  --color-panel-muted: 30 41 59;
-  --color-text: 248 250 252;
-  --color-muted: 148 163 184;
-  --color-border: 51 65 85;
-  --color-accent: 45 212 191;
-  --color-accent-contrast: 4 47 46;
-  --color-danger: 248 113 113;
-  --color-danger-soft: 69 10 10;
-  --color-danger-border: 153 27 27;
-  --color-overlay: 2 6 23;
+  --color-app: 0.13 0.027 261.7;
+  --color-panel: 0.208 0.04 265.8;
+  --color-panel-muted: 0.279 0.037 260;
+  --color-text: 0.984 0.003 247.9;
+  --color-muted: 0.711 0.035 256.8;
+  --color-border: 0.372 0.039 257.3;
+  --color-accent: 0.701 0.213 145.7;
+  --color-accent-contrast: 0.13 0.027 261.7;
+  --color-danger: 0.711 0.166 22.2;
+  --color-danger-soft: 0.258 0.089 26;
+  --color-danger-border: 0.444 0.161 26.9;
+  --color-overlay: 0.129 0.041 264.7;
   --shadow-panel: 0 24px 70px rgb(0 0 0 / 0.36);
 }
 
@@ -50,14 +50,14 @@ html {
 body {
   min-height: 100%;
   margin: 0;
-  background: rgb(var(--color-app));
-  color: rgb(var(--color-text));
+  background: oklch(var(--color-app));
+  color: oklch(var(--color-text));
   font-family: var(--font-geist-sans), system-ui, sans-serif;
 }
 
 ::selection {
-  background: rgb(var(--color-accent) / 0.22);
-  color: rgb(var(--color-text));
+  background: oklch(var(--color-accent) / 0.22);
+  color: oklch(var(--color-text));
 }
 
 @keyframes onboarding-orbit {

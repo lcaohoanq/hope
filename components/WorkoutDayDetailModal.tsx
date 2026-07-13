@@ -22,6 +22,7 @@ import {
   createImagePreviewUrls,
   revokeImagePreviewUrls,
 } from "@/lib/image-previews";
+import { appendCaptionPill, hasCaptionPill } from "@/lib/caption-utils";
 import type { AppCopy, Language } from "@/lib/i18n";
 import type { Workout, WorkoutUpdateInput } from "@/lib/workout-types";
 import { calculateDurationMinutes } from "@/lib/workout-utils";
@@ -131,6 +132,10 @@ export function WorkoutDayDetailModal({
   const editingWorkout = workouts.find(
     (workout) => workout.id === editingWorkoutId,
   );
+  const headerWorkout = editingWorkout ?? selectedImage?.workout ?? workouts[0];
+  const headerTimeRange = headerWorkout
+    ? formatWorkoutTimeRange(headerWorkout)
+    : "";
 
   const updateSelectedImage = useCallback(
     (direction: -1 | 1) => {
@@ -444,10 +449,15 @@ export function WorkoutDayDetailModal({
         }}
       >
         <div className="flex shrink-0 items-center justify-between gap-4 border-b border-border px-4 py-3 sm:px-5">
-          <div>
+          <div className="flex min-w-0 flex-1 flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
             <h3 className="text-2xl font-semibold tracking-[-0.03em] text-text">
               {formatDisplayDate(date, language)}
             </h3>
+            {headerTimeRange ? (
+              <p className="shrink-0 text-sm font-semibold text-muted">
+                {headerTimeRange}
+              </p>
+            ) : null}
           </div>
           <div className="flex items-center gap-2">
             {editingWorkout ? (
@@ -892,9 +902,38 @@ function EditWorkoutPanel({
             <textarea
               className="min-h-32 resize-y rounded-md border border-border bg-panel px-3 py-2 text-sm font-normal text-text outline-none focus:border-accent focus:ring-2 focus:ring-accent/15"
               onChange={(event) => onUpdateField("note", event.target.value)}
+              placeholder={copy.form.notePlaceholder}
               value={editForm.note}
             />
           </label>
+          <div className="grid gap-2">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">
+              {copy.form.captionPills}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {copy.form.captionPillOptions.map((pill) => {
+                const isSelected = hasCaptionPill(editForm.note, pill);
+
+                return (
+                  <button
+                    aria-pressed={isSelected}
+                    className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition active:scale-[0.98] ${
+                      isSelected
+                        ? "border-accent bg-accent/10 text-text"
+                        : "border-border bg-panel-muted text-muted hover:border-accent/50 hover:text-text"
+                    }`}
+                    key={pill}
+                    onClick={() =>
+                      onUpdateField("note", appendCaptionPill(editForm.note, pill))
+                    }
+                    type="button"
+                  >
+                    {pill}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
 
         <div className="grid gap-3 content-start rounded-md border border-border bg-panel p-3">
@@ -1123,4 +1162,20 @@ function canEditWorkoutDate(
   allowPastWorkoutEdits: boolean,
 ) {
   return allowPastWorkoutEdits || workoutDate >= todayDateKey;
+}
+
+function formatWorkoutTimeRange(workout: Workout) {
+  if (!workout.startTime && !workout.endTime) {
+    return "";
+  }
+
+  if (!workout.endTime) {
+    return workout.startTime;
+  }
+
+  if (!workout.startTime) {
+    return workout.endTime;
+  }
+
+  return `${workout.startTime} - ${workout.endTime}`;
 }
