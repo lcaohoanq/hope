@@ -1,238 +1,101 @@
 # Hope
 
-Hope is a personal workout consistency tracker built with Next.js App Router, TypeScript, Tailwind CSS, GitHub JSON storage, GitHub Actions, and Resend.
+Hope is a public workout consistency tracker built with Next.js 16, Clerk, Supabase Postgres, Drizzle, Cloudinary, Appwrite image processing, Sharp, Resend, and Playwright.
 
-Hope records daily workouts, shows a GitHub-style lifetime heatmap, and can send a daily reminder email if no workout has been logged.
+## Architecture
 
-## Features
+- Clerk owns registration, verified email-code authentication, usernames, sessions, and email addresses.
+- Supabase is Postgres only. Server code uses Drizzle with `postgres.js`; Supabase Auth and browser database clients are intentionally not used.
+- Public profile and workout reads come from Postgres. Clerk sessions are resolved to a profile for every mutation.
+- Appwrite converts workout images to AVIF and Sharp converts avatars to WebP. The processed buffers are uploaded to Cloudinary.
+- `data/workouts.json` and `public/uploads` are a read-only rollback archive for the migration release.
 
-- First-run onboarding with display name, birth year, and DiceBear `notionists` avatar.
-- Static multi-user routes for `@hoang` and `@linh`.
-- Lifetime heatmap from birth year to the current year.
-- Workout tracking starts at `2026-01-01`; earlier years render as no-data cells.
-- Workout form with server-side validation.
-- Workout detail view with inline editing.
-- Workout image uploads optimized to AVIF through the Appwrite `processImageHope` function.
-- `GET /api/workouts`, `POST /api/workouts`, and `PATCH /api/workouts`.
-- MVP storage in `data/workouts.json`.
-- Server-side GitHub Contents API commits for production writes.
-- Local development fallback to server-side local JSON reads/writes when GitHub env vars are absent.
-- GitHub Actions daily reminder through Resend.
-
-## Tech Stack
-
-- Next.js App Router
-- TypeScript
-- Tailwind CSS
-- pnpm
-- Vercel
-- GitHub Contents API
-- GitHub Actions
-- Appwrite Functions
-- Resend
-
-## Local Development
-
-Install dependencies:
+## Local setup
 
 ```bash
 pnpm install
-```
-
-Create a local env file:
-
-```bash
 cp .env.example .env
+pnpm db:migrate
+pnpm dev
 ```
 
-Run the app:
-
-```bash
-pnpm run dev
-```
-
-Open `http://localhost:3000/@hoang` or `http://localhost:3000/@linh`.
-The root URL redirects to `@hoang`.
-
-If GitHub env vars are not configured locally, API routes read and write `data/workouts.json` directly on the server and write optimized images to `public/uploads`. If GitHub env vars are configured, `POST /api/workouts` may commit to GitHub. Image processing still requires the Appwrite image processor env vars.
-
-## Environment Variables
-
-### Vercel
-
-Set these in Vercel for the web app:
+Required server configuration:
 
 ```env
-GITHUB_TOKEN=
-GITHUB_OWNER=
-GITHUB_REPO=
-GITHUB_BRANCH=main
-WORKOUT_DATA_PATH=data/workouts.json
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
+CLERK_SECRET_KEY=
+DATABASE_URL=
+DIRECT_URL=
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
 APPWRITE_IMAGE_PROCESSOR_URL=
 APPWRITE_IMAGE_PROCESSOR_KEY=
 ```
 
-Use a fine-grained GitHub token with access only to this repository.
+Use Supabase's transaction pooler URL for `DATABASE_URL` and a direct/session URL for `DIRECT_URL`. Do not expose either URL to the browser. Cloudinary API credentials are server-only.
 
-Required token permissions:
+## Authentication flow
 
-- `Contents`: Read and write
-- `Metadata`: Read-only, included by GitHub
+- `/login` and `/sign-up` embed Clerk's prebuilt components in the existing animated 3D shell.
+- Both flows continue through `/auth/continue`.
+- Migrated invitations carry trusted `appUserId` public metadata and link to the existing profile.
+- New users continue to `/onboarding`, which persists display name, birth year, and DiceBear seed with `POST /api/users/profile`.
+- Profiles stay public. Owner-only APIs return `401` signed out, `403` before onboarding, and `404` for a workout owned by another profile.
 
-Do not use `NEXT_PUBLIC_` for secrets.
+## Database
 
-`APPWRITE_IMAGE_PROCESSOR_URL` should point to the deployed Appwrite function URL for `processImageHope`.
-Set `APPWRITE_IMAGE_PROCESSOR_KEY` only if the function checks the `X-Appwrite-Key` header.
-
-### GitHub Actions
-
-Set these repository secrets for the reminder workflow:
-
-```env
-RESEND_API_KEY=
-REMINDER_EMAIL=
-```
-
-Optional:
-
-```env
-RESEND_FROM=Hope <onboarding@resend.dev>
-```
-
-`RESEND_FROM` should be changed to a verified Resend sender or domain for production.
-
-## Submit Flow
-
-1. User submits workout type, date, start time, end time, optional note, and up to 3 optional images.
-2. Frontend calls `POST /api/workouts` as JSON for no-image submits or `multipart/form-data` when images are selected.
-3. The API validates input server-side.
-4. The API validates image MIME type, then calls the Appwrite `processImageHope` function to decode and optimize each image to AVIF.
-5. The API calculates `durationMinutes`.
-6. In production, the API reads latest `data/workouts.json` through GitHub Contents API.
-7. The API appends the new workout and commits the updated JSON with optimized AVIF files.
-8. If GitHub returns a conflict, the API reads again and retries once.
-9. The frontend refreshes workout data without a full page reload.
-
-## Multi-user Routes
-
-- Declared users live in `lib/users.ts`.
-- Hoang is available at `/@hoang`.
-- Linh is available at `/@linh`.
-- Workouts are stored in the same JSON file with `userId`.
-- Legacy workouts without `userId` are shown under Hoang.
-- API reads use `GET /api/workouts?userId=hoang` or `userId=linh`.
-
-## Edit Flow
-
-1. User clicks a heatmap day and opens the workout detail modal.
-2. User clicks `Edit` on a workout record.
-3. Frontend calls `PATCH /api/workouts` as JSON for text-only edits or `multipart/form-data` when adding images.
-4. The API validates the workout id and edited fields server-side.
-5. Existing images are preserved; new images can be appended up to 3 total images per workout.
-6. In production, the API commits the updated JSON and any new optimized AVIF files together where possible.
-
-## Image Uploads
-
-- Images are processed by the Appwrite `processImageHope` function; the Vercel web app does not import `sharp`.
-- Original uploads are never stored, committed, or written as base64 in JSON.
-- Optimized images are saved as AVIF under `public/uploads/YYYY/MM/`.
-- JSON stores public paths like `/uploads/2026/07/2026-07-07-workout-abcd1234.avif`.
-- HEIC/HEIF uploads are best-effort. If the Appwrite function's `sharp`/libvips build cannot decode them, upload JPG, PNG, or WebP instead.
-- In local mode, optimized images are written to the working tree under `public/uploads`.
-- In GitHub-backed mode, optimized images and `data/workouts.json` are committed together where possible.
-- On Vercel, runtime writes to `public` are not persistent. Files committed to `public/uploads` through GitHub are not guaranteed to be available from `/uploads/...` until the app redeploys.
-- The UI tries `/uploads/...` first, then falls back to `/api/uploads/...` so newly committed GitHub-backed images can still render before a redeploy when the API can read the repository file.
-- `public/uploads` is intentionally trackable, so repo size will grow over time. Keep only optimized AVIF files there and never store originals.
-
-## Reminder Flow
-
-The workflow lives at `.github/workflows/reminder.yml`.
-
-- Runs daily at `0 13 * * *` UTC, which is 20:00 in Vietnam time.
-- Supports manual `workflow_dispatch`.
-- Checks today's date in `Asia/Ho_Chi_Minh`.
-- Reads `data/workouts.json` from the checked-out repository.
-- Sends a Resend email if no workout exists for today.
-- Does nothing if a workout already exists today.
-
-Safe dry run:
+Generate and apply Drizzle migrations:
 
 ```bash
-REMINDER_DRY_RUN=1 pnpm run reminder
+pnpm db:generate
+pnpm db:migrate
 ```
 
-## Data Shape
+The initial migration creates `profiles`, `workouts`, and `workout_images`, their indexes and foreign keys, and enables RLS without browser-facing policies.
 
-`data/workouts.json`:
+## Legacy migration runbook
 
-```json
-{
-  "workouts": [],
-  "settings": {
-    "timezone": "Asia/Ho_Chi_Minh"
-  }
-}
-```
-
-Workout record:
-
-```json
-{
-  "id": "2026-07-01-1234567890-abcd1234",
-  "date": "2026-07-01",
-  "type": "Walking",
-  "startTime": "06:30",
-  "endTime": "07:10",
-  "durationMinutes": 40,
-  "note": "Morning walk",
-  "images": [
-    {
-      "src": "/uploads/2026/07/2026-07-01-workout-abcd1234.avif",
-      "format": "avif",
-      "width": 1200,
-      "height": 900,
-      "sizeBytes": 84321
-    }
-  ],
-  "createdAt": "2026-07-01T00:10:00.000Z"
-}
-```
-
-## Checks
+1. Provision Supabase, Cloudinary, and the Clerk production instance.
+2. Apply the Drizzle migration.
+3. Copy `data/migration-manifest.example.json` to the gitignored `.migration-users.json` and fill each `appUserId`/email mapping.
+4. Validate all source IDs and local assets without changing external state:
 
 ```bash
-pnpm run typecheck
-pnpm run lint
-pnpm run build
-REMINDER_DRY_RUN=1 pnpm run reminder
+pnpm migrate:legacy -- --dry-run
 ```
 
-## Troubleshooting
+5. Run the idempotent migration:
 
-- `POST /api/workouts` returns `Unable to save workout.`: check GitHub env vars, token permission, repo owner/name, branch, and `WORKOUT_DATA_PATH`.
-- Data saves locally but not in production: verify `GITHUB_TOKEN`, `GITHUB_OWNER`, `GITHUB_REPO`, and `GITHUB_BRANCH` in Vercel.
-- Uploaded image path returns 404 in production: redeploy the app so newly committed `public/uploads` assets are included in the deployed build.
-- Image upload returns `Image processing service is not configured.`: set `APPWRITE_IMAGE_PROCESSOR_URL` in Vercel.
-- Image upload returns `Unable to reach the image processing service.`: verify the Appwrite function URL and execution permissions.
-- HEIC/HEIF upload fails: the deployed Appwrite `sharp`/libvips build may not support that format; upload JPG, PNG, or WebP.
-- Reminder workflow does not send: verify `RESEND_API_KEY`, `REMINDER_EMAIL`, and Resend sender/domain setup.
-- Reminder sends from `onboarding@resend.dev`: set `RESEND_FROM` to a verified sender for production.
-- Heatmap does not show onboarding again: click `Reset profile` in the dashboard to clear the local browser profile.
+```bash
+pnpm migrate:legacy
+```
 
-## Future Improvements
+The live run uploads deterministic legacy assets, upserts profiles/workouts/ordered images transactionally, links matching Clerk users or creates invitations, and verifies destination counts. Original passwords are never read or migrated.
 
-- Move onboarding profile into repository JSON or a real account model.
-- Add intensity levels based on total workout duration.
-- Add delete workout support.
-- Add yearly heatmap filters.
-- Add authenticated access before sharing the app publicly.
+## Media write guarantees
 
-## Manual Deployment Steps
+For workout and avatar writes, the server uploads processed files first, commits database changes, removes newly uploaded assets when a database commit fails, and performs replaced/removed asset deletion after commit as best effort.
 
-- Create a fine-grained GitHub token with repository `Contents: Read and write`.
-- Add Vercel environment variables.
-- Add GitHub Actions secrets: `RESEND_API_KEY`, `REMINDER_EMAIL`, and optionally `RESEND_FROM`.
-- Verify Resend sender/domain setup.
-- Deploy to Vercel.
-- Test submit flow in production.
-- Manually trigger the reminder workflow once.
+## Reminders
+
+`pnpm reminder` queries enabled profiles and today's workouts from Postgres, then retrieves each primary email from Clerk. New profiles default to reminders disabled.
+
+```bash
+REMINDER_DRY_RUN=1 pnpm reminder
+```
+
+The workflow needs `DATABASE_URL`, `CLERK_SECRET_KEY`, `RESEND_API_KEY`, and optionally `RESEND_FROM` as GitHub Actions secrets.
+
+## Verification
+
+```bash
+pnpm typecheck
+pnpm lint
+pnpm build
+E2E_PORT=3100 pnpm test:e2e
+pnpm migrate:legacy -- --dry-run
+clerk doctor
+```
+
+Set `E2E_PUBLIC_PROFILE_USERNAME` and `E2E_CLERK_USER_EMAIL` after seeding an isolated test database to enable the owner/public profile Playwright projects.
