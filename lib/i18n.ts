@@ -96,8 +96,8 @@ export const translations = {
       existingImages: (count: number) => `${count} ảnh hiện có`,
       logWorkout: "Ghi lại buổi tập",
       newImages: "Ảnh mới",
-      note: "Ghi chú",
-      notePlaceholder: "Một ghi chú ngắn cho bạn sau này",
+      note: "Caption",
+      notePlaceholder: "Caption ngắn cho tấm hình",
       removeImage: (index: number) => `Xóa ảnh ${index}`,
       selectedEditPreviewAlt: (index: number) =>
         `Ảnh chỉnh sửa đã chọn ${index}`,
@@ -256,8 +256,8 @@ export const translations = {
         `${count} existing image${count === 1 ? "" : "s"}`,
       logWorkout: "Log a workout",
       newImages: "New images",
-      note: "Note",
-      notePlaceholder: "Short context for future you",
+      note: "Caption",
+      notePlaceholder: "A short caption for the photo",
       removeImage: (index: number) => `Remove image ${index}`,
       selectedEditPreviewAlt: (index: number) =>
         `Selected edit preview ${index}`,

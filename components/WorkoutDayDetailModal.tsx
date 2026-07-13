@@ -1,6 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type PointerEvent,
+} from "react";
 import { motion } from "framer-motion";
 import {
   FaChevronLeft,
@@ -18,10 +25,7 @@ import {
 import type { AppCopy, Language } from "@/lib/i18n";
 import type { Workout, WorkoutUpdateInput } from "@/lib/workout-types";
 import { calculateDurationMinutes } from "@/lib/workout-utils";
-import {
-  ActivityTypeSelector,
-  formatActivityType,
-} from "@/components/ActivityTypeSelector";
+import { ActivityTypeSelector } from "@/components/ActivityTypeSelector";
 import { WorkoutImageThumbnail } from "@/components/WorkoutImageThumbnail";
 
 type WorkoutDayDetailModalProps = {
@@ -64,6 +68,9 @@ const MAX_WORKOUT_IMAGES = 3;
 const MIN_IMAGE_ZOOM = 1;
 const MAX_IMAGE_ZOOM = 3;
 const IMAGE_ZOOM_STEP = 0.25;
+const CAPTION_MAX_LENGTH = 48;
+const SWIPE_MIN_DISTANCE = 48;
+const SWIPE_MAX_VERTICAL_DRIFT = 72;
 
 export function WorkoutDayDetailModal({
   allowPastWorkoutEdits,
@@ -169,6 +176,11 @@ export function WorkoutDayDetailModal({
   const zoomImageIn = useCallback(() => {
     updateImageZoom(1);
   }, [updateImageZoom]);
+  const gallerySwipeHandlers = useSwipeNavigation({
+    enabled: galleryImages.length > 1,
+    onNext: showNextImage,
+    onPrevious: showPreviousImage,
+  });
 
   const cancelEditing = useCallback(() => {
     editImageSelectionIdRef.current += 1;
@@ -372,7 +384,7 @@ export function WorkoutDayDetailModal({
   return (
     <motion.div
       aria-modal="true"
-      className="fixed inset-0 z-[10000] flex items-center justify-center bg-text/45 p-4"
+      className="fixed inset-0 z-[10000] flex items-center justify-center bg-text/45 p-3 sm:p-4"
       exit={{ opacity: 0 }}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -389,9 +401,7 @@ export function WorkoutDayDetailModal({
           x: 0,
           y: 0,
         }}
-        className={`relative max-h-70dvh] w-full overflow-hidden rounded-lg border border-border bg-panel shadow-[0_30px_120px_rgba(17,17,17,0.22)] ${
-          editingWorkout ? "max-w-5xl" : "max-w-5xl"
-        }`}
+        className="relative flex max-h-[92dvh] w-full max-w-5xl flex-col overflow-hidden rounded-lg border border-border bg-panel shadow-[0_30px_120px_rgba(17,17,17,0.22)]"
         exit={{
           opacity: 0,
           rotate: 0,
@@ -433,18 +443,11 @@ export function WorkoutDayDetailModal({
           y: { duration: 0.36, ease: [0.16, 1, 0.3, 1] },
         }}
       >
-        <div className="flex items-start justify-between gap-4 border-b border-border p-4 sm:p-5">
+        <div className="flex shrink-0 items-center justify-between gap-4 border-b border-border px-4 py-3 sm:px-5">
           <div>
-            <h3 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-text">
+            <h3 className="text-2xl font-semibold tracking-[-0.03em] text-text">
               {formatDisplayDate(date, language)}
             </h3>
-            <p className="mt-1 text-sm text-muted">
-              {!isTrackable
-                ? copy.heatmap.noTrackingYet
-                : workouts.length > 0
-                  ? copy.modal.loggedWorkoutCount(workouts.length)
-                  : copy.modal.noWorkoutLogged}
-            </p>
           </div>
           <div className="flex items-center gap-2">
             {editingWorkout ? (
@@ -482,7 +485,11 @@ export function WorkoutDayDetailModal({
           </div>
         </div>
 
-        <div className="max-h-[calc(88dvh-88px)] overflow-y-auto overscroll-contain p-4 sm:p-5">
+        <div
+          className={`min-h-0 flex-1 overscroll-contain p-3 sm:p-4 ${
+            editingWorkout ? "overflow-y-auto" : "overflow-hidden"
+          }`}
+        >
           {editingWorkout && editForm ? (
             <section
               aria-label={copy.form.editWorkout}
@@ -508,10 +515,13 @@ export function WorkoutDayDetailModal({
               />
             </section>
           ) : (
-            <>
+            <div className="grid min-h-0 gap-3">
               {selectedImage ? (
                 <div className="overflow-hidden rounded-lg border border-border bg-text">
-                  <div className="relative aspect-[16/10] overflow-auto">
+                  <div
+                    className="group relative h-[calc(92dvh-12.75rem)] min-h-[20rem] touch-pan-y overflow-hidden"
+                    {...gallerySwipeHandlers}
+                  >
                     <WorkoutImageThumbnail
                       image={selectedImage.image}
                       imageClassName="h-full w-full object-contain transition-transform duration-150"
@@ -526,7 +536,7 @@ export function WorkoutDayDetailModal({
                       <>
                         <button
                           aria-label={copy.modal.previousWorkoutImage}
-                          className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-md border border-white/15 bg-text/70 text-white transition hover:bg-text/90 active:scale-95"
+                          className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-md border border-white/15 bg-text/70 text-white opacity-100 transition hover:bg-text/90 active:scale-95 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
                           onClick={showPreviousImage}
                           type="button"
                         >
@@ -537,7 +547,7 @@ export function WorkoutDayDetailModal({
                         </button>
                         <button
                           aria-label={copy.modal.nextWorkoutImage}
-                          className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-md border border-white/15 bg-text/70 text-white transition hover:bg-text/90 active:scale-95"
+                          className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-md border border-white/15 bg-text/70 text-white opacity-100 transition hover:bg-text/90 active:scale-95 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
                           onClick={showNextImage}
                           type="button"
                         >
@@ -571,15 +581,9 @@ export function WorkoutDayDetailModal({
                         <FaSearchPlus aria-hidden="true" className="h-4 w-4" />
                       </button>
                     </div>
-                  </div>
-                  <div className="border-t border-white/10 px-3 py-2 text-xs text-muted">
-                    <span>
-                      {formatActivityType(selectedImage.workout.type, copy)} -{" "}
-                      {selectedImage.workout.startTime} -{" "}
-                      {selectedImage.workout.endTime}
-                    </span>
+                    <CaptionPill caption={selectedImage.workout.note} />
                     {galleryImages.length > 1 ? (
-                      <span className="float-right font-mono text-muted">
+                      <span className="absolute bottom-3 right-3 rounded-full bg-text/70 px-2 py-1 font-mono text-xs text-white">
                         {clampedSelectedImageIndex + 1}/{galleryImages.length}
                       </span>
                     ) : null}
@@ -588,12 +592,12 @@ export function WorkoutDayDetailModal({
               ) : null}
 
               {galleryImages.length > 0 ? (
-                <div className="mt-4">
-                  <div className="flex snap-x gap-3 overflow-x-auto pb-2">
+                <div>
+                  <div className="flex justify-center snap-x gap-2 overflow-x-auto pb-1">
                     {galleryImages.map(({ image, workout }, index) => (
                       <button
                         aria-label={copy.modal.showWorkoutImage(index + 1)}
-                        className={`h-28 w-40 shrink-0 snap-start overflow-hidden rounded-md border bg-panel-muted transition ${
+                        className={`h-[4.5rem] w-28 shrink-0 snap-start overflow-hidden rounded-md border bg-panel-muted transition sm:h-20 sm:w-32 ${
                           index === clampedSelectedImageIndex
                             ? "border-accent ring-2 ring-accent/20"
                             : "border-border hover:border-border"
@@ -615,18 +619,16 @@ export function WorkoutDayDetailModal({
                 </div>
               ) : null}
 
-              <div className="mt-5 grid gap-3">
+              <div className="grid gap-3">
                 {workouts.length === 0 ? (
                   <div className="rounded-lg border border-border bg-panel-muted p-4 text-sm text-muted">
                     {!isTrackable
                       ? `${copy.heatmap.noTrackingYet}.`
                       : copy.modal.noWorkoutLogged}
                   </div>
-                ) : (
-                  <></>
-                )}
+                ) : null}
               </div>
-            </>
+            </div>
           )}
         </div>
       </motion.div>
@@ -716,6 +718,11 @@ function EditWorkoutPanel({
       );
     });
   }
+  const editGallerySwipeHandlers = useSwipeNavigation({
+    enabled: editGalleryImages.length > 1,
+    onNext: () => updateSelectedEditImage(1),
+    onPrevious: () => updateSelectedEditImage(-1),
+  });
 
   return (
     <form
@@ -784,7 +791,10 @@ function EditWorkoutPanel({
               </button>
             </div>
 
-            <div className="relative flex min-h-[50dvh] items-center justify-center bg-text p-3 sm:min-h-[64dvh] sm:p-5">
+            <div
+              className="group relative flex min-h-[50dvh] touch-pan-y items-center justify-center bg-text p-3 sm:min-h-[64dvh] sm:p-5"
+              {...editGallerySwipeHandlers}
+            >
               {selectedEditImage.kind === "existing" ? (
                 <WorkoutImageThumbnail
                   image={selectedEditImage.image}
@@ -808,7 +818,7 @@ function EditWorkoutPanel({
                 <>
                   <button
                     aria-label={copy.modal.previousWorkoutImage}
-                    className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-md border border-white/15 bg-text/70 text-white transition hover:bg-text/90 active:scale-95"
+                    className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-md border border-white/15 bg-text/70 text-white opacity-100 transition hover:bg-text/90 active:scale-95 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
                     onClick={() => updateSelectedEditImage(-1)}
                     type="button"
                   >
@@ -816,7 +826,7 @@ function EditWorkoutPanel({
                   </button>
                   <button
                     aria-label={copy.modal.nextWorkoutImage}
-                    className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-md border border-white/15 bg-text/70 text-white transition hover:bg-text/90 active:scale-95"
+                    className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-md border border-white/15 bg-text/70 text-white opacity-100 transition hover:bg-text/90 active:scale-95 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
                     onClick={() => updateSelectedEditImage(1)}
                     type="button"
                   >
@@ -824,6 +834,7 @@ function EditWorkoutPanel({
                   </button>
                 </>
               ) : null}
+              <CaptionPill caption={editForm.note} />
             </div>
           </div>
         </div>
@@ -978,6 +989,101 @@ function EditWorkoutPanel({
       </div>
     </form>
   );
+}
+
+function CaptionPill({ caption }: { caption?: string }) {
+  const trimmedCaption = caption?.trim();
+
+  if (!trimmedCaption) {
+    return null;
+  }
+
+  return (
+    <div className="pointer-events-none absolute bottom-4 left-1/2 z-10 max-w-[min(82%,34rem)] -translate-x-1/2 rounded-full bg-black/80 px-4 py-2 text-center text-sm font-semibold leading-snug text-white shadow-[0_10px_30px_rgba(0,0,0,0.3)] backdrop-blur-sm">
+      <span className="line-clamp-2">
+        {truncateCaption(trimmedCaption, CAPTION_MAX_LENGTH)}
+      </span>
+    </div>
+  );
+}
+
+function truncateCaption(caption: string, maxLength: number) {
+  const normalizedCaption = caption.trim();
+
+  if (normalizedCaption.length <= maxLength) {
+    return normalizedCaption;
+  }
+
+  return `${normalizedCaption.slice(0, maxLength).trimEnd()}...`;
+}
+
+function useSwipeNavigation({
+  enabled,
+  onNext,
+  onPrevious,
+}: {
+  enabled: boolean;
+  onNext: () => void;
+  onPrevious: () => void;
+}) {
+  const swipeStartRef = useRef<{
+    pointerId: number;
+    x: number;
+    y: number;
+  } | null>(null);
+
+  const handlePointerDown = useCallback(
+    (event: PointerEvent<HTMLElement>) => {
+      if (!enabled || event.pointerType === "mouse") {
+        return;
+      }
+
+      swipeStartRef.current = {
+        pointerId: event.pointerId,
+        x: event.clientX,
+        y: event.clientY,
+      };
+    },
+    [enabled],
+  );
+
+  const handlePointerUp = useCallback(
+    (event: PointerEvent<HTMLElement>) => {
+      const swipeStart = swipeStartRef.current;
+      swipeStartRef.current = null;
+
+      if (!enabled || !swipeStart || swipeStart.pointerId !== event.pointerId) {
+        return;
+      }
+
+      const deltaX = event.clientX - swipeStart.x;
+      const deltaY = event.clientY - swipeStart.y;
+
+      if (
+        Math.abs(deltaX) < SWIPE_MIN_DISTANCE ||
+        Math.abs(deltaY) > SWIPE_MAX_VERTICAL_DRIFT
+      ) {
+        return;
+      }
+
+      if (deltaX < 0) {
+        onNext();
+      } else {
+        onPrevious();
+      }
+    },
+    [enabled, onNext, onPrevious],
+  );
+
+  const handlePointerCancel = useCallback(() => {
+    swipeStartRef.current = null;
+  }, []);
+
+  return {
+    onPointerCancel: handlePointerCancel,
+    onPointerDown: handlePointerDown,
+    onPointerUp: handlePointerUp,
+  };
 }
 
 function getSpawnOffset(origin?: { x: number; y: number }) {
