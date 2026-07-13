@@ -1,11 +1,13 @@
 import {
   FaCamera,
+  FaEdit,
   FaExternalLinkAlt,
   FaFacebookF,
   FaGlobe,
   FaInstagram,
   FaLinkedinIn,
 } from "react-icons/fa";
+import Link from "next/link";
 import type { IconType } from "react-icons";
 import type { AppCopy, Language } from "@/lib/i18n";
 import type { PublicAppUser } from "@/lib/users";
@@ -176,13 +178,22 @@ export function UserProfileSidebar({
       </div>
 
       {isEditable ? (
-        <button
-          className="mt-5 h-11 w-full rounded-md bg-accent px-4 text-sm font-semibold text-accent-contrast transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-accent/90 active:scale-[0.98]"
-          onClick={onAddWorkout}
-          type="button"
-        >
-          {copy.dashboard.addWorkout}
-        </button>
+        <div className="mt-5 grid gap-2">
+          <Link
+            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-md border border-border bg-panel px-4 text-sm font-semibold text-muted transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-panel-muted hover:text-text active:scale-[0.98]"
+            href="/settings/profile"
+          >
+            <FaEdit aria-hidden="true" className="h-3.5 w-3.5" />
+            {copy.dashboard.editProfile}
+          </Link>
+          <button
+            className="h-11 w-full rounded-md bg-accent px-4 text-sm font-semibold text-accent-contrast transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-accent/90 active:scale-[0.98]"
+            onClick={onAddWorkout}
+            type="button"
+          >
+            {copy.dashboard.addWorkout}
+          </button>
+        </div>
       ) : null}
 
       {/* <div className="mt-5 grid gap-3 border-t border-border pt-5 text-sm text-muted">
