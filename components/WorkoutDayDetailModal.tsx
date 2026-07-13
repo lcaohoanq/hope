@@ -49,6 +49,17 @@ type EditWorkoutForm = {
   note: string;
 };
 
+type EditGalleryImage =
+  | {
+      image: NonNullable<Workout["images"]>[number];
+      kind: "existing";
+    }
+  | {
+      index: number;
+      kind: "preview";
+      url: string;
+    };
+
 const MAX_WORKOUT_IMAGES = 3;
 const MIN_IMAGE_ZOOM = 1;
 const MAX_IMAGE_ZOOM = 3;
@@ -95,6 +106,24 @@ export function WorkoutDayDetailModal({
   const [editError, setEditError] = useState("");
   const [editSuccess, setEditSuccess] = useState("");
   const [isSavingEdit, setIsSavingEdit] = useState(false);
+  const selectedEditableWorkout =
+    selectedImage?.workout &&
+    canEditWorkoutDate(
+      selectedImage.workout.date,
+      todayDateKey,
+      allowPastWorkoutEdits,
+    )
+      ? selectedImage.workout
+      : workouts.find((workout) =>
+          canEditWorkoutDate(
+            workout.date,
+            todayDateKey,
+            allowPastWorkoutEdits,
+          ),
+        );
+  const editingWorkout = workouts.find(
+    (workout) => workout.id === editingWorkoutId,
+  );
 
   const updateSelectedImage = useCallback(
     (direction: -1 | 1) => {
@@ -141,9 +170,26 @@ export function WorkoutDayDetailModal({
     updateImageZoom(1);
   }, [updateImageZoom]);
 
+  const cancelEditing = useCallback(() => {
+    editImageSelectionIdRef.current += 1;
+    revokeImagePreviewUrls(editPreviewUrlsRef.current);
+    editPreviewUrlsRef.current = [];
+    setEditingWorkoutId(null);
+    setEditForm(null);
+    setEditImageSrcs([]);
+    setEditImages([]);
+    setEditPreviewUrls([]);
+    setEditError("");
+  }, []);
+
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
+        if (editingWorkoutId) {
+          cancelEditing();
+          return;
+        }
+
         onClose();
         return;
       }
@@ -169,11 +215,28 @@ export function WorkoutDayDetailModal({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onClose, showNextImage, showPreviousImage, zoomImageIn, zoomImageOut]);
+  }, [
+    cancelEditing,
+    editingWorkoutId,
+    onClose,
+    showNextImage,
+    showPreviousImage,
+    zoomImageIn,
+    zoomImageOut,
+  ]);
 
   useEffect(() => {
     return () => {
       revokeImagePreviewUrls(editPreviewUrlsRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
     };
   }, []);
 
@@ -190,14 +253,6 @@ export function WorkoutDayDetailModal({
     setEditImageSelection([]);
     setEditError("");
     setEditSuccess("");
-  }
-
-  function cancelEditing() {
-    setEditingWorkoutId(null);
-    setEditForm(null);
-    setEditImageSrcs([]);
-    setEditImageSelection([]);
-    setEditError("");
   }
 
   function updateEditField(field: keyof EditWorkoutForm, value: string) {
@@ -317,7 +372,7 @@ export function WorkoutDayDetailModal({
   return (
     <motion.div
       aria-modal="true"
-      className="fixed inset-0 z-[10000] flex items-center justify-center bg-text/35 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-[10000] flex items-center justify-center bg-text/45 p-4"
       exit={{ opacity: 0 }}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -334,7 +389,9 @@ export function WorkoutDayDetailModal({
           x: 0,
           y: 0,
         }}
-        className="max-h-[88dvh] w-full max-w-3xl overflow-hidden rounded-lg border border-border bg-panel shadow-[0_30px_120px_rgba(17,17,17,0.22)]"
+        className={`relative max-h-70dvh] w-full overflow-hidden rounded-lg border border-border bg-panel shadow-[0_30px_120px_rgba(17,17,17,0.22)] ${
+          editingWorkout ? "max-w-5xl" : "max-w-5xl"
+        }`}
         exit={{
           opacity: 0,
           rotate: 0,
@@ -378,9 +435,6 @@ export function WorkoutDayDetailModal({
       >
         <div className="flex items-start justify-between gap-4 border-b border-border p-4 sm:p-5">
           <div>
-            <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted">
-              {copy.modal.dayDetail}
-            </p>
             <h3 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-text">
               {formatDisplayDate(date, language)}
             </h3>
@@ -392,182 +446,188 @@ export function WorkoutDayDetailModal({
                   : copy.modal.noWorkoutLogged}
             </p>
           </div>
-          <button
-            aria-label={copy.modal.closeWorkoutDetail}
-            className="h-9 w-9 rounded-md border border-border bg-panel text-xl leading-none text-muted transition hover:bg-panel-muted hover:text-text"
-            onClick={onClose}
-            type="button"
-          >
-            x
-          </button>
+          <div className="flex items-center gap-2">
+            {editingWorkout ? (
+              <button
+                aria-label={copy.modal.backToWorkoutDetail}
+                className="inline-flex h-9 items-center gap-2 rounded-md border border-border bg-panel px-3 text-sm font-semibold text-muted transition hover:bg-panel-muted hover:text-text active:scale-[0.98]"
+                disabled={isSavingEdit}
+                onClick={cancelEditing}
+                type="button"
+              >
+                <FaChevronLeft aria-hidden="true" className="h-3 w-3" />
+                <span className="hidden sm:inline">
+                  {copy.modal.backToWorkoutDetail}
+                </span>
+              </button>
+            ) : canEditWorkouts && selectedEditableWorkout ? (
+              <button
+                aria-label={copy.form.editWorkout}
+                className="inline-flex h-9 items-center gap-2 rounded-md border border-border bg-panel px-3 text-sm font-semibold text-muted transition hover:bg-panel-muted hover:text-text active:scale-[0.98]"
+                onClick={() => startEditing(selectedEditableWorkout)}
+                type="button"
+              >
+                <FaPen aria-hidden="true" className="h-3 w-3" />
+                <span className="hidden sm:inline">{copy.form.editWorkout}</span>
+              </button>
+            ) : null}
+            <button
+              aria-label={copy.modal.closeWorkoutDetail}
+              className="h-9 w-9 rounded-md border border-border bg-panel text-xl leading-none text-muted transition hover:bg-panel-muted hover:text-text"
+              onClick={onClose}
+              type="button"
+            >
+              x
+            </button>
+          </div>
         </div>
 
-        <div className="max-h-[calc(88dvh-88px)] overflow-y-auto p-4 sm:p-5">
-          {selectedImage ? (
-            <div className="overflow-hidden rounded-lg border border-border bg-text">
-              <div className="relative aspect-[16/10] overflow-auto">
-                <WorkoutImageThumbnail
-                  image={selectedImage.image}
-                  imageClassName="h-full w-full object-contain transition-transform duration-150"
-                  imageStyle={{
-                    transform: `scale(${imageZoom})`,
-                    transformOrigin: "center",
-                  }}
-                  key={selectedImage.image.src}
-                  workoutDate={date}
-                />
-                {galleryImages.length > 1 ? (
-                  <>
-                    <button
-                      aria-label={copy.modal.previousWorkoutImage}
-                      className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-md border border-white/15 bg-text/70 text-white backdrop-blur transition hover:bg-text/90 active:scale-95"
-                      onClick={showPreviousImage}
-                      type="button"
-                    >
-                      <FaChevronLeft aria-hidden="true" className="h-4 w-4" />
-                    </button>
-                    <button
-                      aria-label={copy.modal.nextWorkoutImage}
-                      className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-md border border-white/15 bg-text/70 text-white backdrop-blur transition hover:bg-text/90 active:scale-95"
-                      onClick={showNextImage}
-                      type="button"
-                    >
-                      <FaChevronRight aria-hidden="true" className="h-4 w-4" />
-                    </button>
-                  </>
-                ) : null}
-                <div className="absolute right-3 top-3 flex items-center overflow-hidden rounded-md border border-white/15 bg-text/70 text-white backdrop-blur">
-                  <button
-                    aria-label={copy.modal.zoomOutWorkoutImage}
-                    className="flex h-9 w-9 items-center justify-center transition hover:bg-panel/10 disabled:cursor-not-allowed disabled:text-white/35"
-                    disabled={imageZoom <= MIN_IMAGE_ZOOM}
-                    onClick={zoomImageOut}
-                    type="button"
-                  >
-                    <FaSearchMinus aria-hidden="true" className="h-4 w-4" />
-                  </button>
-                  <span className="min-w-12 border-x border-white/10 px-2 text-center font-mono text-xs">
-                    {Math.round(imageZoom * 100)}%
-                  </span>
-                  <button
-                    aria-label={copy.modal.zoomInWorkoutImage}
-                    className="flex h-9 w-9 items-center justify-center transition hover:bg-panel/10 disabled:cursor-not-allowed disabled:text-white/35"
-                    disabled={imageZoom >= MAX_IMAGE_ZOOM}
-                    onClick={zoomImageIn}
-                    type="button"
-                  >
-                    <FaSearchPlus aria-hidden="true" className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
-              <div className="border-t border-white/10 px-3 py-2 text-xs text-muted">
-                <span>
-                  {formatActivityType(selectedImage.workout.type, copy)} -{" "}
-                  {selectedImage.workout.startTime} - {selectedImage.workout.endTime}
-                </span>
-                {galleryImages.length > 1 ? (
-                  <span className="float-right font-mono text-muted">
-                    {clampedSelectedImageIndex + 1}/{galleryImages.length}
-                  </span>
-                ) : null}
-              </div>
-            </div>
-          ) : null}
-
-          {galleryImages.length > 0 ? (
-            <div className="mt-4">
-              <div className="flex snap-x gap-3 overflow-x-auto pb-2">
-                {galleryImages.map(({ image, workout }, index) => (
-                  <button
-                    aria-label={copy.modal.showWorkoutImage(index + 1)}
-                    className={`h-28 w-40 shrink-0 snap-start overflow-hidden rounded-md border bg-panel-muted transition ${
-                      index === clampedSelectedImageIndex
-                        ? "border-accent ring-2 ring-accent/20"
-                        : "border-border hover:border-border"
-                    }`}
-                    key={`${workout.id}-${image.src}`}
-                    onClick={() => {
-                      setImageZoom(1);
-                      setSelectedImageIndex(index);
-                    }}
-                    type="button"
-                  >
-                    <WorkoutImageThumbnail image={image} workoutDate={date} />
-                  </button>
-                ))}
-              </div>
-            </div>
-          ) : null}
-
-          <div className="mt-5 grid gap-3">
-            {workouts.length === 0 ? (
-              <div className="rounded-lg border border-border bg-panel-muted p-4 text-sm text-muted">
-                {!isTrackable
-                  ? `${copy.heatmap.noTrackingYet}.`
-                  : copy.modal.noWorkoutLogged}
-              </div>
-            ) : (
-              workouts.map((workout) => (
-                <article
-                  className="rounded-lg border border-border bg-panel-muted p-4"
-                  key={workout.id}
-                >
-                  {editingWorkoutId === workout.id && editForm ? (
-                    <EditWorkoutPanel
-                      copy={copy}
-                      editError={editError}
-                      editForm={editForm}
-                      existingImages={(workout.images ?? []).filter((image) =>
-                        editImageSrcs.includes(image.src),
-                      )}
-                      editPreviewUrls={editPreviewUrls}
-                      editSuccess={editSuccess}
-                      isSavingEdit={isSavingEdit}
-                      onCancel={cancelEditing}
-                      onRemoveExistingImage={removeExistingImage}
-                      onSubmit={() => void submitEdit(workout)}
-                      onUpdateField={updateEditField}
-                      onUpdateImages={updateEditImages}
+        <div className="max-h-[calc(88dvh-88px)] overflow-y-auto overscroll-contain p-4 sm:p-5">
+          {editingWorkout && editForm ? (
+            <section
+              aria-label={copy.form.editWorkout}
+              aria-modal="true"
+              className="rounded-lg border border-border bg-panel-muted p-4 sm:p-5"
+              role="dialog"
+            >
+              <EditWorkoutPanel
+                copy={copy}
+                editError={editError}
+                editForm={editForm}
+                existingImages={(editingWorkout.images ?? []).filter((image) =>
+                  editImageSrcs.includes(image.src),
+                )}
+                editPreviewUrls={editPreviewUrls}
+                editSuccess={editSuccess}
+                isSavingEdit={isSavingEdit}
+                onCancel={cancelEditing}
+                onRemoveExistingImage={removeExistingImage}
+                onSubmit={() => void submitEdit(editingWorkout)}
+                onUpdateField={updateEditField}
+                onUpdateImages={updateEditImages}
+              />
+            </section>
+          ) : (
+            <>
+              {selectedImage ? (
+                <div className="overflow-hidden rounded-lg border border-border bg-text">
+                  <div className="relative aspect-[16/10] overflow-auto">
+                    <WorkoutImageThumbnail
+                      image={selectedImage.image}
+                      imageClassName="h-full w-full object-contain transition-transform duration-150"
+                      imageStyle={{
+                        transform: `scale(${imageZoom})`,
+                        transformOrigin: "center",
+                      }}
+                      key={selectedImage.image.src}
+                      workoutDate={date}
                     />
-                  ) : (
-                    <>
-                      <div className="flex flex-wrap items-baseline justify-between gap-2">
-                        <h4 className="text-base font-semibold text-text">
-                          {formatActivityType(workout.type, copy)}
-                        </h4>
-                        <p className="text-sm text-muted">
-                          {workout.startTime} - {workout.endTime}
-                        </p>
-                      </div>
-                      <p className="mt-1 text-sm text-muted">
-                        {workout.durationMinutes} {copy.common.minutes}
-                      </p>
-                      {workout.note ? (
-                        <p className="mt-3 text-sm leading-6 text-muted">
-                          {workout.note}
-                        </p>
-                      ) : null}
-                      {canEditWorkouts &&
-                      canEditWorkoutDate(
-                        workout.date,
-                        todayDateKey,
-                        allowPastWorkoutEdits,
-                      ) ? (
+                    {galleryImages.length > 1 ? (
+                      <>
                         <button
-                          className="mt-4 inline-flex h-9 items-center gap-2 rounded-md border border-border bg-panel px-3 text-sm font-semibold text-muted transition hover:bg-panel-muted active:scale-[0.98]"
-                          onClick={() => startEditing(workout)}
+                          aria-label={copy.modal.previousWorkoutImage}
+                          className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-md border border-white/15 bg-text/70 text-white transition hover:bg-text/90 active:scale-95"
+                          onClick={showPreviousImage}
                           type="button"
                         >
-                          <FaPen aria-hidden="true" className="h-3 w-3" />
-                          {copy.form.editWorkout}
+                          <FaChevronLeft
+                            aria-hidden="true"
+                            className="h-4 w-4"
+                          />
                         </button>
-                      ) : null}
-                    </>
-                  )}
-                </article>
-              ))
-            )}
-          </div>
+                        <button
+                          aria-label={copy.modal.nextWorkoutImage}
+                          className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-md border border-white/15 bg-text/70 text-white transition hover:bg-text/90 active:scale-95"
+                          onClick={showNextImage}
+                          type="button"
+                        >
+                          <FaChevronRight
+                            aria-hidden="true"
+                            className="h-4 w-4"
+                          />
+                        </button>
+                      </>
+                    ) : null}
+                    <div className="absolute right-3 top-3 flex items-center overflow-hidden rounded-md border border-white/15 bg-text/70 text-white">
+                      <button
+                        aria-label={copy.modal.zoomOutWorkoutImage}
+                        className="flex h-9 w-9 items-center justify-center transition hover:bg-panel/10 disabled:cursor-not-allowed disabled:text-white/35"
+                        disabled={imageZoom <= MIN_IMAGE_ZOOM}
+                        onClick={zoomImageOut}
+                        type="button"
+                      >
+                        <FaSearchMinus aria-hidden="true" className="h-4 w-4" />
+                      </button>
+                      <span className="min-w-12 border-x border-white/10 px-2 text-center font-mono text-xs">
+                        {Math.round(imageZoom * 100)}%
+                      </span>
+                      <button
+                        aria-label={copy.modal.zoomInWorkoutImage}
+                        className="flex h-9 w-9 items-center justify-center transition hover:bg-panel/10 disabled:cursor-not-allowed disabled:text-white/35"
+                        disabled={imageZoom >= MAX_IMAGE_ZOOM}
+                        onClick={zoomImageIn}
+                        type="button"
+                      >
+                        <FaSearchPlus aria-hidden="true" className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="border-t border-white/10 px-3 py-2 text-xs text-muted">
+                    <span>
+                      {formatActivityType(selectedImage.workout.type, copy)} -{" "}
+                      {selectedImage.workout.startTime} -{" "}
+                      {selectedImage.workout.endTime}
+                    </span>
+                    {galleryImages.length > 1 ? (
+                      <span className="float-right font-mono text-muted">
+                        {clampedSelectedImageIndex + 1}/{galleryImages.length}
+                      </span>
+                    ) : null}
+                  </div>
+                </div>
+              ) : null}
+
+              {galleryImages.length > 0 ? (
+                <div className="mt-4">
+                  <div className="flex snap-x gap-3 overflow-x-auto pb-2">
+                    {galleryImages.map(({ image, workout }, index) => (
+                      <button
+                        aria-label={copy.modal.showWorkoutImage(index + 1)}
+                        className={`h-28 w-40 shrink-0 snap-start overflow-hidden rounded-md border bg-panel-muted transition ${
+                          index === clampedSelectedImageIndex
+                            ? "border-accent ring-2 ring-accent/20"
+                            : "border-border hover:border-border"
+                        }`}
+                        key={`${workout.id}-${image.src}`}
+                        onClick={() => {
+                          setImageZoom(1);
+                          setSelectedImageIndex(index);
+                        }}
+                        type="button"
+                      >
+                        <WorkoutImageThumbnail
+                          image={image}
+                          workoutDate={date}
+                        />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              <div className="mt-5 grid gap-3">
+                {workouts.length === 0 ? (
+                  <div className="rounded-lg border border-border bg-panel-muted p-4 text-sm text-muted">
+                    {!isTrackable
+                      ? `${copy.heatmap.noTrackingYet}.`
+                      : copy.modal.noWorkoutLogged}
+                  </div>
+                ) : (
+                  <></>
+                )}
+              </div>
+            </>
+          )}
         </div>
       </motion.div>
     </motion.div>
@@ -611,166 +671,310 @@ function EditWorkoutPanel({
     durationMinutes > 0
       ? `${durationMinutes} ${copy.common.minutes}`
       : copy.errors.startBeforeEnd;
+  const editGalleryImages = useMemo<EditGalleryImage[]>(
+    () => [
+      ...((existingImages ?? []).map((image) => ({
+        image,
+        kind: "existing" as const,
+      })) ?? []),
+      ...editPreviewUrls.map((url, index) => ({
+        index,
+        kind: "preview" as const,
+        url,
+      })),
+    ],
+    [editPreviewUrls, existingImages],
+  );
+  const [selectedEditImageIndex, setSelectedEditImageIndex] = useState<
+    number | null
+  >(null);
+  const selectedEditImage =
+    selectedEditImageIndex === null
+      ? null
+      : editGalleryImages[
+          Math.min(selectedEditImageIndex, editGalleryImages.length - 1)
+        ];
+  const selectedEditImageDisplayIndex =
+    selectedEditImageIndex === null
+      ? 0
+      : Math.min(selectedEditImageIndex, editGalleryImages.length - 1);
+
+  function updateSelectedEditImage(direction: -1 | 1) {
+    setSelectedEditImageIndex((currentIndex) => {
+      if (editGalleryImages.length === 0) {
+        return null;
+      }
+
+      const safeIndex =
+        currentIndex === null
+          ? 0
+          : Math.min(Math.max(0, currentIndex), editGalleryImages.length - 1);
+
+      return (
+        (safeIndex + direction + editGalleryImages.length) %
+        editGalleryImages.length
+      );
+    });
+  }
 
   return (
     <form
-      className="grid gap-3"
+      className="grid gap-4"
       onSubmit={(event) => {
         event.preventDefault();
         onSubmit();
       }}
     >
-      <div className="flex flex-col gap-1 border-b border-border pb-3">
-        <p className="text-base font-semibold text-text">
-          {copy.form.editWorkout}
-        </p>
-        <p className="text-sm text-muted">
-          {copy.form.durationPreview}: {durationPreview}
-        </p>
-      </div>
-
-      <div className="grid gap-3 sm:grid-cols-2">
-        <ActivityTypeSelector
-          copy={copy}
-          disabled={isSavingEdit}
-          label={copy.form.type}
-          onChange={(value) => onUpdateField("type", value)}
-          value={editForm.type}
-          variant="compact"
-        />
-        <label className="grid gap-1.5 text-sm font-medium text-text">
-          {copy.form.date}
-          <input
-            className="h-10 rounded-md border border-border bg-panel px-3 text-sm font-normal text-text outline-none focus:border-accent focus:ring-2 focus:ring-accent/15"
-            onChange={(event) => onUpdateField("date", event.target.value)}
-            type="date"
-            value={editForm.date}
-          />
-        </label>
-      </div>
-
-      <div className="grid gap-3 sm:grid-cols-2">
-        <label className="grid gap-1.5 text-sm font-medium text-text">
-          {copy.form.start}
-          <input
-            className="h-10 rounded-md border border-border bg-panel px-3 text-sm font-normal text-text outline-none focus:border-accent focus:ring-2 focus:ring-accent/15"
-            onChange={(event) => onUpdateField("startTime", event.target.value)}
-            type="time"
-            value={editForm.startTime}
-          />
-        </label>
-        <label className="grid gap-1.5 text-sm font-medium text-text">
-          {copy.form.end}
-          <input
-            className="h-10 rounded-md border border-border bg-panel px-3 text-sm font-normal text-text outline-none focus:border-accent focus:ring-2 focus:ring-accent/15"
-            onChange={(event) => onUpdateField("endTime", event.target.value)}
-            type="time"
-            value={editForm.endTime}
-          />
-        </label>
-      </div>
-
-      <label className="grid gap-1.5 text-sm font-medium text-text">
-        {copy.form.note}
-        <textarea
-          className="min-h-20 resize-y rounded-md border border-border bg-panel px-3 py-2 text-sm font-normal text-text outline-none focus:border-accent focus:ring-2 focus:ring-accent/15"
-          onChange={(event) => onUpdateField("note", event.target.value)}
-          value={editForm.note}
-        />
-      </label>
-
-      {existingImages && existingImages.length > 0 ? (
-        <div className="grid gap-2">
-          <p className="text-sm font-medium text-text">
-            {copy.form.images}
+      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border pb-4">
+        <div>
+          <p className="text-base font-semibold text-text">
+            {copy.form.editWorkout}
           </p>
-          <div className="grid grid-cols-3 gap-2">
-            {existingImages.map((image, index) => (
-              <div
-                className="group relative aspect-square overflow-hidden rounded-md border border-border bg-panel-muted"
-                key={image.src}
+          <p className="mt-1 text-sm text-muted">
+            {copy.form.durationPreview}: {durationPreview}
+          </p>
+        </div>
+        <div className="flex shrink-0 flex-wrap gap-2">
+          <button
+            className="h-9 rounded-md bg-accent px-3 text-sm font-semibold text-accent-contrast transition hover:bg-accent/90 disabled:cursor-not-allowed disabled:bg-muted"
+            disabled={isSavingEdit}
+            type="submit"
+          >
+            {isSavingEdit ? copy.common.saving : copy.common.saveChanges}
+          </button>
+          <button
+            className="h-9 rounded-md border border-border bg-panel px-3 text-sm font-semibold text-muted transition hover:bg-panel-muted"
+            disabled={isSavingEdit}
+            onClick={onCancel}
+            type="button"
+          >
+            {copy.common.cancel}
+          </button>
+        </div>
+      </div>
+
+      {selectedEditImage ? (
+        <div
+          aria-label={copy.modal.editWorkoutImageGallery}
+          aria-modal="true"
+          className="fixed inset-0 z-[10020] flex items-center justify-center bg-text/70 p-4"
+          onClick={() => setSelectedEditImageIndex(null)}
+          role="dialog"
+        >
+          <div
+            className="flex max-h-[92dvh] w-full max-w-5xl flex-col overflow-hidden rounded-lg border border-border bg-panel shadow-[0_30px_120px_rgba(17,17,17,0.3)]"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-center justify-between gap-3 border-b border-border p-3 sm:p-4">
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-text">
+                  {copy.modal.editWorkoutImageGallery}
+                </p>
+                <p className="mt-0.5 font-mono text-xs text-muted">
+                  {selectedEditImageDisplayIndex + 1}/
+                  {editGalleryImages.length}
+                </p>
+              </div>
+              <button
+                className="h-9 rounded-md border border-border bg-panel px-3 text-sm font-semibold text-muted transition hover:bg-panel-muted hover:text-text"
+                onClick={() => setSelectedEditImageIndex(null)}
+                type="button"
               >
+                {copy.modal.backToEditWorkout}
+              </button>
+            </div>
+
+            <div className="relative flex min-h-[50dvh] items-center justify-center bg-text p-3 sm:min-h-[64dvh] sm:p-5">
+              {selectedEditImage.kind === "existing" ? (
                 <WorkoutImageThumbnail
-                  image={image}
+                  image={selectedEditImage.image}
+                  imageClassName="max-h-[72dvh] w-full object-contain"
+                  key={selectedEditImage.image.src}
                   workoutDate={editForm.date}
                 />
-                <button
-                  aria-label={copy.form.removeImage(index + 1)}
-                  className="absolute right-1.5 top-1.5 inline-flex h-8 w-8 items-center justify-center rounded-md border border-white/70 bg-text/80 text-white opacity-100 shadow-sm transition hover:bg-danger disabled:cursor-not-allowed disabled:bg-muted sm:opacity-0 sm:group-hover:opacity-100"
-                  disabled={isSavingEdit}
-                  onClick={() => onRemoveExistingImage(image.src)}
-                  title={copy.form.removeImage(index + 1)}
-                  type="button"
-                >
-                  <FaTrash aria-hidden="true" className="h-3 w-3" />
-                </button>
-              </div>
-            ))}
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  alt={copy.form.selectedEditPreviewAlt(
+                    selectedEditImage.index + 1,
+                  )}
+                  className="max-h-[72dvh] w-full object-contain"
+                  key={selectedEditImage.url}
+                  src={selectedEditImage.url}
+                />
+              )}
+
+              {editGalleryImages.length > 1 ? (
+                <>
+                  <button
+                    aria-label={copy.modal.previousWorkoutImage}
+                    className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-md border border-white/15 bg-text/70 text-white transition hover:bg-text/90 active:scale-95"
+                    onClick={() => updateSelectedEditImage(-1)}
+                    type="button"
+                  >
+                    <FaChevronLeft aria-hidden="true" className="h-4 w-4" />
+                  </button>
+                  <button
+                    aria-label={copy.modal.nextWorkoutImage}
+                    className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-md border border-white/15 bg-text/70 text-white transition hover:bg-text/90 active:scale-95"
+                    onClick={() => updateSelectedEditImage(1)}
+                    type="button"
+                  >
+                    <FaChevronRight aria-hidden="true" className="h-4 w-4" />
+                  </button>
+                </>
+              ) : null}
+            </div>
           </div>
         </div>
       ) : null}
 
-      <label className="grid gap-1.5 text-sm font-medium text-text">
-        {copy.form.newImages}
-        <input
-          accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
-          className="block w-full rounded-md border border-border bg-panel px-3 py-2 text-sm font-normal text-muted file:mr-3 file:rounded-md file:border-0 file:bg-text file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-white disabled:cursor-not-allowed disabled:opacity-60"
-          disabled={remainingImageSlots === 0 || isSavingEdit}
-          multiple
-          onChange={(event) =>
-            onUpdateImages(event.target.files, remainingImageSlots)
-          }
-          type="file"
-        />
-        <span className="text-xs font-normal text-muted">
-          {copy.form.existingImages(existingImageCount)} ·{" "}
-          {copy.form.imageSlotAvailable(remainingImageSlots)}
-        </span>
-      </label>
-
-      {editPreviewUrls.length > 0 ? (
-        <div className="grid grid-cols-3 gap-2">
-          {editPreviewUrls.map((url, index) => (
-            <div
-              className="aspect-square overflow-hidden rounded-md border border-border bg-panel-muted"
-              key={url}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                alt={copy.form.selectedEditPreviewAlt(index + 1)}
-                className="h-full w-full object-cover"
-                src={url}
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(280px,0.9fr)]">
+        <div className="grid gap-3 content-start">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <ActivityTypeSelector
+              copy={copy}
+              disabled={isSavingEdit}
+              label={copy.form.type}
+              onChange={(value) => onUpdateField("type", value)}
+              value={editForm.type}
+              variant="compact"
+            />
+            <label className="grid gap-1.5 text-sm font-medium text-text">
+              {copy.form.date}
+              <input
+                className="h-10 rounded-md border border-border bg-panel px-3 text-sm font-normal text-text outline-none focus:border-accent focus:ring-2 focus:ring-accent/15"
+                onChange={(event) => onUpdateField("date", event.target.value)}
+                type="date"
+                value={editForm.date}
               />
-            </div>
-          ))}
+            </label>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="grid gap-1.5 text-sm font-medium text-text">
+              {copy.form.start}
+              <input
+                className="h-10 rounded-md border border-border bg-panel px-3 text-sm font-normal text-text outline-none focus:border-accent focus:ring-2 focus:ring-accent/15"
+                onChange={(event) =>
+                  onUpdateField("startTime", event.target.value)
+                }
+                type="time"
+                value={editForm.startTime}
+              />
+            </label>
+            <label className="grid gap-1.5 text-sm font-medium text-text">
+              {copy.form.end}
+              <input
+                className="h-10 rounded-md border border-border bg-panel px-3 text-sm font-normal text-text outline-none focus:border-accent focus:ring-2 focus:ring-accent/15"
+                onChange={(event) =>
+                  onUpdateField("endTime", event.target.value)
+                }
+                type="time"
+                value={editForm.endTime}
+              />
+            </label>
+          </div>
+
+          <label className="grid gap-1.5 text-sm font-medium text-text">
+            {copy.form.note}
+            <textarea
+              className="min-h-32 resize-y rounded-md border border-border bg-panel px-3 py-2 text-sm font-normal text-text outline-none focus:border-accent focus:ring-2 focus:ring-accent/15"
+              onChange={(event) => onUpdateField("note", event.target.value)}
+              value={editForm.note}
+            />
+          </label>
         </div>
-      ) : null}
 
-      <div className="min-h-5">
-        {editError ? (
-          <p className="text-sm font-medium text-danger">{editError}</p>
-        ) : null}
-        {editSuccess ? (
-          <p className="text-sm font-medium text-accent">{editSuccess}</p>
-        ) : null}
-      </div>
+        <div className="grid gap-3 content-start rounded-md border border-border bg-panel p-3">
+          {existingImages && existingImages.length > 0 ? (
+            <div className="grid gap-2">
+              <p className="text-sm font-medium text-text">
+                {copy.form.images}
+              </p>
+              <div className="grid grid-cols-3 gap-2">
+                {existingImages.map((image, index) => (
+                  <div
+                    className="group relative aspect-square overflow-hidden rounded-md border border-border bg-panel-muted"
+                    key={image.src}
+                  >
+                    <button
+                      aria-label={copy.modal.expandWorkoutImage}
+                      className="block h-full w-full transition hover:opacity-90"
+                      onClick={() => setSelectedEditImageIndex(index)}
+                      type="button"
+                    >
+                      <WorkoutImageThumbnail
+                        image={image}
+                        workoutDate={editForm.date}
+                      />
+                    </button>
+                    <button
+                      aria-label={copy.form.removeImage(index + 1)}
+                      className="absolute right-1.5 top-1.5 inline-flex h-8 w-8 items-center justify-center rounded-md border border-white/70 bg-text/80 text-white opacity-100 shadow-sm transition hover:bg-danger disabled:cursor-not-allowed disabled:bg-muted sm:opacity-0 sm:group-hover:opacity-100"
+                      disabled={isSavingEdit}
+                      onClick={() => onRemoveExistingImage(image.src)}
+                      title={copy.form.removeImage(index + 1)}
+                      type="button"
+                    >
+                      <FaTrash aria-hidden="true" className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
 
-      <div className="flex flex-wrap gap-2">
-        <button
-          className="h-9 rounded-md bg-accent px-3 text-sm font-semibold text-accent-contrast transition hover:bg-accent/90 disabled:cursor-not-allowed disabled:bg-muted"
-          disabled={isSavingEdit}
-          type="submit"
-        >
-          {isSavingEdit ? copy.common.saving : copy.common.saveChanges}
-        </button>
-        <button
-          className="h-9 rounded-md border border-border bg-panel px-3 text-sm font-semibold text-muted transition hover:bg-panel-muted"
-          disabled={isSavingEdit}
-          onClick={onCancel}
-          type="button"
-        >
-          {copy.common.cancel}
-        </button>
+          <label className="grid gap-1.5 text-sm font-medium text-text">
+            {copy.form.newImages}
+            <input
+              accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
+              className="block w-full rounded-md border border-border bg-panel px-3 py-2 text-sm font-normal text-muted file:mr-3 file:rounded-md file:border-0 file:bg-text file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-white disabled:cursor-not-allowed disabled:opacity-60"
+              disabled={remainingImageSlots === 0 || isSavingEdit}
+              multiple
+              onChange={(event) =>
+                onUpdateImages(event.target.files, remainingImageSlots)
+              }
+              type="file"
+            />
+            <span className="text-xs font-normal text-muted">
+              {copy.form.existingImages(existingImageCount)} /{" "}
+              {copy.form.imageSlotAvailable(remainingImageSlots)}
+            </span>
+          </label>
+
+          {editPreviewUrls.length > 0 ? (
+            <div className="grid grid-cols-3 gap-2">
+              {editPreviewUrls.map((url, index) => (
+                <button
+                  aria-label={copy.modal.expandWorkoutImage}
+                  className="aspect-square overflow-hidden rounded-md border border-border bg-panel-muted transition hover:opacity-90"
+                  key={url}
+                  onClick={() =>
+                    setSelectedEditImageIndex(existingImageCount + index)
+                  }
+                  type="button"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    alt={copy.form.selectedEditPreviewAlt(index + 1)}
+                    className="h-full w-full object-cover"
+                    src={url}
+                  />
+                </button>
+              ))}
+            </div>
+          ) : null}
+
+          <div className="min-h-5">
+            {editError ? (
+              <p className="text-sm font-medium text-danger">{editError}</p>
+            ) : null}
+            {editSuccess ? (
+              <p className="text-sm font-medium text-accent">{editSuccess}</p>
+            ) : null}
+          </div>
+        </div>
       </div>
     </form>
   );
