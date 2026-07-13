@@ -144,6 +144,8 @@ export const translations = {
         "Một ngày đẹp",
       ],
       notePlaceholder: "Caption ngắn cho tấm hình",
+      publicWorkout: "Buổi tập công khai",
+      publicWorkoutHelp: "Tắt để chỉ mình bạn xem được buổi tập này.",
       removeImage: (index: number) => `Xóa ảnh ${index}`,
       selectedEditPreviewAlt: (index: number) =>
         `Ảnh chỉnh sửa đã chọn ${index}`,
@@ -350,6 +352,8 @@ export const translations = {
         "Golden hour",
       ],
       notePlaceholder: "A short caption for the photo",
+      publicWorkout: "Public workout",
+      publicWorkoutHelp: "Turn off to make this workout visible only to you.",
       removeImage: (index: number) => `Remove image ${index}`,
       selectedEditPreviewAlt: (index: number) =>
         `Selected edit preview ${index}`,

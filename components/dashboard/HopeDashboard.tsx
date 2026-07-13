@@ -35,17 +35,23 @@ import type {
   WorkoutInput,
   WorkoutUpdateInput,
 } from "@/lib/workout-types";
+import type { SocialSummary } from "@/lib/social-types";
+import { getSocialCopy } from "@/lib/social-copy";
 
 type HopeDashboardProps = {
   isAuthenticated: boolean;
   isEditable: boolean;
   user: PublicAppUser;
+  viewer?: PublicAppUser;
+  socialSummary: SocialSummary;
 };
 
 export function HopeDashboard({
   isAuthenticated,
   isEditable,
   user,
+  viewer,
+  socialSummary,
 }: HopeDashboardProps) {
   const { signOut } = useClerk();
   const todayDateKey = getTodayInTimezone();
@@ -53,6 +59,7 @@ export function HopeDashboard({
   const birthYear = user.birthYear ?? currentYear;
   const [language, setLanguage] = useState<Language>(user.preferredLanguage);
   const copy = translations[language];
+  const socialCopy = getSocialCopy(language);
   const themeStorageKey = `hope:theme:${user.id}`;
   const [theme, setTheme] = useState<AppTheme>(() =>
     getInitialTheme({
@@ -65,7 +72,7 @@ export function HopeDashboard({
   const [themeError, setThemeError] = useState("");
   const [isSavingTheme, setIsSavingTheme] = useState(false);
   const [workouts, setWorkouts] = useState<Workout[]>([]);
-  const [isLoadingWorkouts, setIsLoadingWorkouts] = useState(true);
+  const [isLoadingWorkouts, setIsLoadingWorkouts] = useState(socialSummary.canViewWorkouts);
   const [isSubmittingWorkout, setIsSubmittingWorkout] = useState(false);
   const [isUploadingWorkoutImages, setIsUploadingWorkoutImages] =
     useState(false);
@@ -88,6 +95,10 @@ export function HopeDashboard({
     selectedHeatmapView,
   );
   const displayedAvatarUrl = pendingAvatarPreviewUrl || avatarUrl;
+  const headerUser = viewer ?? user;
+  const headerAvatarUrl = isEditable
+    ? displayedAvatarUrl
+    : headerUser.avatarUrl ?? getAvatarUrl(headerUser.avatarSeed);
 
   const loadWorkouts = useCallback(async () => {
     setIsLoadingWorkouts(true);
@@ -125,12 +136,15 @@ export function HopeDashboard({
   }, [theme]);
 
   useEffect(() => {
+    if (!socialSummary.canViewWorkouts) {
+      return;
+    }
     const timer = window.setTimeout(() => {
       void loadWorkouts();
     }, 0);
 
     return () => window.clearTimeout(timer);
-  }, [loadWorkouts]);
+  }, [loadWorkouts, socialSummary.canViewWorkouts]);
 
   useEffect(() => {
     return () => {
@@ -369,20 +383,21 @@ export function HopeDashboard({
         />
       ) : null}
       <TopHeader
-        avatarUrl={displayedAvatarUrl}
+        avatarUrl={headerAvatarUrl}
         copy={copy}
         language={language}
         onLanguageChange={setLanguage}
         onSignOut={() => void handleSignOut()}
         onThemeChange={(nextTheme) => void handleThemeChange(nextTheme)}
-        showProfileShortcut={isEditable}
+        showProfileShortcut={Boolean(viewer)}
+        showNotifications={Boolean(viewer)}
         showSignOut={isAuthenticated}
         showThemeControl={isEditable}
         theme={theme}
         themeError={themeError}
         themeMessage={themeMessage}
         isSavingTheme={isSavingTheme}
-        user={user}
+        user={headerUser}
       />
       <div className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:px-8">
         <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)] lg:items-start">
@@ -394,6 +409,9 @@ export function HopeDashboard({
             hasPendingAvatarPreview={Boolean(pendingAvatarPreviewUrl)}
             isUploadingAvatar={isUploadingAvatar}
             isEditable={isEditable}
+            isAuthenticated={isAuthenticated}
+            socialSummary={socialSummary}
+            canViewDetails={socialSummary.canViewWorkouts}
             language={language}
             onAvatarLoad={(loadedAvatarUrl) => {
               if (pendingAvatarPreviewUrl && loadedAvatarUrl === avatarUrl) {
@@ -406,7 +424,7 @@ export function HopeDashboard({
             user={user}
           />
 
-          <div className="grid min-w-0 gap-6">
+          {socialSummary.canViewWorkouts ? <div className="grid min-w-0 gap-6">
             {workoutLoadError ? (
               <section className="rounded-lg border border-danger-border bg-danger-soft p-4 text-sm text-danger">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -469,7 +487,7 @@ export function HopeDashboard({
                 todayDateKey={todayDateKey}
               />
             )}
-          </div>
+          </div> : <section className="grid min-h-[420px] place-items-center rounded-lg border border-border bg-panel p-8 text-center"><div className="max-w-md"><h2 className="text-xl font-semibold text-text">{socialCopy.privateProfile}</h2><p className="mt-3 text-sm leading-6 text-muted">{socialCopy.privateProfileHelp}</p></div></section>}
         </div>
       </div>
       <WorkoutDialog
