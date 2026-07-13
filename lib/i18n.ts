@@ -97,6 +97,15 @@ export const translations = {
       logWorkout: "Ghi lại buổi tập",
       newImages: "Ảnh mới",
       note: "Caption",
+      captionPills: "Gợi ý nhanh",
+      captionPillOptions: [
+        "25°C",
+        "Good morning",
+        "Good night",
+        "Đi chill",
+        "Vừa xong",
+        "Một ngày đẹp",
+      ],
       notePlaceholder: "Caption ngắn cho tấm hình",
       removeImage: (index: number) => `Xóa ảnh ${index}`,
       selectedEditPreviewAlt: (index: number) =>
@@ -257,6 +266,15 @@ export const translations = {
       logWorkout: "Log a workout",
       newImages: "New images",
       note: "Caption",
+      captionPills: "Quick captions",
+      captionPillOptions: [
+        "25°C",
+        "Good morning",
+        "Good night",
+        "Post-workout",
+        "Just now",
+        "Golden hour",
+      ],
       notePlaceholder: "A short caption for the photo",
       removeImage: (index: number) => `Remove image ${index}`,
       selectedEditPreviewAlt: (index: number) =>

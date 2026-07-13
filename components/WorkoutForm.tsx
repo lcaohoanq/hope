@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { appendCaptionPill, hasCaptionPill } from "@/lib/caption-utils";
 import type { AppCopy } from "@/lib/i18n";
 import {
   createImagePreviewUrls,
@@ -272,6 +273,34 @@ export function WorkoutForm({
             value={form.note}
           />
         </label>
+        <div className="grid gap-2">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">
+            {copy.form.captionPills}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {copy.form.captionPillOptions.map((pill) => {
+              const isSelected = hasCaptionPill(form.note, pill);
+
+              return (
+                <button
+                  aria-pressed={isSelected}
+                  className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition active:scale-[0.98] ${
+                    isSelected
+                      ? "border-accent bg-accent/10 text-text"
+                      : "border-border bg-panel-muted text-muted hover:border-accent/50 hover:text-text"
+                  }`}
+                  key={pill}
+                  onClick={() =>
+                    updateField("note", appendCaptionPill(form.note, pill))
+                  }
+                  type="button"
+                >
+                  {pill}
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
         <label className="grid gap-2 text-sm font-medium text-text">
           {copy.form.images}
