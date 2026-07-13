@@ -148,6 +148,7 @@ export const APP_USERS = [
       linkedin: "https://linkedin.com/in/lcaohoanq",
     },
     settings: {
+      theme: "dark",
       heatmap: {
         defaultView: {
           mode: "year",
