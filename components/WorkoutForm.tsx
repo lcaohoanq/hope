@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { AppCopy } from "@/lib/i18n";
 import {
   createImagePreviewUrls,
@@ -17,15 +17,54 @@ type WorkoutFormProps = {
   onSubmitWorkout: (input: WorkoutInput) => Promise<void>;
 };
 
+type RequiredWorkoutField = "type" | "date" | "startTime" | "endTime";
+
+const REQUIRED_WORKOUT_FIELDS = new Set<RequiredWorkoutField>([
+  "type",
+  "date",
+  "startTime",
+  "endTime",
+]);
+
 const initialForm = (defaultDate: string): WorkoutInput => ({
   date: defaultDate,
   type: "",
-  startTime: "",
+  startTime: getCurrentTimeInputValue(),
   endTime: "",
   note: "",
 });
 
 const MAX_SELECTED_IMAGES = 3;
+
+function getCurrentTimeInputValue(date = new Date()) {
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+
+  return `${hours}:${minutes}`;
+}
+
+function isRequiredWorkoutField(field: keyof WorkoutInput) {
+  return REQUIRED_WORKOUT_FIELDS.has(field as RequiredWorkoutField);
+}
+
+function FieldLabel({
+  children,
+  required,
+}: {
+  children: ReactNode;
+  required?: boolean;
+}) {
+  return (
+    <span className="inline-flex items-center gap-1">
+      <span>{children}</span>
+      {required ? (
+        <span aria-hidden="true" className="font-semibold text-red-600">
+          *
+        </span>
+      ) : null}
+    </span>
+  );
+}
 
 export function WorkoutForm({
   copy,
@@ -49,6 +88,13 @@ export function WorkoutForm({
 
     return calculateDurationMinutes(form.startTime, form.endTime);
   }, [form.startTime, form.endTime]);
+  const canSubmit =
+    Boolean(form.type.trim()) &&
+    Boolean(form.date) &&
+    Boolean(form.startTime) &&
+    Boolean(form.endTime) &&
+    durationPreview !== null &&
+    durationPreview > 0;
 
   useEffect(() => {
     return () => {
@@ -170,13 +216,19 @@ export function WorkoutForm({
         <ActivityTypeSelector
           copy={copy}
           disabled={isSubmitting}
-          label={copy.form.workoutType}
+          label={
+            <FieldLabel required={isRequiredWorkoutField("type")}>
+              {copy.form.workoutType}
+            </FieldLabel>
+          }
           onChange={(value) => updateField("type", value)}
           value={form.type}
         />
 
         <label className="grid gap-2 text-sm font-medium text-stone-800">
-          {copy.form.date}
+          <FieldLabel required={isRequiredWorkoutField("date")}>
+            {copy.form.date}
+          </FieldLabel>
           <input
             className="h-11 rounded-md border border-stone-300 bg-stone-50 px-3 text-base font-normal text-stone-950 outline-none transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] focus:border-moss focus:bg-white focus:ring-2 focus:ring-moss/15 disabled:cursor-not-allowed disabled:opacity-60"
             onChange={(event) => updateField("date", event.target.value)}
@@ -187,7 +239,9 @@ export function WorkoutForm({
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <label className="grid gap-2 text-sm font-medium text-stone-800">
-            {copy.form.startTime}
+            <FieldLabel required={isRequiredWorkoutField("startTime")}>
+              {copy.form.startTime}
+            </FieldLabel>
             <input
               className="h-11 rounded-md border border-stone-300 bg-stone-50 px-3 text-base font-normal text-stone-950 outline-none transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] focus:border-moss focus:bg-white focus:ring-2 focus:ring-moss/15 disabled:cursor-not-allowed disabled:opacity-60"
               onChange={(event) => updateField("startTime", event.target.value)}
@@ -197,7 +251,9 @@ export function WorkoutForm({
           </label>
 
           <label className="grid gap-2 text-sm font-medium text-stone-800">
-            {copy.form.endTime}
+            <FieldLabel required={isRequiredWorkoutField("endTime")}>
+              {copy.form.endTime}
+            </FieldLabel>
             <input
               className="h-11 rounded-md border border-stone-300 bg-stone-50 px-3 text-base font-normal text-stone-950 outline-none transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] focus:border-moss focus:bg-white focus:ring-2 focus:ring-moss/15 disabled:cursor-not-allowed disabled:opacity-60"
               onChange={(event) => updateField("endTime", event.target.value)}
@@ -265,7 +321,7 @@ export function WorkoutForm({
 
       <button
         className="mt-5 h-11 w-full rounded-md bg-stone-950 px-4 text-sm font-semibold text-white transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-stone-800 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-stone-400 disabled:active:scale-100"
-        disabled={isSubmitting}
+        disabled={isSubmitting || !canSubmit}
         type="submit"
       >
         {isSubmitting ? copy.common.saving : copy.form.submit}
