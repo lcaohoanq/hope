@@ -183,6 +183,40 @@
       "createdAt": "2026-07-10T16:20:07.714Z"
     },
     {
+      "id": "2026-07-11-1783785864207-96e0c06f",
+      "userId": "hoang",
+      "date": "2026-07-11",
+      "type": "Galaxy building",
+      "startTime": "08:00",
+      "endTime": "17:00",
+      "durationMinutes": 540,
+      "note": "",
+      "images": [
+        {
+          "src": "/uploads/2026/07/2026-07-11-workout-3860acb5.avif",
+          "format": "avif",
+          "width": 1200,
+          "height": 900,
+          "sizeBytes": 61510
+        },
+        {
+          "src": "/uploads/2026/07/2026-07-11-workout-e61c4f87.avif",
+          "format": "avif",
+          "width": 900,
+          "height": 1200,
+          "sizeBytes": 44852
+        },
+        {
+          "src": "/uploads/2026/07/2026-07-11-workout-4c55a137.avif",
+          "format": "avif",
+          "width": 1200,
+          "height": 900,
+          "sizeBytes": 64133
+        }
+      ],
+      "createdAt": "2026-07-11T16:04:24.207Z"
+    },
+    {
       "id": "2026-07-11-1783756226598-6a170a8f",
       "userId": "mviet",
       "date": "2026-07-11",
@@ -201,6 +235,26 @@
         }
       ],
       "createdAt": "2026-07-11T07:50:26.598Z"
+    },
+    {
+      "id": "2026-07-12-1783869375537-6a261d8e",
+      "userId": "hoang",
+      "date": "2026-07-12",
+      "type": "new CISCO cert",
+      "startTime": "15:00",
+      "endTime": "17:30",
+      "durationMinutes": 150,
+      "note": "",
+      "images": [
+        {
+          "src": "/uploads/2026/07/2026-07-12-workout-8dd1b094.avif",
+          "format": "avif",
+          "width": 1200,
+          "height": 676,
+          "sizeBytes": 32050
+        }
+      ],
+      "createdAt": "2026-07-12T15:16:15.537Z"
     }
   ],
   "settings": {
