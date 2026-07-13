@@ -2,12 +2,11 @@ import { randomUUID } from "node:crypto";
 import sharp from "sharp";
 import { NextResponse } from "next/server";
 import { resolveOwner } from "@/lib/auth";
+import { AVATAR_MIME_TYPES, MAX_AVATAR_BYTES } from "@/lib/avatar-image";
 import { cleanupUploadedAssets, deleteImage, getAvatarPublicId, uploadImageBuffer } from "@/lib/cloudinary";
 import { updateProfileAvatar } from "@/lib/repositories/profiles";
 
 export const runtime = "nodejs";
-const MAX_AVATAR_BYTES = 5 * 1024 * 1024;
-const AVATAR_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 export async function POST(request: Request) {
   const owner = await resolveOwner();

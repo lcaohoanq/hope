@@ -1,5 +1,6 @@
 import { clerk } from "@clerk/testing/playwright";
 import { expect, test } from "@playwright/test";
+import path from "node:path";
 
 const publicUsername = process.env.E2E_PUBLIC_PROFILE_USERNAME;
 const ownerEmail = process.env.E2E_CLERK_USER_EMAIL;
@@ -49,6 +50,58 @@ test("shows owner controls to the linked Clerk account", async ({ page }) => {
     "href",
     "/settings/profile",
   );
+});
+
+test("lets the owner reposition and crop an avatar before upload", async ({ page }) => {
+  test.skip(!publicUsername || !ownerEmail, "Set E2E public profile and Clerk test user variables.");
+  await page.goto("/");
+  await clerk.signIn({ page, emailAddress: ownerEmail! });
+  await page.goto(`/${publicUsername}`);
+
+  const avatarInput = page.locator(
+    'input[type="file"][accept="image/jpeg,image/png,image/webp"]',
+  );
+  const imagePath = path.join(process.cwd(), "public/apple-touch-icon.png");
+
+  await avatarInput.setInputFiles(imagePath);
+  const dialog = page.getByRole("dialog", {
+    name: /adjust profile picture|điều chỉnh ảnh đại diện/i,
+  });
+  await expect(dialog).toBeVisible();
+  await expect(
+    dialog.getByText(/drag the image|kéo ảnh/i),
+  ).toBeVisible();
+  await dialog.getByRole("slider").fill("1.5");
+  await dialog.getByRole("button", { name: /cancel|hủy/i }).click();
+  await expect(dialog).toBeHidden();
+
+  let uploadedBody: Buffer | null = null;
+  await page.route("**/api/users/avatar", async (route) => {
+    uploadedBody = route.request().postDataBuffer();
+    await route.fulfill({
+      body: JSON.stringify({
+        success: true,
+        avatarUrl: "/apple-touch-icon.png",
+      }),
+      contentType: "application/json",
+      status: 200,
+    });
+  });
+
+  await avatarInput.setInputFiles(imagePath);
+  await expect(dialog).toBeVisible();
+  const saveButton = dialog.getByRole("button", {
+    name: /save photo|lưu ảnh/i,
+  });
+  await expect(saveButton).toBeEnabled();
+  await saveButton.click();
+  await expect(dialog).toBeHidden();
+
+  expect(uploadedBody).not.toBeNull();
+  const multipart = uploadedBody!.toString("latin1");
+  expect(multipart).toContain('name="avatar"');
+  expect(multipart).toContain("-cropped.webp");
+  expect(multipart).toContain("image/webp");
 });
 
 test("validates and updates the owner's public profile", async ({ page }) => {

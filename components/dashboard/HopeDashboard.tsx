@@ -7,6 +7,7 @@ import { Loading } from "@/components/shared/Loading";
 import { StatsCards } from "@/components/StatsCards";
 import { TopHeader } from "@/components/dashboard/TopHeader";
 import { UserProfileSidebar } from "@/components/dashboard/UserProfileSidebar";
+import { AvatarCropDialog } from "@/components/dashboard/AvatarCropDialog";
 import { WorkoutDialog } from "@/components/dashboard/WorkoutDialog";
 import { WorkoutLoadingState } from "@/components/dashboard/WorkoutLoadingState";
 import {
@@ -27,6 +28,7 @@ import {
 import { getTodayInTimezone } from "@/lib/date-utils";
 import { translations, type Language } from "@/lib/i18n";
 import { getAvatarUrl } from "@/lib/profile-utils";
+import { validateAvatarFile } from "@/lib/avatar-image";
 import type { AppTheme, HeatmapView, PublicAppUser } from "@/lib/users";
 import type {
   Workout,
@@ -74,6 +76,8 @@ export function HopeDashboard({
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [avatarUploadMessage, setAvatarUploadMessage] = useState("");
   const [avatarUploadError, setAvatarUploadError] = useState("");
+  const [avatarCropImageUrl, setAvatarCropImageUrl] = useState("");
+  const [avatarCropImageName, setAvatarCropImageName] = useState("");
   const [workoutLoadError, setWorkoutLoadError] = useState("");
   const [isWorkoutDialogOpen, setIsWorkoutDialogOpen] = useState(false);
   const [selectedHeatmapView, setSelectedHeatmapView] = useState<HeatmapView>(
@@ -108,6 +112,11 @@ export function HopeDashboard({
     setIsWorkoutDialogOpen(false);
   }, []);
 
+  const closeAvatarCropDialog = useCallback(() => {
+    setAvatarCropImageUrl("");
+    setAvatarCropImageName("");
+  }, []);
+
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
     return () => {
@@ -130,6 +139,14 @@ export function HopeDashboard({
       }
     };
   }, [pendingAvatarPreviewUrl]);
+
+  useEffect(() => {
+    return () => {
+      if (avatarCropImageUrl) {
+        URL.revokeObjectURL(avatarCropImageUrl);
+      }
+    };
+  }, [avatarCropImageUrl]);
 
   async function handleSubmitWorkout(input: WorkoutInput) {
     setIsSubmittingWorkout(true);
@@ -214,6 +231,25 @@ export function HopeDashboard({
     }
   }
 
+  function handleSelectAvatar(file: File) {
+    const validationError = validateAvatarFile(file);
+
+    if (validationError) {
+      setAvatarUploadError(
+        validationError === "too-large"
+          ? copy.dashboard.avatarTooLarge
+          : copy.dashboard.avatarInvalidType,
+      );
+      setAvatarUploadMessage("");
+      return;
+    }
+
+    setAvatarUploadError("");
+    setAvatarUploadMessage("");
+    setAvatarCropImageName(file.name);
+    setAvatarCropImageUrl(URL.createObjectURL(file));
+  }
+
   async function handleUploadAvatar(file: File) {
     const formData = new FormData();
     const previewUrl = URL.createObjectURL(file);
@@ -250,6 +286,7 @@ export function HopeDashboard({
       URL.revokeObjectURL(previewUrl);
       setPendingAvatarPreviewUrl("");
       setAvatarUploadMessage(copy.dashboard.avatarUpdated);
+      return true;
     } catch (error) {
       URL.revokeObjectURL(previewUrl);
       setPendingAvatarPreviewUrl("");
@@ -258,6 +295,7 @@ export function HopeDashboard({
           ? error.message
           : copy.dashboard.avatarUploadFailed,
       );
+      return false;
     } finally {
       setIsUploadingAvatar(false);
     }
@@ -364,7 +402,7 @@ export function HopeDashboard({
               }
             }}
             onAddWorkout={() => setIsWorkoutDialogOpen(true)}
-            onUploadAvatar={handleUploadAvatar}
+            onSelectAvatar={handleSelectAvatar}
             user={user}
           />
 
@@ -441,6 +479,17 @@ export function HopeDashboard({
         isSubmitting={isSubmittingWorkout}
         onClose={closeWorkoutDialog}
         onSubmitWorkout={handleSubmitWorkout}
+      />
+      <AvatarCropDialog
+        copy={copy}
+        error={avatarUploadError}
+        imageName={avatarCropImageName}
+        imageUrl={avatarCropImageUrl}
+        isOpen={Boolean(avatarCropImageUrl)}
+        isSaving={isUploadingAvatar}
+        key={avatarCropImageUrl || "closed-avatar-crop"}
+        onClose={closeAvatarCropDialog}
+        onSave={handleUploadAvatar}
       />
     </main>
   );
