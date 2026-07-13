@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import type { IconType } from "react-icons";
 import { FaBicycle, FaBook, FaEllipsisH } from "react-icons/fa";
@@ -9,7 +9,7 @@ import type { AppCopy } from "@/lib/i18n";
 type ActivityTypeSelectorProps = {
   copy: AppCopy;
   disabled?: boolean;
-  label: string;
+  label: ReactNode;
   onChange: (value: string) => void;
   value: string;
   variant?: "default" | "compact";
