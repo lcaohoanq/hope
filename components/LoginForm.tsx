@@ -40,7 +40,7 @@ const LoginSceneStage = memo(function LoginSceneStage() {
   return (
     <motion.section
       animate={{ opacity: 1, y: 0 }}
-      className="relative h-[430px] overflow-hidden rounded-lg border border-stone-200 bg-white/68 shadow-[0_24px_90px_rgba(17,17,17,0.07)] backdrop-blur sm:h-[520px] lg:h-[min(760px,calc(100dvh-96px))] lg:min-h-[620px]"
+      className="relative h-[430px] overflow-hidden rounded-lg border border-border bg-panel/68 shadow-[0_24px_90px_rgba(17,17,17,0.07)] backdrop-blur sm:h-[520px] lg:h-[min(760px,calc(100dvh-96px))] lg:min-h-[620px]"
       initial={{ opacity: 0, y: 18 }}
       transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
     >
@@ -118,7 +118,7 @@ function CredentialsCard({ nextPath }: LoginFormProps) {
   return (
     <motion.section
       animate={{ opacity: 1, scale: 1, y: 0 }}
-      className="rounded-lg border border-stone-200 bg-white/92 p-5 shadow-[0_24px_80px_rgba(17,17,17,0.08)] backdrop-blur sm:p-6"
+      className="rounded-lg border border-border bg-panel/92 p-5 shadow-[0_24px_80px_rgba(17,17,17,0.08)] backdrop-blur sm:p-6"
       initial={{ opacity: 0, scale: 0.97, y: 16 }}
       transition={{
         delay: 0.12,
@@ -127,23 +127,23 @@ function CredentialsCard({ nextPath }: LoginFormProps) {
       }}
     >
       <div className="mb-6">
-        <p className="text-sm font-semibold text-moss">Welcome back</p>
-        <h2 className="mt-2 text-2xl font-semibold text-stone-950">
+        <p className="text-sm font-semibold text-accent">Welcome back</p>
+        <h2 className="mt-2 text-2xl font-semibold text-text">
           Sign in
         </h2>
       </div>
 
       <form className="grid gap-4" onSubmit={handleSubmit}>
-        <label className="grid gap-1.5 text-sm font-medium text-stone-800">
+        <label className="grid gap-1.5 text-sm font-medium text-text">
           Username
           <span className="relative">
             <FaUser
               aria-hidden="true"
-              className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-stone-400"
+              className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted"
             />
             <input
               autoComplete="username"
-              className="h-11 w-full rounded-md border border-stone-200 bg-white pl-9 pr-3 text-sm font-normal text-stone-950 outline-none transition focus:border-moss focus:ring-2 focus:ring-moss/15"
+              className="h-11 w-full rounded-md border border-border bg-panel pl-9 pr-3 text-sm font-normal text-text outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/15"
               onChange={(event) => {
                 setUsername(event.target.value.trim().toLowerCase());
                 setError("");
@@ -153,16 +153,16 @@ function CredentialsCard({ nextPath }: LoginFormProps) {
           </span>
         </label>
 
-        <label className="grid gap-1.5 text-sm font-medium text-stone-800">
+        <label className="grid gap-1.5 text-sm font-medium text-text">
           Password
           <span className="relative">
             <FaLock
               aria-hidden="true"
-              className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-stone-400"
+              className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted"
             />
             <input
               autoComplete="current-password"
-              className="h-11 w-full rounded-md border border-stone-200 bg-white pl-9 pr-3 text-sm font-normal text-stone-950 outline-none transition focus:border-moss focus:ring-2 focus:ring-moss/15"
+              className="h-11 w-full rounded-md border border-border bg-panel pl-9 pr-3 text-sm font-normal text-text outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/15"
               onChange={(event) => {
                 setPassword(event.target.value);
                 setError("");
@@ -175,12 +175,12 @@ function CredentialsCard({ nextPath }: LoginFormProps) {
 
         <div className="min-h-5">
           {error ? (
-            <p className="text-sm font-medium text-red-700">{error}</p>
+            <p className="text-sm font-medium text-danger">{error}</p>
           ) : null}
         </div>
 
         <button
-          className="group inline-flex h-11 items-center justify-center gap-2 rounded-md bg-stone-950 px-4 text-sm font-semibold text-white transition hover:bg-stone-800 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-stone-400"
+          className="group inline-flex h-11 items-center justify-center gap-2 rounded-md bg-accent px-4 text-sm font-semibold text-accent-contrast transition hover:bg-accent/90 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-muted"
           disabled={isSubmitting}
           type="submit"
         >
@@ -197,7 +197,7 @@ function CredentialsCard({ nextPath }: LoginFormProps) {
 
 export function LoginForm({ nextPath }: LoginFormProps) {
   return (
-    <main className="relative min-h-[100dvh] overflow-hidden bg-paper px-4 py-6 text-stone-950 sm:px-6 lg:px-8">
+    <main className="relative min-h-[100dvh] overflow-hidden bg-app px-4 py-6 text-text sm:px-6 lg:px-8">
       <motion.div
         aria-hidden="true"
         animate={{
@@ -235,10 +235,10 @@ export function LoginForm({ nextPath }: LoginFormProps) {
               ease: [0.16, 1, 0.3, 1],
             }}
           >
-            <h1 className="text-4xl font-semibold leading-none text-stone-950 sm:text-5xl lg:text-5xl">
+            <h1 className="text-4xl font-semibold leading-none text-text sm:text-5xl lg:text-5xl">
               Return to your quiet record of movement.
             </h1>
-            <p className="mt-5 max-w-md text-base leading-7 text-stone-600">
+            <p className="mt-5 max-w-md text-base leading-7 text-muted">
               Pick up where you left off with your workouts, progress, and
               personal rhythm.
             </p>
