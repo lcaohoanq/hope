@@ -199,39 +199,39 @@ export function ContributionHeatmap({
   }
 
   return (
-    <section className="rounded-lg border border-stone-300 p-5 sm:p-6">
-      <div className="flex flex-col gap-4 border-b border-stone-100 pb-5 lg:flex-row lg:items-end lg:justify-between">
+    <section className="rounded-lg border border-border p-5 sm:p-6">
+      <div className="flex flex-col gap-4 border-b border-border pb-5 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <h2 className="mt-2 text-xl font-semibold tracking-[-0.02em] text-stone-950">
+          <h2 className="mt-2 text-xl font-semibold tracking-[-0.02em] text-text">
             {viewTitle}
           </h2>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <div
-            className="relative flex items-center gap-2 text-xs font-medium text-stone-500"
+            className="relative flex items-center gap-2 text-xs font-medium text-muted"
             ref={viewPickerRef}
           >
             <span>{copy.heatmap.view}</span>
             <button
               aria-expanded={isViewPickerOpen}
               aria-haspopup="listbox"
-              className="group inline-flex h-9 min-w-[116px] items-center justify-between gap-3 rounded-md border border-stone-300 bg-white px-3 text-sm font-semibold text-stone-800 shadow-[0_1px_0_rgba(17,17,17,0.04)] outline-none transition hover:border-stone-400 hover:bg-stone-50 focus-visible:border-moss focus-visible:ring-2 focus-visible:ring-moss/20 active:scale-[0.99]"
+              className="group inline-flex h-9 min-w-[116px] items-center justify-between gap-3 rounded-md border border-border bg-panel px-3 text-sm font-semibold text-text shadow-[0_1px_0_rgba(17,17,17,0.04)] outline-none transition hover:border-border hover:bg-panel-muted focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/20 active:scale-[0.99]"
               onClick={() => setIsViewPickerOpen((current) => !current)}
               type="button"
             >
               <span>{selectedViewLabel}</span>
               <span
                 aria-hidden="true"
-                className={`h-2 w-2 border-b-2 border-r-2 border-stone-500 transition group-hover:border-stone-700 ${
+                className={`h-2 w-2 border-b-2 border-r-2 border-muted transition group-hover:border-text ${
                   isViewPickerOpen ? "-rotate-[135deg]" : "rotate-45"
                 }`}
               />
             </button>
             {isViewPickerOpen ? (
-              <div className="absolute right-0 top-11 z-50 w-[148px] overflow-hidden rounded-lg border border-stone-200 bg-white shadow-[0_18px_45px_rgba(17,17,17,0.14)]">
+              <div className="absolute right-0 top-11 z-50 w-[148px] overflow-hidden rounded-lg border border-border bg-panel shadow-[0_18px_45px_rgba(17,17,17,0.14)]">
                 <div
                   aria-label={copy.heatmap.view}
-                  className="max-h-72 overflow-y-auto p-1.5 [scrollbar-color:#a8a29e_transparent] [scrollbar-width:thin]"
+                  className="max-h-72 overflow-y-auto p-1.5 [scrollbar-color:rgb(var(--color-muted))_transparent] [scrollbar-width:thin]"
                   role="listbox"
                 >
                   {viewOptions.map((option) => {
@@ -242,8 +242,8 @@ export function ContributionHeatmap({
                         aria-selected={isSelected}
                         className={`flex h-8 w-full items-center justify-between rounded-md px-2.5 text-left text-sm transition ${
                           isSelected
-                            ? "bg-stone-950 font-semibold text-white"
-                            : "font-medium text-stone-700 hover:bg-stone-100 hover:text-stone-950"
+                            ? "bg-text font-semibold text-white"
+                            : "font-medium text-muted hover:bg-panel-muted hover:text-text"
                         }`}
                         key={option.value}
                         onClick={() => handleViewChange(option.value)}
@@ -264,12 +264,12 @@ export function ContributionHeatmap({
               </div>
             ) : null}
           </div>
-          <div className="flex flex-wrap items-center gap-2 text-xs text-stone-500">
+          <div className="flex flex-wrap items-center gap-2 text-xs text-muted">
             <span>{copy.heatmap.noData}</span>
-            <span className="h-3 w-3 rounded-[3px] border border-stone-300 bg-stone-100" />
+            <span className="h-3 w-3 rounded-[3px] border border-border bg-panel-muted" />
             <span>{copy.heatmap.noWorkout}</span>
-            <span className="h-3 w-3 rounded-[3px] bg-stone-950" />
-            <span className="h-3 w-3 rounded-[3px] bg-moss" />
+            <span className="h-3 w-3 rounded-[3px] bg-text" />
+            <span className="h-3 w-3 rounded-[3px] bg-accent" />
             <span>{copy.heatmap.workout}</span>
           </div>
         </div>
@@ -282,7 +282,7 @@ export function ContributionHeatmap({
               className="grid grid-cols-[44px_32px_1fr] items-start gap-x-3"
               key={year}
             >
-              <div className="mt-5 grid grid-rows-7 gap-1 text-[9px] text-stone-950">
+              <div className="mt-5 grid grid-rows-7 gap-1 text-[9px] text-text">
                 {copy.heatmap.weekdays.map((label, labelIndex) => (
                   <span key={label} className="flex h-2.5 items-center">
                     {labelIndex === 1 || labelIndex === 3 || labelIndex === 5
@@ -294,7 +294,7 @@ export function ContributionHeatmap({
               <div>
                 <div
                   aria-hidden="true"
-                  className="mb-2 grid h-3 auto-cols-[10px] grid-flow-col gap-1 text-[9px] leading-none text-stone-950"
+                  className="mb-2 grid h-3 auto-cols-[10px] grid-flow-col gap-1 text-[9px] leading-none text-text"
                 >
                   {getMonthMarkers(weeks, copy).map((label, index) => (
                     <span className="w-2.5" key={`${year}-${index}-${label}`}>
@@ -329,12 +329,12 @@ export function ContributionHeatmap({
                       return (
                         <button
                           aria-label={`${day.date}: ${label}`}
-                          className={`relative z-0 h-2.5 w-2.5 rounded-[2px] outline-none ring-offset-2 ring-offset-white transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:z-10 hover:ring-2 hover:ring-stone-950/20 focus:z-10 focus-visible:ring-2 focus-visible:ring-moss ${
+                          className={`relative z-0 h-2.5 w-2.5 rounded-[2px] outline-none ring-offset-2 ring-offset-panel transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:z-10 hover:ring-2 hover:ring-text/20 focus:z-10 focus-visible:ring-2 focus-visible:ring-accent ${
                             hasWorkout
-                              ? "bg-moss"
+                              ? "bg-accent"
                               : isTrackable
-                                ? "bg-stone-950 hover:bg-stone-800"
-                                : "border border-stone-300 bg-stone-100"
+                                ? "bg-text hover:bg-accent/90"
+                                : "border border-border bg-panel-muted"
                           }`}
                           onBlur={() => setActiveTooltip(null)}
                           onFocus={(event) =>

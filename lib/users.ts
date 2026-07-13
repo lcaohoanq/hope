@@ -40,6 +40,7 @@ export type UserCredentials = {
 };
 
 export type UserSettings = {
+  theme: AppTheme;
   heatmap: {
     defaultView: HeatmapDefaultView;
   };
@@ -47,6 +48,8 @@ export type UserSettings = {
     allowPastWorkoutEdits: boolean;
   };
 };
+
+export type AppTheme = "light" | "dark";
 
 export type AppUser = UserProfile & {
   id: string;
@@ -100,6 +103,7 @@ export const APP_USERS = [
       linkedin: "https://linkedin.com/in/test-fitlog",
     },
     settings: {
+      theme: "light",
       heatmap: {
         defaultView: {
           mode: "year",
@@ -147,7 +151,8 @@ export const APP_USERS = [
       instagram: "https://instagram.com/lcaohoanq",
       linkedin: "https://linkedin.com/in/lcaohoanq",
     },
-    settings: {      theme: "light",
+    settings: {
+      theme: "light",
       heatmap: {
         defaultView: {
           mode: "year",
@@ -195,6 +200,7 @@ export const APP_USERS = [
       linkedin: "https://linkedin.com/in/linh-fitlog",
     },
     settings: {
+      theme: "light",
       heatmap: {
         defaultView: {
           mode: "year",
@@ -233,6 +239,7 @@ export const APP_USERS = [
     },
     preferredLanguage: "en",
     settings: {
+      theme: "light",
       heatmap: {
         defaultView: {
           mode: "year",
@@ -309,6 +316,10 @@ export function normalizeUserId(value: unknown) {
   const userId = value.trim().toLowerCase();
 
   return isKnownUserId(userId) ? userId : null;
+}
+
+export function isAppTheme(value: unknown): value is AppTheme {
+  return value === "light" || value === "dark";
 }
 
 export function isWorkoutVisibleForUser(workout: Workout, userId: string) {

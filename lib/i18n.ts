@@ -18,6 +18,18 @@ export const languageOptions: Array<{
 
 export const translations = {
   vi: {
+    activity: {
+      closeModal: "Đóng chọn hoạt động",
+      customTooltip: "Muốn tự nhập? Chọn mục này cho hoạt động chưa có sẵn.",
+      labels: {
+        other: "Hoạt động khác",
+        study: "Học tập",
+        workout: "Tập luyện",
+      },
+      modalTitle: "Chọn hoạt động",
+      selectActivity: "Chọn hoạt động",
+      selectedActivity: (activity: string) => `Hoạt động đã chọn: ${activity}`,
+    },
     common: {
       cancel: "Hủy",
       close: "Đóng",
@@ -67,7 +79,7 @@ export const translations = {
       saveWorkout: "Chưa thể lưu buổi tập.",
       startBeforeEnd: "Giờ bắt đầu phải sớm hơn giờ kết thúc.",
       timeRequired: "Vui lòng nhập giờ bắt đầu và giờ kết thúc.",
-      typeRequired: "Vui lòng nhập loại buổi tập.",
+      typeRequired: "Vui lòng chọn hoạt động.",
       updateWorkout: "Chưa thể cập nhật buổi tập.",
       workoutLoad: "Chưa thể tải dữ liệu tập luyện.",
     },
@@ -96,12 +108,17 @@ export const translations = {
       success: "Đã lưu buổi tập và cập nhật heatmap.",
       todayEntry: "Hôm nay",
       type: "Loại",
-      workoutType: "Loại buổi tập",
+      workoutType: "Hoạt động",
       workoutTypePlaceholder: "Đi bộ, gym, chạy bộ",
       workoutUpdated: "Đã cập nhật buổi tập.",
     },
     header: {
+      dark: "Tối",
       english: "English",
+      light: "Sáng",
+      savingTheme: "Đang lưu giao diện...",
+      theme: "Giao diện",
+      themeUpdateFailed: "Chưa thể lưu giao diện.",
       vietnamese: "Tiếng Việt",
     },
     heatmap: {
@@ -155,6 +172,18 @@ export const translations = {
     },
   },
   en: {
+    activity: {
+      closeModal: "Close activity picker",
+      customTooltip: "Want to enter your own? Choose this for activities not listed.",
+      labels: {
+        other: "Other activity",
+        study: "Study",
+        workout: "Workout",
+      },
+      modalTitle: "Choose an activity",
+      selectActivity: "Choose an activity",
+      selectedActivity: (activity: string) => `Selected activity: ${activity}`,
+    },
     common: {
       cancel: "Cancel",
       close: "Close",
@@ -204,7 +233,7 @@ export const translations = {
       saveWorkout: "Unable to save workout.",
       startBeforeEnd: "Start time must be earlier than end time.",
       timeRequired: "Start time and end time are required.",
-      typeRequired: "Workout type is required.",
+      typeRequired: "Choose an activity.",
       updateWorkout: "Unable to update workout.",
       workoutLoad: "Unable to load workouts.",
     },
@@ -235,12 +264,17 @@ export const translations = {
       success: "Workout saved and heatmap refreshed.",
       todayEntry: "Today's entry",
       type: "Type",
-      workoutType: "Workout type",
+      workoutType: "Activity",
       workoutTypePlaceholder: "Walking, gym, running",
       workoutUpdated: "Workout updated.",
     },
     header: {
+      dark: "Dark",
       english: "English",
+      light: "Light",
+      savingTheme: "Saving theme...",
+      theme: "Theme",
+      themeUpdateFailed: "Unable to save theme.",
       vietnamese: "Tiếng Việt",
     },
     heatmap: {

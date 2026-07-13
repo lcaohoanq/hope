@@ -50,16 +50,16 @@ export function StatsCards({
     <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-2">
       {items.map((item) => (
         <div
-          className="rounded-lg border border-stone-300 p-5 transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgba(17,17,17,0.04)]"
+          className="rounded-lg border border-border p-5 transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgba(17,17,17,0.04)]"
           key={item.label}
         >
-          <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-stone-500">
+          <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-muted">
             {item.label}
           </p>
-          <p className="mt-4 text-3xl font-semibold tracking-[-0.04em] text-stone-950">
+          <p className="mt-4 text-3xl font-semibold tracking-[-0.04em] text-text">
             {item.value}
           </p>
-          <p className="mt-1 text-sm text-stone-500">{item.detail}</p>
+          <p className="mt-1 text-sm text-muted">{item.detail}</p>
         </div>
       ))}
     </section>
