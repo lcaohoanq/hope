@@ -7,7 +7,7 @@ import type { UserProfile } from "@/lib/workout-types";
 
 type OnboardingOverlayProps = {
   currentYear: number;
-  onComplete: (profile: UserProfile) => void;
+  onComplete: (profile: UserProfile) => void | Promise<void>;
 };
 
 const onboardingSteps = ["Name", "Birth year"] as const;
@@ -47,7 +47,7 @@ export function OnboardingOverlay({
     setStep("birthYear");
   }
 
-  function handleBirthYearSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleBirthYearSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const year = Number(birthYear);
@@ -57,11 +57,15 @@ export function OnboardingOverlay({
       return;
     }
 
-    onComplete({
-      displayName: displayName.trim(),
-      birthYear: year,
-      avatarSeed,
-    });
+    try {
+      await onComplete({
+        displayName: displayName.trim(),
+        birthYear: year,
+        avatarSeed,
+      });
+    } catch (submitError) {
+      setError(submitError instanceof Error ? submitError.message : "Unable to create your profile.");
+    }
   }
 
   return (
@@ -105,7 +109,7 @@ export function OnboardingOverlay({
                 {step === "name" ? "Step 1 of 2" : "Step 2 of 2"}
               </p>
               <p className="mt-2 text-sm text-muted">
-                Your profile stays in this browser for now.
+                Your profile will be saved securely to your account.
               </p>
             </div>
             <motion.div
