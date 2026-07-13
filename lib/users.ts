@@ -151,7 +151,7 @@ export const APP_USERS = [
       instagram: "https://instagram.com/lcaohoanq",
       linkedin: "https://linkedin.com/in/lcaohoanq",
     },
-    settings: {      theme: "dark",
+    settings: {      theme: "light",
       heatmap: {
         defaultView: {
           mode: "year",
