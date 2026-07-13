@@ -46,6 +46,7 @@ export type AppUser = UserProfile & {
   website?: string;
   settings: UserSettings;
   reminderEnabled?: boolean;
+  isPrivate: boolean;
 };
 
 export type PublicAppUser = Omit<
@@ -115,6 +116,20 @@ export function toPublicUser(user: AppUser): PublicAppUser {
     socialLinks: user.socialLinks,
     website: user.website,
     settings: user.settings,
+    isPrivate: user.isPrivate,
+  };
+}
+
+export function toPrivateProfileShell(user: AppUser): PublicAppUser {
+  const profile = toPublicUser(user);
+  return {
+    ...profile,
+    birthYear: new Date().getFullYear(),
+    location: undefined,
+    pronouns: undefined,
+    socialLinks: undefined,
+    website: undefined,
+    plan: "standard",
   };
 }
 

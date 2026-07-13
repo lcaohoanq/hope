@@ -1,8 +1,11 @@
-import { asc, eq, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, lt, or } from "drizzle-orm";
 import { getDatabase } from "@/lib/db";
-import { workoutImages, workouts, type WorkoutImageRow, type WorkoutRow } from "@/lib/db/schema";
+import { profileFollows, profiles, workoutImages, workouts, type WorkoutImageRow, type WorkoutRow } from "@/lib/db/schema";
 import type { UploadedAsset } from "@/lib/cloudinary";
+import type { FeedItem } from "@/lib/social-types";
+import { toPublicUser } from "@/lib/users";
 import type { Workout, WorkoutImage } from "@/lib/workout-types";
+import { toAppUser } from "./profiles";
 
 export type StoredWorkoutImage = WorkoutImage & { publicId: string };
 export type StoredWorkout = Workout & { storedImages: StoredWorkoutImage[] };
@@ -32,6 +35,7 @@ function toWorkout(row: WorkoutRow, images: WorkoutImageRow[]): StoredWorkout {
     images: storedImages.length > 0 ? storedImages : undefined,
     storedImages,
     createdAt: row.createdAt.toISOString(),
+    isPublic: row.isPublic,
   };
 }
 
@@ -40,10 +44,40 @@ async function loadImages(workoutIds: string[]) {
   return getDatabase().select().from(workoutImages).where(inArray(workoutImages.workoutId, workoutIds)).orderBy(asc(workoutImages.position));
 }
 
-export async function listWorkoutsByProfile(profileId: string) {
-  const rows = await getDatabase().select().from(workouts).where(eq(workouts.profileId, profileId)).orderBy(asc(workouts.date), asc(workouts.startTime));
+export async function listWorkoutsByProfile(profileId: string, visibility: "all" | "public" = "all") {
+  const rows = await getDatabase().select().from(workouts).where(
+    visibility === "all"
+      ? eq(workouts.profileId, profileId)
+      : and(eq(workouts.profileId, profileId), eq(workouts.isPublic, true)),
+  ).orderBy(asc(workouts.date), asc(workouts.startTime));
   const images = await loadImages(rows.map((row) => row.id));
   return rows.map((row) => toWorkout(row, images.filter((image) => image.workoutId === row.id)));
+}
+
+export async function listFeedWorkouts(profileId: string, cursor?: string, limit = 20) {
+  const followed = await getDatabase().select({ id: profileFollows.followingProfileId }).from(profileFollows).where(and(eq(profileFollows.followerProfileId, profileId), eq(profileFollows.status, "accepted")));
+  const followedIds = followed.map((row) => row.id);
+  if (followedIds.length === 0) return { items: [] as FeedItem[], nextCursor: null };
+
+  const [cursorDate, cursorId] = cursor ? cursor.split("|") : [];
+  const cursorCondition = cursorDate && cursorId
+    ? or(lt(workouts.createdAt, new Date(cursorDate)), and(eq(workouts.createdAt, new Date(cursorDate)), lt(workouts.id, cursorId)))
+    : undefined;
+  const condition = and(inArray(workouts.profileId, followedIds), eq(workouts.isPublic, true), cursorCondition);
+  const rows = await getDatabase().select().from(workouts).where(condition).orderBy(desc(workouts.createdAt), desc(workouts.id)).limit(limit + 1);
+  const page = rows.slice(0, limit);
+  const images = await loadImages(page.map((row) => row.id));
+  const authorRows = await getDatabase().select().from(profiles).where(inArray(profiles.id, [...new Set(page.map((row) => row.profileId))]));
+  const authors = new Map(authorRows.map((row) => [row.id, toPublicUser(toAppUser(row))]));
+  const items = page.flatMap((row): FeedItem[] => {
+    const profile = authors.get(row.profileId);
+    return profile ? [{ profile, workout: toWorkout(row, images.filter((image) => image.workoutId === row.id)) }] : [];
+  });
+  const last = page.at(-1);
+  return {
+    items,
+    nextCursor: rows.length > limit && last ? `${last.createdAt.toISOString()}|${last.id}` : null,
+  };
 }
 
 export async function getOwnedWorkout(workoutId: string, profileId: string) {
@@ -68,6 +102,7 @@ export async function insertWorkout(input: {
       durationMinutes: input.workout.durationMinutes,
       note: input.workout.note || null,
       createdAt: new Date(input.workout.createdAt),
+      isPublic: input.workout.isPublic,
     }).returning();
 
     const imageRows = input.assets.length > 0
@@ -101,6 +136,7 @@ export async function updateWorkout(input: {
       endTime: input.workout.endTime,
       durationMinutes: input.workout.durationMinutes,
       note: input.workout.note || null,
+      isPublic: input.workout.isPublic,
     }).where(eq(workouts.id, input.existing.id)).returning();
 
     await tx.delete(workoutImages).where(eq(workoutImages.workoutId, input.existing.id));

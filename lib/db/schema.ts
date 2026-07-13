@@ -1,5 +1,6 @@
 import {
   boolean,
+  check,
   date,
   index,
   integer,
@@ -10,6 +11,7 @@ import {
   timestamp,
   uniqueIndex,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import type { Language, LocalizedText } from "@/lib/i18n";
 import type {
   UserLocation,
@@ -38,6 +40,7 @@ export const profiles = pgTable(
     website: text("website"),
     settings: jsonb("settings").$type<UserSettings>().notNull(),
     reminderEnabled: boolean("reminder_enabled").notNull().default(false),
+    isPrivate: boolean("is_private").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
@@ -55,6 +58,7 @@ export const workouts = pgTable(
     endTime: text("end_time").notNull(),
     durationMinutes: integer("duration_minutes").notNull(),
     note: text("note"),
+    isPublic: boolean("is_public").notNull().default(true),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [index("workouts_profile_date_idx").on(table.profileId, table.date)],
@@ -76,6 +80,50 @@ export const workoutImages = pgTable(
   (table) => [uniqueIndex("workout_images_position_idx").on(table.workoutId, table.position)],
 );
 
+export type FollowStatus = "pending" | "accepted";
+export type NotificationType =
+  | "follow_request"
+  | "new_follower"
+  | "follow_accepted";
+
+export const profileFollows = pgTable(
+  "profile_follows",
+  {
+    id: serial("id").primaryKey(),
+    followerProfileId: text("follower_profile_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+    followingProfileId: text("following_profile_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+    status: text("status").$type<FollowStatus>().notNull(),
+    requestedAt: timestamp("requested_at", { withTimezone: true }).notNull().defaultNow(),
+    acceptedAt: timestamp("accepted_at", { withTimezone: true }),
+  },
+  (table) => [
+    uniqueIndex("profile_follows_pair_idx").on(table.followerProfileId, table.followingProfileId),
+    index("profile_follows_follower_status_idx").on(table.followerProfileId, table.status),
+    index("profile_follows_following_status_idx").on(table.followingProfileId, table.status),
+    check("profile_follows_not_self_check", sql`${table.followerProfileId} <> ${table.followingProfileId}`),
+    check("profile_follows_status_check", sql`${table.status} in ('pending', 'accepted')`),
+  ],
+);
+
+export const notifications = pgTable(
+  "notifications",
+  {
+    id: text("id").primaryKey(),
+    recipientProfileId: text("recipient_profile_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+    actorProfileId: text("actor_profile_id").references(() => profiles.id, { onDelete: "set null" }),
+    type: text("type").$type<NotificationType>().notNull(),
+    readAt: timestamp("read_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("notifications_recipient_created_idx").on(table.recipientProfileId, table.createdAt),
+    index("notifications_recipient_read_idx").on(table.recipientProfileId, table.readAt),
+    check("notifications_type_check", sql`${table.type} in ('follow_request', 'new_follower', 'follow_accepted')`),
+  ],
+);
+
 export type ProfileRow = typeof profiles.$inferSelect;
 export type WorkoutRow = typeof workouts.$inferSelect;
 export type WorkoutImageRow = typeof workoutImages.$inferSelect;
+export type ProfileFollowRow = typeof profileFollows.$inferSelect;
+export type NotificationRow = typeof notifications.$inferSelect;
