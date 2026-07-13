@@ -1,12 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useClerk } from "@clerk/nextjs";
 import { ContributionHeatmap } from "@/components/ContributionHeatmap";
 import { Loading } from "@/components/shared/Loading";
 import { StatsCards } from "@/components/StatsCards";
 import { TopHeader } from "@/components/dashboard/TopHeader";
 import { UserProfileSidebar } from "@/components/dashboard/UserProfileSidebar";
+import { AvatarCropDialog } from "@/components/dashboard/AvatarCropDialog";
 import { WorkoutDialog } from "@/components/dashboard/WorkoutDialog";
 import { WorkoutLoadingState } from "@/components/dashboard/WorkoutLoadingState";
 import {
@@ -27,30 +28,38 @@ import {
 import { getTodayInTimezone } from "@/lib/date-utils";
 import { translations, type Language } from "@/lib/i18n";
 import { getAvatarUrl } from "@/lib/profile-utils";
+import { validateAvatarFile } from "@/lib/avatar-image";
 import type { AppTheme, HeatmapView, PublicAppUser } from "@/lib/users";
 import type {
   Workout,
   WorkoutInput,
   WorkoutUpdateInput,
 } from "@/lib/workout-types";
+import type { SocialSummary } from "@/lib/social-types";
+import { getSocialCopy } from "@/lib/social-copy";
 
 type HopeDashboardProps = {
   isAuthenticated: boolean;
   isEditable: boolean;
   user: PublicAppUser;
+  viewer?: PublicAppUser;
+  socialSummary: SocialSummary;
 };
 
 export function HopeDashboard({
   isAuthenticated,
   isEditable,
   user,
+  viewer,
+  socialSummary,
 }: HopeDashboardProps) {
-  const router = useRouter();
+  const { signOut } = useClerk();
   const todayDateKey = getTodayInTimezone();
   const currentYear = Number(todayDateKey.slice(0, 4));
   const birthYear = user.birthYear ?? currentYear;
   const [language, setLanguage] = useState<Language>(user.preferredLanguage);
   const copy = translations[language];
+  const socialCopy = getSocialCopy(language);
   const themeStorageKey = `hope:theme:${user.id}`;
   const [theme, setTheme] = useState<AppTheme>(() =>
     getInitialTheme({
@@ -63,7 +72,7 @@ export function HopeDashboard({
   const [themeError, setThemeError] = useState("");
   const [isSavingTheme, setIsSavingTheme] = useState(false);
   const [workouts, setWorkouts] = useState<Workout[]>([]);
-  const [isLoadingWorkouts, setIsLoadingWorkouts] = useState(true);
+  const [isLoadingWorkouts, setIsLoadingWorkouts] = useState(socialSummary.canViewWorkouts);
   const [isSubmittingWorkout, setIsSubmittingWorkout] = useState(false);
   const [isUploadingWorkoutImages, setIsUploadingWorkoutImages] =
     useState(false);
@@ -74,6 +83,8 @@ export function HopeDashboard({
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [avatarUploadMessage, setAvatarUploadMessage] = useState("");
   const [avatarUploadError, setAvatarUploadError] = useState("");
+  const [avatarCropImageUrl, setAvatarCropImageUrl] = useState("");
+  const [avatarCropImageName, setAvatarCropImageName] = useState("");
   const [workoutLoadError, setWorkoutLoadError] = useState("");
   const [isWorkoutDialogOpen, setIsWorkoutDialogOpen] = useState(false);
   const [selectedHeatmapView, setSelectedHeatmapView] = useState<HeatmapView>(
@@ -84,6 +95,10 @@ export function HopeDashboard({
     selectedHeatmapView,
   );
   const displayedAvatarUrl = pendingAvatarPreviewUrl || avatarUrl;
+  const headerUser = viewer ?? user;
+  const headerAvatarUrl = isEditable
+    ? displayedAvatarUrl
+    : headerUser.avatarUrl ?? getAvatarUrl(headerUser.avatarSeed);
 
   const loadWorkouts = useCallback(async () => {
     setIsLoadingWorkouts(true);
@@ -108,6 +123,11 @@ export function HopeDashboard({
     setIsWorkoutDialogOpen(false);
   }, []);
 
+  const closeAvatarCropDialog = useCallback(() => {
+    setAvatarCropImageUrl("");
+    setAvatarCropImageName("");
+  }, []);
+
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
     return () => {
@@ -116,12 +136,15 @@ export function HopeDashboard({
   }, [theme]);
 
   useEffect(() => {
+    if (!socialSummary.canViewWorkouts) {
+      return;
+    }
     const timer = window.setTimeout(() => {
       void loadWorkouts();
     }, 0);
 
     return () => window.clearTimeout(timer);
-  }, [loadWorkouts]);
+  }, [loadWorkouts, socialSummary.canViewWorkouts]);
 
   useEffect(() => {
     return () => {
@@ -131,12 +154,20 @@ export function HopeDashboard({
     };
   }, [pendingAvatarPreviewUrl]);
 
+  useEffect(() => {
+    return () => {
+      if (avatarCropImageUrl) {
+        URL.revokeObjectURL(avatarCropImageUrl);
+      }
+    };
+  }, [avatarCropImageUrl]);
+
   async function handleSubmitWorkout(input: WorkoutInput) {
     setIsSubmittingWorkout(true);
     setIsUploadingWorkoutImages(hasWorkoutImages(input));
 
     try {
-      const requestInit = await createWorkoutRequestInit(input, user.id);
+      const requestInit = await createWorkoutRequestInit(input);
       const response = await fetch("/api/workouts", {
         method: "POST",
         ...requestInit,
@@ -175,7 +206,7 @@ export function HopeDashboard({
     setIsUploadingWorkoutImages(hasWorkoutImages(input));
 
     try {
-      const requestInit = await createWorkoutRequestInit(input, user.id);
+      const requestInit = await createWorkoutRequestInit(input);
       const response = await fetch("/api/workouts", {
         method: "PATCH",
         ...requestInit,
@@ -214,12 +245,30 @@ export function HopeDashboard({
     }
   }
 
+  function handleSelectAvatar(file: File) {
+    const validationError = validateAvatarFile(file);
+
+    if (validationError) {
+      setAvatarUploadError(
+        validationError === "too-large"
+          ? copy.dashboard.avatarTooLarge
+          : copy.dashboard.avatarInvalidType,
+      );
+      setAvatarUploadMessage("");
+      return;
+    }
+
+    setAvatarUploadError("");
+    setAvatarUploadMessage("");
+    setAvatarCropImageName(file.name);
+    setAvatarCropImageUrl(URL.createObjectURL(file));
+  }
+
   async function handleUploadAvatar(file: File) {
     const formData = new FormData();
     const previewUrl = URL.createObjectURL(file);
     const previousPreviewUrl = pendingAvatarPreviewUrl;
 
-    formData.set("userId", user.id);
     formData.set("avatar", file);
 
     if (previousPreviewUrl) {
@@ -251,6 +300,7 @@ export function HopeDashboard({
       URL.revokeObjectURL(previewUrl);
       setPendingAvatarPreviewUrl("");
       setAvatarUploadMessage(copy.dashboard.avatarUpdated);
+      return true;
     } catch (error) {
       URL.revokeObjectURL(previewUrl);
       setPendingAvatarPreviewUrl("");
@@ -259,17 +309,14 @@ export function HopeDashboard({
           ? error.message
           : copy.dashboard.avatarUploadFailed,
       );
+      return false;
     } finally {
       setIsUploadingAvatar(false);
     }
   }
 
   async function handleSignOut() {
-    await fetch("/api/auth/logout", {
-      method: "POST",
-    });
-    router.push("/login");
-    router.refresh();
+    await signOut({ redirectUrl: "/login" });
   }
 
   async function handleThemeChange(nextTheme: AppTheme) {
@@ -291,7 +338,6 @@ export function HopeDashboard({
       const response = await fetch("/api/users/settings", {
         body: JSON.stringify({
           theme: nextTheme,
-          userId: user.id,
         }),
         headers: {
           "Content-Type": "application/json",
@@ -337,20 +383,21 @@ export function HopeDashboard({
         />
       ) : null}
       <TopHeader
-        avatarUrl={displayedAvatarUrl}
+        avatarUrl={headerAvatarUrl}
         copy={copy}
         language={language}
         onLanguageChange={setLanguage}
         onSignOut={() => void handleSignOut()}
         onThemeChange={(nextTheme) => void handleThemeChange(nextTheme)}
-        showProfileShortcut={isEditable}
+        showProfileShortcut={Boolean(viewer)}
+        showNotifications={Boolean(viewer)}
         showSignOut={isAuthenticated}
         showThemeControl={isEditable}
         theme={theme}
         themeError={themeError}
         themeMessage={themeMessage}
         isSavingTheme={isSavingTheme}
-        user={user}
+        user={headerUser}
       />
       <div className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:px-8">
         <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)] lg:items-start">
@@ -362,6 +409,9 @@ export function HopeDashboard({
             hasPendingAvatarPreview={Boolean(pendingAvatarPreviewUrl)}
             isUploadingAvatar={isUploadingAvatar}
             isEditable={isEditable}
+            isAuthenticated={isAuthenticated}
+            socialSummary={socialSummary}
+            canViewDetails={socialSummary.canViewWorkouts}
             language={language}
             onAvatarLoad={(loadedAvatarUrl) => {
               if (pendingAvatarPreviewUrl && loadedAvatarUrl === avatarUrl) {
@@ -370,11 +420,11 @@ export function HopeDashboard({
               }
             }}
             onAddWorkout={() => setIsWorkoutDialogOpen(true)}
-            onUploadAvatar={handleUploadAvatar}
+            onSelectAvatar={handleSelectAvatar}
             user={user}
           />
 
-          <div className="grid min-w-0 gap-6">
+          {socialSummary.canViewWorkouts ? <div className="grid min-w-0 gap-6">
             {workoutLoadError ? (
               <section className="rounded-lg border border-danger-border bg-danger-soft p-4 text-sm text-danger">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -437,7 +487,7 @@ export function HopeDashboard({
                 todayDateKey={todayDateKey}
               />
             )}
-          </div>
+          </div> : <section className="grid min-h-[420px] place-items-center rounded-lg border border-border bg-panel p-8 text-center"><div className="max-w-md"><h2 className="text-xl font-semibold text-text">{socialCopy.privateProfile}</h2><p className="mt-3 text-sm leading-6 text-muted">{socialCopy.privateProfileHelp}</p></div></section>}
         </div>
       </div>
       <WorkoutDialog
@@ -447,6 +497,17 @@ export function HopeDashboard({
         isSubmitting={isSubmittingWorkout}
         onClose={closeWorkoutDialog}
         onSubmitWorkout={handleSubmitWorkout}
+      />
+      <AvatarCropDialog
+        copy={copy}
+        error={avatarUploadError}
+        imageName={avatarCropImageName}
+        imageUrl={avatarCropImageUrl}
+        isOpen={Boolean(avatarCropImageUrl)}
+        isSaving={isUploadingAvatar}
+        key={avatarCropImageUrl || "closed-avatar-crop"}
+        onClose={closeAvatarCropDialog}
+        onSave={handleUploadAvatar}
       />
     </main>
   );

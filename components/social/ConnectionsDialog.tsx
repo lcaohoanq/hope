@@ -1,0 +1,43 @@
+"use client";
+
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import type { Language } from "@/lib/i18n";
+import { getSocialCopy } from "@/lib/social-copy";
+import type { ConnectionItem } from "@/lib/social-types";
+import { getAvatarUrl } from "@/lib/profile-utils";
+import { AvatarImage } from "@/components/dashboard/AvatarImage";
+
+export function ConnectionsDialog({ profileId, username, language, canView, followersCount, followingCount }: { profileId: string; username: string; language: Language; canView: boolean; followersCount: number; followingCount: number }) {
+  const copy = getSocialCopy(language);
+  const [type, setType] = useState<"followers" | "following" | null>(null);
+  const [items, setItems] = useState<ConnectionItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  useEffect(() => {
+    if (!type || !canView) return;
+    const timer = window.setTimeout(() => {
+      setLoading(true);
+      fetch(`/api/profiles/${profileId}/connections?type=${type}`, { cache: "no-store" })
+      .then((response) => response.json())
+      .then((payload: { items?: ConnectionItem[] }) => setItems(payload.items ?? []))
+      .finally(() => setLoading(false));
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [canView, profileId, type]);
+
+  return <>
+    <div className="grid grid-cols-2 gap-2">
+      <button className="rounded-md border border-border bg-panel px-3 py-2 text-left text-xs text-muted hover:bg-panel-muted" onClick={() => setType("followers")} type="button"><strong className="block text-base text-text">{followersCount}</strong>{copy.followers}</button>
+      <button className="rounded-md border border-border bg-panel px-3 py-2 text-left text-xs text-muted hover:bg-panel-muted" onClick={() => setType("following")} type="button"><strong className="block text-base text-text">{followingCount}</strong>{copy.following}</button>
+    </div>
+    {type ? <div aria-modal="true" className="fixed inset-0 z-[70] grid place-items-center bg-text/45 p-4" role="dialog" onClick={() => setType(null)}>
+      <div className="max-h-[75dvh] w-full max-w-md overflow-hidden rounded-lg border border-border bg-panel shadow-[var(--shadow-panel)]" onClick={(event) => event.stopPropagation()}>
+        <div className="flex items-center justify-between border-b border-border p-4"><h2 className="font-semibold text-text">{type === "followers" ? copy.followers : copy.following}</h2><button className="text-sm text-muted" onClick={() => setType(null)} type="button">×</button></div>
+        <div className="max-h-[55dvh] overflow-y-auto p-2">
+          {!canView ? <p className="p-4 text-sm text-muted">{copy.connectionsPrivate}</p> : loading ? <p className="p-4 text-sm text-muted">…</p> : items.length === 0 ? <p className="p-4 text-sm text-muted">—</p> : items.map(({ profile }) => <Link className="flex items-center gap-3 rounded-md p-2 hover:bg-panel-muted" href={`/${profile.username}`} key={profile.id} onClick={() => setType(null)}><span className="h-10 w-10 overflow-hidden rounded-full"><AvatarImage alt="" className="h-full w-full object-cover" sizes="40px" src={profile.avatarUrl ?? getAvatarUrl(profile.avatarSeed)} /></span><span className="min-w-0"><strong className="block truncate text-sm text-text">{profile.displayName}</strong><span className="block truncate text-xs text-muted">@{profile.username}</span></span></Link>)}
+        </div>
+        {canView ? <div className="border-t border-border p-3"><Link className="text-sm font-semibold text-accent" href={`/${username}/${type}`}>{copy.viewAll}</Link></div> : null}
+      </div>
+    </div> : null}
+  </>;
+}

@@ -185,6 +185,14 @@ export function validateCreateWorkoutRequest(
   const startTime = typeof body.startTime === "string" ? body.startTime : "";
   const endTime = typeof body.endTime === "string" ? body.endTime : "";
   const note = typeof body.note === "string" ? body.note.trim() : "";
+  const isPublic = typeof body.isPublic === "undefined" ? true : body.isPublic;
+
+  if (typeof isPublic !== "boolean") {
+    return {
+      success: false as const,
+      error: "Workout visibility must be a boolean.",
+    };
+  }
 
   if (!type) {
     return {
@@ -239,6 +247,7 @@ export function validateCreateWorkoutRequest(
       endTime,
       note,
       durationMinutes,
+      isPublic,
     },
   };
 }
@@ -292,6 +301,7 @@ export function createWorkoutRecord(
     endTime: string;
     durationMinutes: number;
     note: string;
+    isPublic: boolean;
     images?: WorkoutImage[];
   },
   now = new Date(),
@@ -305,6 +315,7 @@ export function createWorkoutRecord(
     endTime: input.endTime,
     durationMinutes: input.durationMinutes,
     note: input.note,
+    isPublic: input.isPublic,
     ...(input.images && input.images.length > 0 ? { images: input.images } : {}),
     createdAt: now.toISOString(),
   };
@@ -392,6 +403,7 @@ export const sampleWorkouts: Workout[] = [
     durationMinutes: 35,
     note: "Easy morning pace",
     createdAt: "2026-06-01T23:35:00.000Z",
+    isPublic: true,
   },
   {
     id: "2026-06-07-demo",
@@ -402,6 +414,7 @@ export const sampleWorkouts: Workout[] = [
     durationMinutes: 20,
     note: "Shoulders and hips",
     createdAt: "2026-06-07T14:00:00.000Z",
+    isPublic: true,
   },
   {
     id: "2026-06-12-demo",
@@ -412,6 +425,7 @@ export const sampleWorkouts: Workout[] = [
     durationMinutes: 55,
     note: "Upper body",
     createdAt: "2026-06-12T11:10:00.000Z",
+    isPublic: true,
   },
   {
     id: "2026-06-18-demo",
@@ -422,6 +436,7 @@ export const sampleWorkouts: Workout[] = [
     durationMinutes: 32,
     note: "Short tempo run",
     createdAt: "2026-06-17T23:20:00.000Z",
+    isPublic: true,
   },
   {
     id: "2026-06-23-demo",
@@ -432,6 +447,7 @@ export const sampleWorkouts: Workout[] = [
     durationMinutes: 30,
     note: "Recovery session",
     createdAt: "2026-06-23T13:30:00.000Z",
+    isPublic: true,
   },
   {
     id: "2026-06-28-demo",
@@ -442,6 +458,7 @@ export const sampleWorkouts: Workout[] = [
     durationMinutes: 70,
     note: "River loop",
     createdAt: "2026-06-28T00:00:00.000Z",
+    isPublic: true,
   },
   {
     id: "2026-06-30-demo",
@@ -452,6 +469,7 @@ export const sampleWorkouts: Workout[] = [
     durationMinutes: 35,
     note: "After dinner",
     createdAt: "2026-06-30T12:20:00.000Z",
+    isPublic: true,
   },
   {
     id: "2026-07-01-demo",
@@ -462,5 +480,6 @@ export const sampleWorkouts: Workout[] = [
     durationMinutes: 40,
     note: "Core and legs",
     createdAt: "2026-06-30T23:40:00.000Z",
+    isPublic: true,
   },
 ];
