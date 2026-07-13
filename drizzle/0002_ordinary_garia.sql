@@ -1,0 +1,2 @@
+ALTER TABLE "notifications" ADD CONSTRAINT "notifications_type_check" CHECK ("notifications"."type" in ('follow_request', 'new_follower', 'follow_accepted'));--> statement-breakpoint
+ALTER TABLE "profile_follows" ADD CONSTRAINT "profile_follows_status_check" CHECK ("profile_follows"."status" in ('pending', 'accepted'));

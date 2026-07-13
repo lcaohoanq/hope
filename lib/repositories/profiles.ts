@@ -5,7 +5,7 @@ import type { ValidatedProfileUpdate } from "@/lib/profile-update";
 import type { AppUser, AppTheme } from "@/lib/users";
 import { getDefaultUserSettings, normalizeUsername } from "@/lib/users";
 
-function toAppUser(row: ProfileRow): AppUser {
+export function toAppUser(row: ProfileRow): AppUser {
   return {
     id: row.id,
     clerkUserId: row.clerkUserId,
@@ -25,6 +25,7 @@ function toAppUser(row: ProfileRow): AppUser {
     website: row.website ?? undefined,
     settings: row.settings,
     reminderEnabled: row.reminderEnabled,
+    isPrivate: row.isPrivate,
   };
 }
 
