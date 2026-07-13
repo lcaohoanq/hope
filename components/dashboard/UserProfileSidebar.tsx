@@ -1,11 +1,13 @@
 import {
   FaCamera,
+  FaEdit,
   FaExternalLinkAlt,
   FaFacebookF,
   FaGlobe,
   FaInstagram,
   FaLinkedinIn,
 } from "react-icons/fa";
+import Link from "next/link";
 import type { IconType } from "react-icons";
 import type { AppCopy, Language } from "@/lib/i18n";
 import type { PublicAppUser } from "@/lib/users";
@@ -14,6 +16,9 @@ import {
   getGoogleMapsEmbedUrl,
 } from "./dashboard-utils";
 import { AvatarImage } from "./AvatarImage";
+import { ConnectionsDialog } from "@/components/social/ConnectionsDialog";
+import { FollowButton } from "@/components/social/FollowButton";
+import type { SocialSummary } from "@/lib/social-types";
 
 type ProfileLink = {
   label: string;
@@ -33,7 +38,10 @@ type UserProfileSidebarProps = {
   onAvatarLoad: (avatarUrl: string) => void;
   user: PublicAppUser;
   onAddWorkout: () => void;
-  onUploadAvatar: (file: File) => Promise<void>;
+  onSelectAvatar: (file: File) => void;
+  isAuthenticated: boolean;
+  socialSummary: SocialSummary;
+  canViewDetails: boolean;
 };
 
 export function UserProfileSidebar({
@@ -48,7 +56,10 @@ export function UserProfileSidebar({
   onAvatarLoad,
   user,
   onAddWorkout,
-  onUploadAvatar,
+  onSelectAvatar,
+  isAuthenticated,
+  socialSummary,
+  canViewDetails,
 }: UserProfileSidebarProps) {
   const profileLinks: ProfileLink[] = [
     ...(user.website
@@ -128,7 +139,7 @@ export function UserProfileSidebar({
                   event.currentTarget.value = "";
 
                   if (file) {
-                    void onUploadAvatar(file);
+                    onSelectAvatar(file);
                   }
                 }}
                 type="file"
@@ -144,7 +155,7 @@ export function UserProfileSidebar({
             <h1 className="text-2xl font-semibold tracking-[-0.03em] text-text">
               {user.displayName}
             </h1>
-            {user.plan === "pro" ? (
+            {canViewDetails && user.plan === "pro" ? (
               <span className="rounded-full border border-accent/30 bg-accent/10 px-2 py-0.5 text-[10px] font-bold tracking-[0.08em] text-accent">
                 PRO
               </span>
@@ -153,7 +164,7 @@ export function UserProfileSidebar({
           <div className="flex items-center gap-3">
             <p className="mt-1 truncate text-sm text-muted">{user.slug}</p>
             <span className="mt-1 text-sm text-muted">·</span>
-            {user.pronouns ? (
+            {canViewDetails && user.pronouns ? (
               <span className="mt-1 text-sm text-muted">
                 {user.pronouns[language]}
               </span>
@@ -175,14 +186,35 @@ export function UserProfileSidebar({
         </div>
       </div>
 
+      <div className="mt-5 grid gap-3">
+        <ConnectionsDialog
+          canView={socialSummary.canViewConnections}
+          followersCount={socialSummary.followersCount}
+          followingCount={socialSummary.followingCount}
+          language={language}
+          profileId={user.id}
+          username={user.username}
+        />
+        {!isEditable ? <FollowButton authenticated={isAuthenticated} initialStatus={socialSummary.relationshipStatus} language={language} profileId={user.id} profilePath={`/${user.username}`} /> : null}
+      </div>
+
       {isEditable ? (
-        <button
-          className="mt-5 h-11 w-full rounded-md bg-accent px-4 text-sm font-semibold text-accent-contrast transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-accent/90 active:scale-[0.98]"
-          onClick={onAddWorkout}
-          type="button"
-        >
-          {copy.dashboard.addWorkout}
-        </button>
+        <div className="mt-5 grid gap-2">
+          <Link
+            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-md border border-border bg-panel px-4 text-sm font-semibold text-muted transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-panel-muted hover:text-text active:scale-[0.98]"
+            href="/settings/profile"
+          >
+            <FaEdit aria-hidden="true" className="h-3.5 w-3.5" />
+            {copy.dashboard.editProfile}
+          </Link>
+          <button
+            className="h-11 w-full rounded-md bg-accent px-4 text-sm font-semibold text-accent-contrast transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-accent/90 active:scale-[0.98]"
+            onClick={onAddWorkout}
+            type="button"
+          >
+            {copy.dashboard.addWorkout}
+          </button>
+        </div>
       ) : null}
 
       {/* <div className="mt-5 grid gap-3 border-t border-border pt-5 text-sm text-muted">
@@ -202,7 +234,7 @@ export function UserProfileSidebar({
         </div>
       </div> */}
 
-      {profileLinks.length > 0 ? (
+      {canViewDetails && profileLinks.length > 0 ? (
         <div className="mt-5 grid gap-3 border-t border-border pt-5 text-sm text-muted">
           <div className="grid gap-2">
             {profileLinks.map(({ href, Icon, label }) => (
@@ -230,7 +262,7 @@ export function UserProfileSidebar({
         </div>
       ) : null}
 
-      {user.location ? (
+      {canViewDetails && user.location ? (
         <div className="mt-5 border-t border-border pt-5">
           <div className="flex items-start justify-between gap-3 text-sm">
             <div>

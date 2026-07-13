@@ -12,10 +12,13 @@ import {
   FaSignOutAlt,
   FaSun,
   FaUser,
+  FaUsers,
 } from "react-icons/fa";
 import { languageOptions, type AppCopy, type Language } from "@/lib/i18n";
 import type { AppTheme, PublicAppUser } from "@/lib/users";
 import { AvatarImage } from "./AvatarImage";
+import { NotificationBell } from "@/components/social/NotificationBell";
+import { getSocialCopy } from "@/lib/social-copy";
 
 type TopHeaderProps = {
   avatarUrl: string;
@@ -32,6 +35,7 @@ type TopHeaderProps = {
   themeError: string;
   themeMessage: string;
   user: PublicAppUser;
+  showNotifications: boolean;
 };
 
 export function TopHeader({
@@ -49,8 +53,10 @@ export function TopHeader({
   themeError,
   themeMessage,
   user,
+  showNotifications,
 }: TopHeaderProps) {
   const profilePath = `/${user.username}`;
+  const socialCopy = getSocialCopy(language);
   const profileMenuRef = useRef<HTMLDivElement>(null);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const themeOptions: Array<{ label: string; value: AppTheme }> = [
@@ -103,10 +109,18 @@ export function TopHeader({
         />
         {copy.common.home}
       </Link>
-      <div
-        className="relative flex items-center justify-end"
-        ref={profileMenuRef}
-      >
+      {!showSignOut ? (
+        <Link
+          className="inline-flex h-10 items-center gap-2 rounded-md bg-accent px-4 text-sm font-semibold text-accent-contrast transition hover:bg-accent/90 active:scale-[0.98]"
+          href={`/login?next=${encodeURIComponent(profilePath)}`}
+        >
+          <FaSignInAlt aria-hidden="true" className="h-3.5 w-3.5" />
+          <span>{copy.common.signIn}</span>
+        </Link>
+      ) : (
+      <div className="flex items-center justify-end gap-1">
+        {showNotifications ? <NotificationBell language={language} /> : null}
+      <div className="relative" ref={profileMenuRef}>
         <button
           aria-label={copy.common.profile}
           aria-expanded={isProfileMenuOpen}
@@ -169,6 +183,13 @@ export function TopHeader({
                   >
                     <FaUser aria-hidden="true" className="h-3.5 w-3.5" />
                     <span>{copy.common.profile}</span>
+                  </Link>
+                ) : null}
+
+                {showNotifications ? (
+                  <Link className="flex h-9 items-center gap-2 rounded-md px-2 text-xs font-medium text-muted transition hover:bg-panel-muted hover:text-text" href="/feed" onClick={() => setIsProfileMenuOpen(false)}>
+                    <FaUsers aria-hidden="true" className="h-3.5 w-3.5" />
+                    <span>{socialCopy.feed}</span>
                   </Link>
                 ) : null}
 
@@ -266,7 +287,8 @@ export function TopHeader({
             </motion.div>
           ) : null}
         </AnimatePresence>
-      </div>
+      </div></div>
+      )}
     </header>
   );
 }

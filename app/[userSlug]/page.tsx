@@ -1,64 +1,39 @@
-import { cookies } from "next/headers";
-import { notFound } from "next/navigation";
-import { redirect } from "next/navigation";
+import { auth } from "@clerk/nextjs/server";
+import { notFound, redirect } from "next/navigation";
 import { HopeDashboard } from "@/components/dashboard/HopeDashboard";
-import { AUTH_COOKIE_NAME, getAuthenticatedUser } from "@/lib/auth";
-import {
-  APP_USERS,
-  getCanonicalUserPath,
-  getUserByProfilePath,
-  toPublicUser,
-} from "@/lib/users";
+import { getProfileByClerkId, getProfileByPath } from "@/lib/repositories/profiles";
+import { getCanonicalUserPath, toPrivateProfileShell, toPublicUser } from "@/lib/users";
+import { resolveProfileAccess } from "@/lib/profile-access";
 
-type UserPageProps = {
-  params: Promise<{
-    userSlug: string;
-  }>;
-};
+type UserPageProps = { params: Promise<{ userSlug: string }> };
 
-export function generateStaticParams() {
-  return APP_USERS.map((user) => ({
-    userSlug: user.credentials.username,
-  }));
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: UserPageProps) {
   const { userSlug } = await params;
-  const user = getUserByProfilePath(userSlug);
-
-  if (!user) {
-    return {
-      title: "Hope",
-    };
-  }
-
-  return {
-    title: `${user.displayName} - Hope`,
-  };
+  const user = await getProfileByPath(userSlug);
+  return { title: user ? `${user.displayName} - Hope` : "Hope" };
 }
 
 export default async function UserPage({ params }: UserPageProps) {
   const { userSlug } = await params;
-  const user = getUserByProfilePath(userSlug);
-  const cookieStore = await cookies();
-  const authenticatedUser = getAuthenticatedUser(
-    cookieStore.get(AUTH_COOKIE_NAME)?.value,
-  );
+  const user = await getProfileByPath(userSlug);
+  if (!user) notFound();
 
-  if (!user) {
-    notFound();
-  }
+  const canonicalPath = getCanonicalUserPath(user);
+  if (`/${userSlug}` !== canonicalPath) redirect(canonicalPath);
 
-  if (`/${userSlug}` !== getCanonicalUserPath(user)) {
-    redirect(getCanonicalUserPath(user));
-  }
-
+  const { userId } = await auth();
+  const authenticatedProfile = userId ? await getProfileByClerkId(userId) : undefined;
+  const socialSummary = await resolveProfileAccess(user, authenticatedProfile);
   return (
     <HopeDashboard
-      isAuthenticated={Boolean(authenticatedUser)}
-      isEditable={authenticatedUser?.id === user.id}
+      isAuthenticated={Boolean(userId)}
+      isEditable={authenticatedProfile?.id === user.id}
       key={user.id}
-      user={toPublicUser(user)}
+      socialSummary={socialSummary}
+      user={socialSummary.canViewWorkouts ? toPublicUser(user) : toPrivateProfileShell(user)}
+      viewer={authenticatedProfile ? toPublicUser(authenticatedProfile) : undefined}
     />
   );
 }
