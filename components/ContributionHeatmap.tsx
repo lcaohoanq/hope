@@ -231,7 +231,7 @@ export function ContributionHeatmap({
               <div className="absolute right-0 top-11 z-50 w-[148px] overflow-hidden rounded-lg border border-border bg-panel shadow-[0_18px_45px_rgba(17,17,17,0.14)]">
                 <div
                   aria-label={copy.heatmap.view}
-                  className="max-h-72 overflow-y-auto p-1.5 [scrollbar-color:rgb(var(--color-muted))_transparent] [scrollbar-width:thin]"
+                  className="max-h-72 overflow-y-auto p-1.5 [scrollbar-color:oklch(var(--color-muted))_transparent] [scrollbar-width:thin]"
                   role="listbox"
                 >
                   {viewOptions.map((option) => {
