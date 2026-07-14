@@ -1,7 +1,7 @@
-import type { Workout } from "@/lib/workout-types";
-import { getWorkoutStats } from "@/lib/workout-utils";
 import type { AppCopy } from "@/lib/i18n";
 import type { HeatmapView } from "@/lib/users";
+import type { Workout } from "@/lib/workout-types";
+import { getWorkoutStats } from "@/lib/workout-utils";
 
 type StatsCardsProps = {
   copy: AppCopy;
@@ -10,19 +10,13 @@ type StatsCardsProps = {
   view: HeatmapView;
 };
 
-export function StatsCards({
-  copy,
-  workouts,
-  todayDateKey,
-  view,
-}: StatsCardsProps) {
+export function StatsCards({ copy, workouts, todayDateKey, view }: StatsCardsProps) {
   const statsEndDateKey =
     view.mode === "year" && view.year < Number(todayDateKey.slice(0, 4))
       ? `${view.year}-12-31`
       : todayDateKey;
   const stats = getWorkoutStats(workouts, statsEndDateKey);
-  const scopeLabel =
-    view.mode === "lifetime" ? copy.stats.lifetimeScope : `${view.year}`;
+  const scopeLabel = view.mode === "lifetime" ? copy.stats.lifetimeScope : `${view.year}`;
   const items = [
     {
       label: copy.stats.activeDays,
@@ -56,9 +50,7 @@ export function StatsCards({
           <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-muted">
             {item.label}
           </p>
-          <p className="mt-4 text-3xl font-semibold tracking-[-0.04em] text-text">
-            {item.value}
-          </p>
+          <p className="mt-4 text-3xl font-semibold tracking-[-0.04em] text-text">{item.value}</p>
           <p className="mt-1 text-sm text-muted">{item.detail}</p>
         </div>
       ))}

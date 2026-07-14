@@ -9,8 +9,8 @@ type AppShellProps = {
 
 export function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
-  const shouldShowFooter = !["/login", "/sign-up", "/onboarding", "/auth/continue"].some(
-    (path) => pathname.startsWith(path),
+  const shouldShowFooter = !["/login", "/sign-up", "/onboarding", "/auth/continue"].some((path) =>
+    pathname.startsWith(path),
   );
 
   return (

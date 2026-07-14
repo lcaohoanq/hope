@@ -1,3 +1,4 @@
+import { getDaysInRange, getLastNDays, getTodayInTimezone, minutesBetween } from "@/lib/date-utils";
 import type {
   CreateWorkoutRequest,
   HeatmapDay,
@@ -6,12 +7,6 @@ import type {
   WorkoutData,
   WorkoutImage,
 } from "@/lib/workout-types";
-import {
-  getDaysInRange,
-  getLastNDays,
-  getTodayInTimezone,
-  minutesBetween,
-} from "@/lib/date-utils";
 
 export const TRACKING_START_DATE = "2026-01-01";
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
@@ -42,10 +37,7 @@ export function createHeatmapWeeks(endDateKey: string, workouts: Workout[]) {
   const workoutsByDate = groupWorkoutsByDate(workouts);
   const days = getLastNDays(endDateKey, 365);
   const leadingEmptyDays = new Date(days[0]).getDay();
-  const cells = [
-    ...Array.from({ length: leadingEmptyDays }, () => null),
-    ...days,
-  ];
+  const cells = [...Array.from({ length: leadingEmptyDays }, () => null), ...days];
   const weekCount = Math.ceil(cells.length / 7);
 
   return Array.from({ length: weekCount }, (_, weekIndex) =>
@@ -104,48 +96,38 @@ export function createHeatmapYears({
   const firstYear = Math.min(startYear, endYear);
   const lastYear = Math.min(Math.max(startYear, endYear), currentYear);
 
-  return Array.from(
-    { length: lastYear - firstYear + 1 },
-    (_, yearOffset) => {
-      const year = firstYear + yearOffset;
-      const yearStart = `${year}-01-01`;
-      const yearEnd = `${year}-12-31`;
-      const days = getDaysInRange(yearStart, yearEnd);
-      const leadingEmptyDays = new Date(days[0]).getDay();
-      const cells = [
-        ...Array.from({ length: leadingEmptyDays }, () => null),
-        ...days,
-      ];
-      const weekCount = Math.ceil(cells.length / 7);
-      const weeks = Array.from({ length: weekCount }, (_, weekIndex) =>
-        Array.from({ length: 7 }, (_, dayIndex): HeatmapDay | null => {
-          const date = cells[weekIndex * 7 + dayIndex];
+  return Array.from({ length: lastYear - firstYear + 1 }, (_, yearOffset) => {
+    const year = firstYear + yearOffset;
+    const yearStart = `${year}-01-01`;
+    const yearEnd = `${year}-12-31`;
+    const days = getDaysInRange(yearStart, yearEnd);
+    const leadingEmptyDays = new Date(days[0]).getDay();
+    const cells = [...Array.from({ length: leadingEmptyDays }, () => null), ...days];
+    const weekCount = Math.ceil(cells.length / 7);
+    const weeks = Array.from({ length: weekCount }, (_, weekIndex) =>
+      Array.from({ length: 7 }, (_, dayIndex): HeatmapDay | null => {
+        const date = cells[weekIndex * 7 + dayIndex];
 
-          if (!date) {
-            return null;
-          }
+        if (!date) {
+          return null;
+        }
 
-          const dayWorkouts = workoutsByDate.get(date) ?? [];
-          const isTrackable = date >= trackingStartDateKey && date <= endDateKey;
+        const dayWorkouts = workoutsByDate.get(date) ?? [];
+        const isTrackable = date >= trackingStartDateKey && date <= endDateKey;
 
-          return {
-            date,
-            workouts: dayWorkouts,
-            status: !isTrackable
-              ? "no-data"
-              : dayWorkouts.length > 0
-                ? "workout"
-                : "empty",
-          };
-        }),
-      );
+        return {
+          date,
+          workouts: dayWorkouts,
+          status: !isTrackable ? "no-data" : dayWorkouts.length > 0 ? "workout" : "empty",
+        };
+      }),
+    );
 
-      return {
-        year,
-        weeks,
-      };
-    },
-  );
+    return {
+      year,
+      weeks,
+    };
+  });
 }
 
 export function calculateDurationMinutes(startTime: string, endTime: string) {
@@ -168,8 +150,7 @@ export function validateWorkoutData(value: unknown): WorkoutData {
     workouts: Array.isArray(candidate.workouts) ? candidate.workouts : [],
     settings: {
       timezone:
-        candidate.settings?.timezone &&
-        typeof candidate.settings.timezone === "string"
+        candidate.settings?.timezone && typeof candidate.settings.timezone === "string"
           ? candidate.settings.timezone
           : "Asia/Ho_Chi_Minh",
     },
@@ -287,9 +268,7 @@ function parseWorkoutImageSrcs(value: unknown) {
 
   const values = Array.isArray(value) ? value : [value];
 
-  return values.filter(
-    (src): src is string => typeof src === "string" && src.trim().length > 0,
-  );
+  return values.filter((src): src is string => typeof src === "string" && src.trim().length > 0);
 }
 
 export function createWorkoutRecord(
@@ -362,19 +341,12 @@ export function replaceWorkout(data: WorkoutData, workout: Workout): WorkoutData
 }
 
 export function getWorkoutStats(workouts: Workout[], todayDateKey: string) {
-  const trackedWorkouts = workouts.filter(
-    (workout) => workout.date >= TRACKING_START_DATE,
-  );
+  const trackedWorkouts = workouts.filter((workout) => workout.date >= TRACKING_START_DATE);
   const workoutsByDate = groupWorkoutsByDate(trackedWorkouts);
   const activeDays = workoutsByDate.size;
-  const totalMinutes = trackedWorkouts.reduce(
-    (sum, workout) => sum + workout.durationMinutes,
-    0,
-  );
+  const totalMinutes = trackedWorkouts.reduce((sum, workout) => sum + workout.durationMinutes, 0);
   const last30Days = getLastNDays(todayDateKey, 30);
-  const last30ActiveDays = last30Days.filter((day) =>
-    workoutsByDate.has(day),
-  ).length;
+  const last30ActiveDays = last30Days.filter((day) => workoutsByDate.has(day)).length;
   let streak = 0;
 
   for (const day of getLastNDays(todayDateKey, 365).reverse()) {

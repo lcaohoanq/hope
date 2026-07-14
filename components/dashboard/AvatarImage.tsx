@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import Image from "next/image";
+import { useState } from "react";
 
 type AvatarImageProps = {
   alt: string;
@@ -21,11 +21,8 @@ export function AvatarImage({
   src,
 }: AvatarImageProps) {
   const [failedSrc, setFailedSrc] = useState("");
-  const renderedSrc =
-    failedSrc === src && src.startsWith("/uploads/avatars/") ? `/api${src}` : src;
-  const isDiceBearSvg = renderedSrc.startsWith(
-    "https://api.dicebear.com/10.x/notionists/svg",
-  );
+  const renderedSrc = failedSrc === src && src.startsWith("/uploads/avatars/") ? `/api${src}` : src;
+  const isDiceBearSvg = renderedSrc.startsWith("https://api.dicebear.com/10.x/notionists/svg");
 
   if (src.startsWith("blob:")) {
     return (
@@ -48,9 +45,7 @@ export function AvatarImage({
       priority={priority}
       sizes={sizes}
       src={renderedSrc}
-      unoptimized={
-        isDiceBearSvg || renderedSrc.startsWith("/api/uploads/avatars/")
-      }
+      unoptimized={isDiceBearSvg || renderedSrc.startsWith("/api/uploads/avatars/")}
     />
   );
 }

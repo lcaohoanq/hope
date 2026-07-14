@@ -61,15 +61,9 @@ function getLocalDataPath() {
     return dataPath;
   }
 
-  const dataRelativePath = dataPath.startsWith("data/")
-    ? dataPath.slice("data/".length)
-    : dataPath;
+  const dataRelativePath = dataPath.startsWith("data/") ? dataPath.slice("data/".length) : dataPath;
 
-  return path.join(
-    process.cwd(),
-    "data",
-    /*turbopackIgnore: true*/ dataRelativePath,
-  );
+  return path.join(process.cwd(), "data", /*turbopackIgnore: true*/ dataRelativePath);
 }
 
 function getGitHubConfig(): GitHubConfig | null {
@@ -102,9 +96,7 @@ function decodeBase64(value: string) {
   return Buffer.from(value, "base64").toString("utf8");
 }
 
-function assertGitHubObject(
-  value: unknown,
-): asserts value is { content: string; sha: string } {
+function assertGitHubObject(value: unknown): asserts value is { content: string; sha: string } {
   if (
     !value ||
     typeof value !== "object" ||
@@ -185,9 +177,7 @@ export async function readGitHubRepositoryFile(filePath: string): Promise<Buffer
   }
 
   const response = await fetch(
-    `${getGitHubContentsUrlForPath(config, filePath)}?ref=${encodeURIComponent(
-      config.branch,
-    )}`,
+    `${getGitHubContentsUrlForPath(config, filePath)}?ref=${encodeURIComponent(config.branch)}`,
     {
       headers: createGitHubHeaders(config),
     },
@@ -204,18 +194,10 @@ export async function readGitHubRepositoryFile(filePath: string): Promise<Buffer
 }
 
 export async function writeWorkoutDataLocally(data: WorkoutData) {
-  await fs.writeFile(
-    getLocalDataPath(),
-    `${JSON.stringify(data, null, 2)}\n`,
-    "utf8",
-  );
+  await fs.writeFile(getLocalDataPath(), `${JSON.stringify(data, null, 2)}\n`, "utf8");
 }
 
-export async function commitWorkoutDataToGitHub({
-  data,
-  sha,
-  message,
-}: CommitJsonOptions) {
+export async function commitWorkoutDataToGitHub({ data, sha, message }: CommitJsonOptions) {
   const config = getGitHubConfig();
 
   if (!config) {
@@ -306,9 +288,7 @@ export async function commitRepositoryFilesToGitHub({
 
   const headSha = await readGitHubHeadSha(config);
   const baseTreeSha = await readGitHubCommitTreeSha(config, headSha);
-  const blobs = await Promise.all(
-    files.map((file) => createGitHubBlob(config, file.content)),
-  );
+  const blobs = await Promise.all(files.map((file) => createGitHubBlob(config, file.content)));
   const treeSha = await createGitHubTree(config, {
     baseTreeSha,
     entries: files.map((file, index) => ({
@@ -325,9 +305,7 @@ export async function commitRepositoryFilesToGitHub({
   await updateGitHubBranchRef(config, commitSha);
 }
 
-async function readWorkoutDataFromGitHub(
-  config: GitHubConfig,
-): Promise<GitHubFile> {
+async function readWorkoutDataFromGitHub(config: GitHubConfig): Promise<GitHubFile> {
   return retryGitHubRead(async () => {
     const response = await fetch(
       `${getGitHubContentsUrl(config)}?ref=${encodeURIComponent(config.branch)}`,
@@ -360,11 +338,7 @@ class GitHubReadError extends Error {
 async function retryGitHubRead<T>(operation: () => Promise<T>) {
   let lastError: unknown;
 
-  for (
-    let attempt = 0;
-    attempt <= GITHUB_READ_RETRY_DELAYS_MS.length;
-    attempt += 1
-  ) {
+  for (let attempt = 0; attempt <= GITHUB_READ_RETRY_DELAYS_MS.length; attempt += 1) {
     try {
       return await operation();
     } catch (error) {
@@ -397,9 +371,7 @@ function sleep(milliseconds: number) {
 
 async function readGitHubHeadSha(config: GitHubConfig) {
   const response = await fetch(
-    `${getGitHubApiBaseUrl(config)}/git/ref/heads/${getEncodedBranchPath(
-      config,
-    )}`,
+    `${getGitHubApiBaseUrl(config)}/git/ref/heads/${getEncodedBranchPath(config)}`,
     {
       headers: createGitHubHeaders(config),
     },
@@ -427,12 +399,9 @@ async function readGitHubHeadSha(config: GitHubConfig) {
 }
 
 async function readGitHubDataShaAtRef(config: GitHubConfig, ref: string) {
-  const response = await fetch(
-    `${getGitHubContentsUrl(config)}?ref=${encodeURIComponent(ref)}`,
-    {
-      headers: createGitHubHeaders(config),
-    },
-  );
+  const response = await fetch(`${getGitHubContentsUrl(config)}?ref=${encodeURIComponent(ref)}`, {
+    headers: createGitHubHeaders(config),
+  });
 
   if (!response.ok) {
     throw new Error(`GitHub data read failed with status ${response.status}.`);
@@ -585,9 +554,7 @@ async function createGitHubCommit(
 
 async function updateGitHubBranchRef(config: GitHubConfig, commitSha: string) {
   const response = await fetch(
-    `${getGitHubApiBaseUrl(config)}/git/refs/heads/${getEncodedBranchPath(
-      config,
-    )}`,
+    `${getGitHubApiBaseUrl(config)}/git/refs/heads/${getEncodedBranchPath(config)}`,
     {
       method: "PATCH",
       headers: createGitHubHeaders(config),

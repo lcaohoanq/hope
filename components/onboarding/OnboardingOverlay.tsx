@@ -17,10 +17,7 @@ const stepContentTransition = {
   ease: [0.16, 1, 0.3, 1],
 } as const;
 
-export function OnboardingOverlay({
-  currentYear,
-  onComplete,
-}: OnboardingOverlayProps) {
+export function OnboardingOverlay({ currentYear, onComplete }: OnboardingOverlayProps) {
   const [step, setStep] = useState<"name" | "birthYear">("name");
   const [displayName, setDisplayName] = useState("");
   const [birthYear, setBirthYear] = useState("");
@@ -64,7 +61,9 @@ export function OnboardingOverlay({
         avatarSeed,
       });
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : "Unable to create your profile.");
+      setError(
+        submitError instanceof Error ? submitError.message : "Unable to create your profile.",
+      );
     }
   }
 
@@ -86,16 +85,9 @@ export function OnboardingOverlay({
             </div>
             <div className="grid gap-3">
               {["Name", "Birth year", "Lifetime map"].map((label, index) => (
-                <div
-                  className="flex items-center gap-3 border-t border-border pt-3"
-                  key={label}
-                >
-                  <span className="font-mono text-xs text-muted">
-                    0{index + 1}
-                  </span>
-                  <span className="text-sm font-medium text-muted">
-                    {label}
-                  </span>
+                <div className="flex items-center gap-3 border-t border-border pt-3" key={label}>
+                  <span className="font-mono text-xs text-muted">0{index + 1}</span>
+                  <span className="text-sm font-medium text-muted">{label}</span>
                 </div>
               ))}
             </div>
@@ -142,39 +134,38 @@ export function OnboardingOverlay({
                   onSubmit={handleNameSubmit}
                   transition={stepContentTransition}
                 >
-                <div>
-                  <h2 className="text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">
-                    What should I call you?
-                  </h2>
-                  <p className="mt-3 max-w-lg text-base leading-7 text-muted">
-                    This name will make the dashboard feel less like a tool and
-                    more like your own small record.
-                  </p>
-                </div>
+                  <div>
+                    <h2 className="text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">
+                      What should I call you?
+                    </h2>
+                    <p className="mt-3 max-w-lg text-base leading-7 text-muted">
+                      This name will make the dashboard feel less like a tool and more like your own
+                      small record.
+                    </p>
+                  </div>
 
-                <label className="grid gap-2 text-sm font-medium text-text">
-                  Display name
-                  <input
-                    autoFocus
-                    className="h-12 rounded-md border border-border bg-panel-muted px-3 text-base font-normal text-text outline-none transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] placeholder:text-muted focus:border-accent focus:bg-panel focus:ring-2 focus:ring-accent/15"
-                    onChange={(event) => {
-                      setDisplayName(event.target.value);
+                  <label className="grid gap-2 text-sm font-medium text-text">
+                    Display name
+                    <input
+                      className="h-12 rounded-md border border-border bg-panel-muted px-3 text-base font-normal text-text outline-none transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] placeholder:text-muted focus:border-accent focus:bg-panel focus:ring-2 focus:ring-accent/15"
+                      onChange={(event) => {
+                        setDisplayName(event.target.value);
+                        setError("");
+                      }}
+                      placeholder="Your name"
+                      value={displayName}
+                    />
+                  </label>
+
+                  <AvatarControls
+                    avatarSeed={avatarSeed}
+                    onReroll={() => {
+                      setAvatarSeed(createAvatarSeed(displayName));
                       setError("");
                     }}
-                    placeholder="Your name"
-                    value={displayName}
                   />
-                </label>
 
-                <AvatarControls
-                  avatarSeed={avatarSeed}
-                  onReroll={() => {
-                    setAvatarSeed(createAvatarSeed(displayName));
-                    setError("");
-                  }}
-                />
-
-                <FormFooter error={error} label="Continue" />
+                  <FormFooter error={error} label="Continue" />
                 </motion.form>
               ) : (
                 <motion.form
@@ -186,57 +177,56 @@ export function OnboardingOverlay({
                   onSubmit={handleBirthYearSubmit}
                   transition={stepContentTransition}
                 >
-                <div>
-                  <h2 className="text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">
-                    Which year did your timeline begin?
-                  </h2>
-                  <p className="mt-3 max-w-lg text-base leading-7 text-muted">
-                    The heatmap will start from your birth year. Workout data
-                    still begins at 2026, so earlier years stay empty.
-                  </p>
-                </div>
-
-                <label className="grid gap-2 text-sm font-medium text-text">
-                  Birth year
-                  <input
-                    autoFocus
-                    className="h-12 rounded-md border border-border bg-panel-muted px-3 text-base font-normal text-text outline-none transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] placeholder:text-muted focus:border-accent focus:bg-panel focus:ring-2 focus:ring-accent/15"
-                    inputMode="numeric"
-                    max={currentYear}
-                    min={1900}
-                    onChange={(event) => {
-                      setBirthYear(event.target.value);
-                      setError("");
-                    }}
-                    placeholder="1998"
-                    type="number"
-                    value={birthYear}
-                  />
-                </label>
-
-                <AvatarControls
-                  avatarSeed={avatarSeed}
-                  onReroll={() => {
-                    setAvatarSeed(createAvatarSeed(displayName));
-                    setError("");
-                  }}
-                />
-
-                <div className="flex flex-col gap-3 sm:flex-row">
-                  <button
-                    className="h-11 rounded-md border border-border px-4 text-sm font-semibold text-muted transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-panel-muted active:scale-[0.98]"
-                    onClick={() => {
-                      setStep("name");
-                      setError("");
-                    }}
-                    type="button"
-                  >
-                    Back
-                  </button>
-                  <div className="flex-1">
-                    <FormFooter error={error} label="Open dashboard" />
+                  <div>
+                    <h2 className="text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">
+                      Which year did your timeline begin?
+                    </h2>
+                    <p className="mt-3 max-w-lg text-base leading-7 text-muted">
+                      The heatmap will start from your birth year. Workout data still begins at
+                      2026, so earlier years stay empty.
+                    </p>
                   </div>
-                </div>
+
+                  <label className="grid gap-2 text-sm font-medium text-text">
+                    Birth year
+                    <input
+                      className="h-12 rounded-md border border-border bg-panel-muted px-3 text-base font-normal text-text outline-none transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] placeholder:text-muted focus:border-accent focus:bg-panel focus:ring-2 focus:ring-accent/15"
+                      inputMode="numeric"
+                      max={currentYear}
+                      min={1900}
+                      onChange={(event) => {
+                        setBirthYear(event.target.value);
+                        setError("");
+                      }}
+                      placeholder="1998"
+                      type="number"
+                      value={birthYear}
+                    />
+                  </label>
+
+                  <AvatarControls
+                    avatarSeed={avatarSeed}
+                    onReroll={() => {
+                      setAvatarSeed(createAvatarSeed(displayName));
+                      setError("");
+                    }}
+                  />
+
+                  <div className="flex flex-col gap-3 sm:flex-row">
+                    <button
+                      className="h-11 rounded-md border border-border px-4 text-sm font-semibold text-muted transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-panel-muted active:scale-[0.98]"
+                      onClick={() => {
+                        setStep("name");
+                        setError("");
+                      }}
+                      type="button"
+                    >
+                      Back
+                    </button>
+                    <div className="flex-1">
+                      <FormFooter error={error} label="Open dashboard" />
+                    </div>
+                  </div>
                 </motion.form>
               )}
             </AnimatePresence>
@@ -249,7 +239,14 @@ export function OnboardingOverlay({
 
 function StepDots({ currentStepIndex }: { currentStepIndex: number }) {
   return (
-    <div aria-label="Onboarding progress" className="flex items-center gap-3">
+    <div
+      aria-label="Onboarding progress"
+      aria-valuemax={onboardingSteps.length}
+      aria-valuemin={1}
+      aria-valuenow={currentStepIndex + 1}
+      className="flex items-center gap-3"
+      role="progressbar"
+    >
       {onboardingSteps.map((label, index) => {
         const isComplete = index < currentStepIndex;
         const isCurrent = index === currentStepIndex;
@@ -289,13 +286,7 @@ function StepDots({ currentStepIndex }: { currentStepIndex: number }) {
   );
 }
 
-function AvatarControls({
-  avatarSeed,
-  onReroll,
-}: {
-  avatarSeed: string;
-  onReroll: () => void;
-}) {
+function AvatarControls({ avatarSeed, onReroll }: { avatarSeed: string; onReroll: () => void }) {
   return (
     <div className="rounded-lg border border-border bg-panel-muted p-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -303,9 +294,7 @@ function AvatarControls({
           <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-muted">
             DiceBear notionists
           </p>
-          <p className="mt-1 break-all text-xs text-muted">
-            Seed: {avatarSeed}
-          </p>
+          <p className="mt-1 break-all text-xs text-muted">Seed: {avatarSeed}</p>
         </div>
         <button
           className="h-10 rounded-md border border-border bg-panel px-3 text-sm font-semibold text-text transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-panel-muted active:scale-[0.98]"

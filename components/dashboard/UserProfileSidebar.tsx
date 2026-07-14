@@ -1,3 +1,5 @@
+import Link from "next/link";
+import type { IconType } from "react-icons";
 import {
   FaCamera,
   FaEdit,
@@ -7,18 +9,13 @@ import {
   FaInstagram,
   FaLinkedinIn,
 } from "react-icons/fa";
-import Link from "next/link";
-import type { IconType } from "react-icons";
-import type { AppCopy, Language } from "@/lib/i18n";
-import type { PublicAppUser } from "@/lib/users";
-import {
-  getGoogleMaps3dUrl,
-  getGoogleMapsEmbedUrl,
-} from "./dashboard-utils";
-import { AvatarImage } from "./AvatarImage";
 import { ConnectionsDialog } from "@/components/social/ConnectionsDialog";
 import { FollowButton } from "@/components/social/FollowButton";
+import type { AppCopy, Language } from "@/lib/i18n";
 import type { SocialSummary } from "@/lib/social-types";
+import type { PublicAppUser } from "@/lib/users";
+import { AvatarImage } from "./AvatarImage";
+import { getGoogleMaps3dUrl, getGoogleMapsEmbedUrl } from "./dashboard-utils";
 
 type ProfileLink = {
   label: string;
@@ -126,9 +123,7 @@ export function UserProfileSidebar({
             >
               <FaCamera aria-hidden="true" className="h-3.5 w-3.5" />
               <span className="sr-only lg:not-sr-only lg:truncate">
-                {isUploadingAvatar
-                  ? copy.dashboard.uploadingAvatar
-                  : copy.dashboard.uploadAvatar}
+                {isUploadingAvatar ? copy.dashboard.uploadingAvatar : copy.dashboard.uploadAvatar}
               </span>
               <input
                 accept="image/jpeg,image/png,image/webp"
@@ -165,23 +160,15 @@ export function UserProfileSidebar({
             <p className="mt-1 truncate text-sm text-muted">{user.slug}</p>
             <span className="mt-1 text-sm text-muted">·</span>
             {canViewDetails && user.pronouns ? (
-              <span className="mt-1 text-sm text-muted">
-                {user.pronouns[language]}
-              </span>
+              <span className="mt-1 text-sm text-muted">{user.pronouns[language]}</span>
             ) : null}
           </div>
-          <p className="mt-4 max-w-sm text-sm leading-6 text-text">
-            {user.bio[language]}
-          </p>
+          <p className="mt-4 max-w-sm text-sm leading-6 text-text">{user.bio[language]}</p>
           {avatarUploadMessage ? (
-            <p className="mt-3 text-sm font-medium text-accent">
-              {avatarUploadMessage}
-            </p>
+            <p className="mt-3 text-sm font-medium text-accent">{avatarUploadMessage}</p>
           ) : null}
           {avatarUploadError ? (
-            <p className="mt-3 text-sm font-medium text-danger">
-              {avatarUploadError}
-            </p>
+            <p className="mt-3 text-sm font-medium text-danger">{avatarUploadError}</p>
           ) : null}
         </div>
       </div>
@@ -195,7 +182,15 @@ export function UserProfileSidebar({
           profileId={user.id}
           username={user.username}
         />
-        {!isEditable ? <FollowButton authenticated={isAuthenticated} initialStatus={socialSummary.relationshipStatus} language={language} profileId={user.id} profilePath={`/${user.username}`} /> : null}
+        {!isEditable ? (
+          <FollowButton
+            authenticated={isAuthenticated}
+            initialStatus={socialSummary.relationshipStatus}
+            language={language}
+            profileId={user.id}
+            profilePath={`/${user.username}`}
+          />
+        ) : null}
       </div>
 
       {isEditable ? (
@@ -267,9 +262,7 @@ export function UserProfileSidebar({
           <div className="flex items-start justify-between gap-3 text-sm">
             <div>
               <p className="text-muted">{copy.dashboard.location}</p>
-              <p className="mt-1 font-medium text-text">
-                {user.location.label[language]}
-              </p>
+              <p className="mt-1 font-medium text-text">{user.location.label[language]}</p>
             </div>
             <a
               className="shrink-0 rounded-md border border-border px-3 py-2 text-xs font-semibold text-muted transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-border hover:bg-panel-muted hover:text-text"

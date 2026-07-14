@@ -1,14 +1,7 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type PointerEvent,
-} from "react";
 import { motion } from "framer-motion";
+import { type PointerEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   FaChevronLeft,
   FaChevronRight,
@@ -17,17 +10,14 @@ import {
   FaSearchPlus,
   FaTrash,
 } from "react-icons/fa";
-import { formatDisplayDate } from "@/lib/date-utils";
-import {
-  createImagePreviewUrls,
-  revokeImagePreviewUrls,
-} from "@/lib/image-previews";
-import { appendCaptionPill, hasCaptionPill } from "@/lib/caption-utils";
-import type { AppCopy, Language } from "@/lib/i18n";
-import type { Workout, WorkoutUpdateInput } from "@/lib/workout-types";
-import { calculateDurationMinutes } from "@/lib/workout-utils";
 import { ActivityTypeSelector } from "@/components/ActivityTypeSelector";
 import { WorkoutImageThumbnail } from "@/components/WorkoutImageThumbnail";
+import { appendCaptionPill, hasCaptionPill } from "@/lib/caption-utils";
+import { formatDisplayDate } from "@/lib/date-utils";
+import type { AppCopy, Language } from "@/lib/i18n";
+import { createImagePreviewUrls, revokeImagePreviewUrls } from "@/lib/image-previews";
+import type { Workout, WorkoutUpdateInput } from "@/lib/workout-types";
+import { calculateDurationMinutes } from "@/lib/workout-utils";
 
 type WorkoutDayDetailModalProps = {
   allowPastWorkoutEdits: boolean;
@@ -117,26 +107,14 @@ export function WorkoutDayDetailModal({
   const [isSavingEdit, setIsSavingEdit] = useState(false);
   const selectedEditableWorkout =
     selectedImage?.workout &&
-    canEditWorkoutDate(
-      selectedImage.workout.date,
-      todayDateKey,
-      allowPastWorkoutEdits,
-    )
+    canEditWorkoutDate(selectedImage.workout.date, todayDateKey, allowPastWorkoutEdits)
       ? selectedImage.workout
       : workouts.find((workout) =>
-          canEditWorkoutDate(
-            workout.date,
-            todayDateKey,
-            allowPastWorkoutEdits,
-          ),
+          canEditWorkoutDate(workout.date, todayDateKey, allowPastWorkoutEdits),
         );
-  const editingWorkout = workouts.find(
-    (workout) => workout.id === editingWorkoutId,
-  );
+  const editingWorkout = workouts.find((workout) => workout.id === editingWorkoutId);
   const headerWorkout = editingWorkout ?? selectedImage?.workout ?? workouts[0];
-  const headerTimeRange = headerWorkout
-    ? formatWorkoutTimeRange(headerWorkout)
-    : "";
+  const headerTimeRange = headerWorkout ? formatWorkoutTimeRange(headerWorkout) : "";
 
   const updateSelectedImage = useCallback(
     (direction: -1 | 1) => {
@@ -147,15 +125,9 @@ export function WorkoutDayDetailModal({
 
       setImageZoom(1);
       setSelectedImageIndex((currentIndex) => {
-        const safeCurrentIndex = Math.min(
-          Math.max(0, currentIndex),
-          galleryImages.length - 1,
-        );
+        const safeCurrentIndex = Math.min(Math.max(0, currentIndex), galleryImages.length - 1);
 
-        return (
-          (safeCurrentIndex + direction + galleryImages.length) %
-          galleryImages.length
-        );
+        return (safeCurrentIndex + direction + galleryImages.length) % galleryImages.length;
       });
     },
     [galleryImages.length],
@@ -170,9 +142,7 @@ export function WorkoutDayDetailModal({
   }, [updateSelectedImage]);
 
   const updateImageZoom = useCallback((direction: -1 | 1) => {
-    setImageZoom((currentZoom) =>
-      clampImageZoom(currentZoom + IMAGE_ZOOM_STEP * direction),
-    );
+    setImageZoom((currentZoom) => clampImageZoom(currentZoom + IMAGE_ZOOM_STEP * direction));
   }, []);
 
   const zoomImageOut = useCallback(() => {
@@ -275,9 +245,7 @@ export function WorkoutDayDetailModal({
   }
 
   function updateEditField(field: keyof EditWorkoutForm, value: string | boolean) {
-    setEditForm((current) =>
-      current ? { ...current, [field]: value } : current,
-    );
+    setEditForm((current) => (current ? { ...current, [field]: value } : current));
     setEditError("");
     setEditSuccess("");
   }
@@ -325,9 +293,7 @@ export function WorkoutDayDetailModal({
   }
 
   function removeExistingImage(src: string) {
-    setEditImageSrcs((current) =>
-      current.filter((currentSrc) => currentSrc !== src),
-    );
+    setEditImageSrcs((current) => current.filter((currentSrc) => currentSrc !== src));
     setEditError("");
     setEditSuccess("");
   }
@@ -339,10 +305,7 @@ export function WorkoutDayDetailModal({
 
     const type = editForm.type.trim();
     const note = editForm.note.trim();
-    const durationMinutes = calculateDurationMinutes(
-      editForm.startTime,
-      editForm.endTime,
-    );
+    const durationMinutes = calculateDurationMinutes(editForm.startTime, editForm.endTime);
 
     if (!type) {
       setEditError(copy.errors.typeRequired);
@@ -381,9 +344,7 @@ export function WorkoutDayDetailModal({
       setEditImageSelection([]);
       setEditSuccess(copy.form.workoutUpdated);
     } catch (error) {
-      setEditError(
-        error instanceof Error ? error.message : copy.errors.updateWorkout,
-      );
+      setEditError(error instanceof Error ? error.message : copy.errors.updateWorkout);
     } finally {
       setIsSavingEdit(false);
     }
@@ -457,9 +418,7 @@ export function WorkoutDayDetailModal({
               {formatDisplayDate(date, language)}
             </h3>
             {headerTimeRange ? (
-              <p className="shrink-0 text-sm font-semibold text-muted">
-                {headerTimeRange}
-              </p>
+              <p className="shrink-0 text-sm font-semibold text-muted">{headerTimeRange}</p>
             ) : null}
           </div>
           <div className="flex items-center gap-2">
@@ -472,9 +431,7 @@ export function WorkoutDayDetailModal({
                 type="button"
               >
                 <FaChevronLeft aria-hidden="true" className="h-3 w-3" />
-                <span className="hidden sm:inline">
-                  {copy.modal.backToWorkoutDetail}
-                </span>
+                <span className="hidden sm:inline">{copy.modal.backToWorkoutDetail}</span>
               </button>
             ) : canEditWorkouts && selectedEditableWorkout ? (
               <button
@@ -553,10 +510,7 @@ export function WorkoutDayDetailModal({
                           onClick={showPreviousImage}
                           type="button"
                         >
-                          <FaChevronLeft
-                            aria-hidden="true"
-                            className="h-4 w-4"
-                          />
+                          <FaChevronLeft aria-hidden="true" className="h-4 w-4" />
                         </button>
                         <button
                           aria-label={copy.modal.nextWorkoutImage}
@@ -564,10 +518,7 @@ export function WorkoutDayDetailModal({
                           onClick={showNextImage}
                           type="button"
                         >
-                          <FaChevronRight
-                            aria-hidden="true"
-                            className="h-4 w-4"
-                          />
+                          <FaChevronRight aria-hidden="true" className="h-4 w-4" />
                         </button>
                       </>
                     ) : null}
@@ -622,10 +573,7 @@ export function WorkoutDayDetailModal({
                         }}
                         type="button"
                       >
-                        <WorkoutImageThumbnail
-                          image={image}
-                          workoutDate={date}
-                        />
+                        <WorkoutImageThumbnail image={image} workoutDate={date} />
                       </button>
                     ))}
                   </div>
@@ -635,9 +583,7 @@ export function WorkoutDayDetailModal({
               <div className="grid gap-3">
                 {workouts.length === 0 ? (
                   <div className="rounded-lg border border-border bg-panel-muted p-4 text-sm text-muted">
-                    {!isTrackable
-                      ? `${copy.heatmap.noTrackingYet}.`
-                      : copy.modal.noWorkoutLogged}
+                    {!isTrackable ? `${copy.heatmap.noTrackingYet}.` : copy.modal.noWorkoutLogged}
                   </div>
                 ) : null}
               </div>
@@ -678,14 +624,9 @@ function EditWorkoutPanel({
 }) {
   const existingImageCount = existingImages?.length ?? 0;
   const remainingImageSlots = Math.max(0, MAX_WORKOUT_IMAGES - existingImageCount);
-  const durationMinutes = calculateDurationMinutes(
-    editForm.startTime,
-    editForm.endTime,
-  );
+  const durationMinutes = calculateDurationMinutes(editForm.startTime, editForm.endTime);
   const durationPreview =
-    durationMinutes > 0
-      ? `${durationMinutes} ${copy.common.minutes}`
-      : copy.errors.startBeforeEnd;
+    durationMinutes > 0 ? `${durationMinutes} ${copy.common.minutes}` : copy.errors.startBeforeEnd;
   const editGalleryImages = useMemo<EditGalleryImage[]>(
     () => [
       ...((existingImages ?? []).map((image) => ({
@@ -700,15 +641,11 @@ function EditWorkoutPanel({
     ],
     [editPreviewUrls, existingImages],
   );
-  const [selectedEditImageIndex, setSelectedEditImageIndex] = useState<
-    number | null
-  >(null);
+  const [selectedEditImageIndex, setSelectedEditImageIndex] = useState<number | null>(null);
   const selectedEditImage =
     selectedEditImageIndex === null
       ? null
-      : editGalleryImages[
-          Math.min(selectedEditImageIndex, editGalleryImages.length - 1)
-        ];
+      : editGalleryImages[Math.min(selectedEditImageIndex, editGalleryImages.length - 1)];
   const selectedEditImageDisplayIndex =
     selectedEditImageIndex === null
       ? 0
@@ -725,10 +662,7 @@ function EditWorkoutPanel({
           ? 0
           : Math.min(Math.max(0, currentIndex), editGalleryImages.length - 1);
 
-      return (
-        (safeIndex + direction + editGalleryImages.length) %
-        editGalleryImages.length
-      );
+      return (safeIndex + direction + editGalleryImages.length) % editGalleryImages.length;
     });
   }
   const editGallerySwipeHandlers = useSwipeNavigation({
@@ -747,9 +681,7 @@ function EditWorkoutPanel({
     >
       <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border pb-4">
         <div>
-          <p className="text-base font-semibold text-text">
-            {copy.form.editWorkout}
-          </p>
+          <p className="text-base font-semibold text-text">{copy.form.editWorkout}</p>
           <p className="mt-1 text-sm text-muted">
             {copy.form.durationPreview}: {durationPreview}
           </p>
@@ -774,16 +706,18 @@ function EditWorkoutPanel({
       </div>
 
       {selectedEditImage ? (
-        <div
-          aria-label={copy.modal.editWorkoutImageGallery}
-          aria-modal="true"
-          className="fixed inset-0 z-[10020] flex items-center justify-center bg-text/70 p-4"
-          onClick={() => setSelectedEditImageIndex(null)}
-          role="dialog"
-        >
+        <div className="fixed inset-0 z-[10020] flex items-center justify-center p-4">
+          <button
+            aria-label={copy.common.close}
+            className="absolute inset-0 cursor-default bg-text/70"
+            onClick={() => setSelectedEditImageIndex(null)}
+            type="button"
+          />
           <div
-            className="flex max-h-[92dvh] w-full max-w-5xl flex-col overflow-hidden rounded-lg border border-border bg-panel shadow-[0_30px_120px_rgba(17,17,17,0.3)]"
-            onClick={(event) => event.stopPropagation()}
+            aria-label={copy.modal.editWorkoutImageGallery}
+            aria-modal="true"
+            className="relative flex max-h-[92dvh] w-full max-w-5xl flex-col overflow-hidden rounded-lg border border-border bg-panel shadow-[0_30px_120px_rgba(17,17,17,0.3)]"
+            role="dialog"
           >
             <div className="flex items-center justify-between gap-3 border-b border-border p-3 sm:p-4">
               <div className="min-w-0">
@@ -791,8 +725,7 @@ function EditWorkoutPanel({
                   {copy.modal.editWorkoutImageGallery}
                 </p>
                 <p className="mt-0.5 font-mono text-xs text-muted">
-                  {selectedEditImageDisplayIndex + 1}/
-                  {editGalleryImages.length}
+                  {selectedEditImageDisplayIndex + 1}/{editGalleryImages.length}
                 </p>
               </div>
               <button
@@ -818,9 +751,7 @@ function EditWorkoutPanel({
               ) : (
                 // biome-ignore lint/performance/noImgElement: Local object URL previews cannot use next/image.
                 <img
-                  alt={copy.form.selectedEditPreviewAlt(
-                    selectedEditImage.index + 1,
-                  )}
+                  alt={copy.form.selectedEditPreviewAlt(selectedEditImage.index + 1)}
                   className="max-h-[72dvh] w-full object-contain"
                   key={selectedEditImage.url}
                   src={selectedEditImage.url}
@@ -880,9 +811,7 @@ function EditWorkoutPanel({
               {copy.form.start}
               <input
                 className="h-10 rounded-md border border-border bg-panel px-3 text-sm font-normal text-text outline-none focus:border-accent focus:ring-2 focus:ring-accent/15"
-                onChange={(event) =>
-                  onUpdateField("startTime", event.target.value)
-                }
+                onChange={(event) => onUpdateField("startTime", event.target.value)}
                 type="time"
                 value={editForm.startTime}
               />
@@ -891,9 +820,7 @@ function EditWorkoutPanel({
               {copy.form.end}
               <input
                 className="h-10 rounded-md border border-border bg-panel px-3 text-sm font-normal text-text outline-none focus:border-accent focus:ring-2 focus:ring-accent/15"
-                onChange={(event) =>
-                  onUpdateField("endTime", event.target.value)
-                }
+                onChange={(event) => onUpdateField("endTime", event.target.value)}
                 type="time"
                 value={editForm.endTime}
               />
@@ -912,7 +839,9 @@ function EditWorkoutPanel({
           <label className="flex items-center justify-between gap-4 rounded-md border border-border bg-panel-muted p-3 text-sm">
             <span>
               <span className="block font-semibold text-text">{copy.form.publicWorkout}</span>
-              <span className="mt-0.5 block text-xs font-normal text-muted">{copy.form.publicWorkoutHelp}</span>
+              <span className="mt-0.5 block text-xs font-normal text-muted">
+                {copy.form.publicWorkoutHelp}
+              </span>
             </span>
             <input
               checked={editForm.isPublic}
@@ -938,9 +867,7 @@ function EditWorkoutPanel({
                         : "border-border bg-panel-muted text-muted hover:border-accent/50 hover:text-text"
                     }`}
                     key={pill}
-                    onClick={() =>
-                      onUpdateField("note", appendCaptionPill(editForm.note, pill))
-                    }
+                    onClick={() => onUpdateField("note", appendCaptionPill(editForm.note, pill))}
                     type="button"
                   >
                     {pill}
@@ -954,9 +881,7 @@ function EditWorkoutPanel({
         <div className="grid gap-3 content-start rounded-md border border-border bg-panel p-3">
           {existingImages && existingImages.length > 0 ? (
             <div className="grid gap-2">
-              <p className="text-sm font-medium text-text">
-                {copy.form.images}
-              </p>
+              <p className="text-sm font-medium text-text">{copy.form.images}</p>
               <div className="grid grid-cols-3 gap-2">
                 {existingImages.map((image, index) => (
                   <div
@@ -969,10 +894,7 @@ function EditWorkoutPanel({
                       onClick={() => setSelectedEditImageIndex(index)}
                       type="button"
                     >
-                      <WorkoutImageThumbnail
-                        image={image}
-                        workoutDate={editForm.date}
-                      />
+                      <WorkoutImageThumbnail image={image} workoutDate={editForm.date} />
                     </button>
                     <button
                       aria-label={copy.form.removeImage(index + 1)}
@@ -997,9 +919,7 @@ function EditWorkoutPanel({
               className="block w-full rounded-md border border-border bg-panel px-3 py-2 text-sm font-normal text-muted file:mr-3 file:rounded-md file:border-0 file:bg-text file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-white disabled:cursor-not-allowed disabled:opacity-60"
               disabled={remainingImageSlots === 0 || isSavingEdit}
               multiple
-              onChange={(event) =>
-                onUpdateImages(event.target.files, remainingImageSlots)
-              }
+              onChange={(event) => onUpdateImages(event.target.files, remainingImageSlots)}
               type="file"
             />
             <span className="text-xs font-normal text-muted">
@@ -1015,9 +935,7 @@ function EditWorkoutPanel({
                   aria-label={copy.modal.expandWorkoutImage}
                   className="aspect-square overflow-hidden rounded-md border border-border bg-panel-muted transition hover:opacity-90"
                   key={url}
-                  onClick={() =>
-                    setSelectedEditImageIndex(existingImageCount + index)
-                  }
+                  onClick={() => setSelectedEditImageIndex(existingImageCount + index)}
                   type="button"
                 >
                   {/* biome-ignore lint/performance/noImgElement: Local object URL previews cannot use next/image. */}
@@ -1032,12 +950,8 @@ function EditWorkoutPanel({
           ) : null}
 
           <div className="min-h-5">
-            {editError ? (
-              <p className="text-sm font-medium text-danger">{editError}</p>
-            ) : null}
-            {editSuccess ? (
-              <p className="text-sm font-medium text-accent">{editSuccess}</p>
-            ) : null}
+            {editError ? <p className="text-sm font-medium text-danger">{editError}</p> : null}
+            {editSuccess ? <p className="text-sm font-medium text-accent">{editSuccess}</p> : null}
           </div>
         </div>
       </div>
@@ -1054,9 +968,7 @@ function CaptionPill({ caption }: { caption?: string }) {
 
   return (
     <div className="pointer-events-none absolute bottom-4 left-1/2 z-10 max-w-[min(82%,34rem)] -translate-x-1/2 rounded-full bg-black/80 px-4 py-2 text-center text-sm font-semibold leading-snug text-white shadow-[0_10px_30px_rgba(0,0,0,0.3)] backdrop-blur-sm">
-      <span className="line-clamp-2">
-        {truncateCaption(trimmedCaption, CAPTION_MAX_LENGTH)}
-      </span>
+      <span className="line-clamp-2">{truncateCaption(trimmedCaption, CAPTION_MAX_LENGTH)}</span>
     </div>
   );
 }
@@ -1113,10 +1025,7 @@ function useSwipeNavigation({
       const deltaX = event.clientX - swipeStart.x;
       const deltaY = event.clientY - swipeStart.y;
 
-      if (
-        Math.abs(deltaX) < SWIPE_MIN_DISTANCE ||
-        Math.abs(deltaY) > SWIPE_MAX_VERTICAL_DRIFT
-      ) {
+      if (Math.abs(deltaX) < SWIPE_MIN_DISTANCE || Math.abs(deltaY) > SWIPE_MAX_VERTICAL_DRIFT) {
         return;
       }
 

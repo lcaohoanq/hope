@@ -3,33 +3,34 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { resolveOwner } from "@/lib/auth";
-import {
-  getProfileUpdateFieldErrors,
-  profileUpdateSchema,
-} from "@/lib/profile-update";
+import { getProfileUpdateFieldErrors, profileUpdateSchema } from "@/lib/profile-update";
 import {
   createProfile,
   getProfileByClerkId,
   linkClerkUserToProfile,
   updatePublicProfile,
 } from "@/lib/repositories/profiles";
-import {
-  getCanonicalUserPath,
-  normalizeUsername,
-  toPublicUser,
-} from "@/lib/users";
+import { getCanonicalUserPath, normalizeUsername, toPublicUser } from "@/lib/users";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   const { userId } = await auth();
-  if (!userId) return NextResponse.json({ success: false, error: "Authentication is required." }, { status: 401 });
+  if (!userId)
+    return NextResponse.json(
+      { success: false, error: "Authentication is required." },
+      { status: 401 },
+    );
 
   const existing = await getProfileByClerkId(userId);
   if (existing) return NextResponse.json({ success: true, user: toPublicUser(existing) });
 
   const clerkUser = await currentUser();
-  if (!clerkUser) return NextResponse.json({ success: false, error: "Clerk user was not found." }, { status: 401 });
+  if (!clerkUser)
+    return NextResponse.json(
+      { success: false, error: "Clerk user was not found." },
+      { status: 401 },
+    );
 
   const appUserId = clerkUser.publicMetadata.appUserId;
   if (typeof appUserId === "string" && appUserId.trim()) {
@@ -41,7 +42,10 @@ export async function POST(request: Request) {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ success: false, error: "Request body must be valid JSON." }, { status: 400 });
+    return NextResponse.json(
+      { success: false, error: "Request body must be valid JSON." },
+      { status: 400 },
+    );
   }
 
   const displayName = typeof body.displayName === "string" ? body.displayName.trim() : "";
@@ -49,18 +53,41 @@ export async function POST(request: Request) {
   const birthYear = Number(body.birthYear);
   const currentYear = new Date().getFullYear();
   const username = clerkUser.username ? normalizeUsername(clerkUser.username) : "";
-  if (!username) return NextResponse.json({ success: false, error: "Choose a Clerk username before continuing." }, { status: 400 });
-  if (displayName.length < 2 || !avatarSeed || !Number.isInteger(birthYear) || birthYear < 1900 || birthYear > currentYear) {
-    return NextResponse.json({ success: false, error: "Profile details are invalid." }, { status: 400 });
+  if (!username)
+    return NextResponse.json(
+      { success: false, error: "Choose a Clerk username before continuing." },
+      { status: 400 },
+    );
+  if (
+    displayName.length < 2 ||
+    !avatarSeed ||
+    !Number.isInteger(birthYear) ||
+    birthYear < 1900 ||
+    birthYear > currentYear
+  ) {
+    return NextResponse.json(
+      { success: false, error: "Profile details are invalid." },
+      { status: 400 },
+    );
   }
 
   try {
-    const profile = await createProfile({ id: randomUUID(), clerkUserId: userId, username, displayName, birthYear, avatarSeed });
+    const profile = await createProfile({
+      id: randomUUID(),
+      clerkUserId: userId,
+      username,
+      displayName,
+      birthYear,
+      avatarSeed,
+    });
     if (!profile) throw new Error("Profile creation did not return a profile.");
     return NextResponse.json({ success: true, user: toPublicUser(profile) });
   } catch (error) {
     console.error("Unable to create profile.", error);
-    return NextResponse.json({ success: false, error: "That username is already in use." }, { status: 409 });
+    return NextResponse.json(
+      { success: false, error: "That username is already in use." },
+      { status: 409 },
+    );
   }
 }
 

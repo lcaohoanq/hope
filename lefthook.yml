@@ -1,5 +1,5 @@
 pre-commit:
   jobs:
     - name: biome-check
-      run: pnpm exec biome check --write --no-errors-on-unmatched {staged_files}
+      run: pnpm exec biome check --write --no-errors-on-unmatched --max-diagnostics=100 {staged_files}
       stage_fixed: true

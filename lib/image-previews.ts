@@ -3,9 +3,7 @@ export async function createImagePreviewUrls(images: File[]) {
 
   try {
     for (const image of images) {
-      const previewBlob = isHeicImage(image)
-        ? await convertHeicImageForPreview(image)
-        : image;
+      const previewBlob = isHeicImage(image) ? await convertHeicImageForPreview(image) : image;
 
       previewUrls.push(URL.createObjectURL(previewBlob));
     }
@@ -18,7 +16,9 @@ export async function createImagePreviewUrls(images: File[]) {
 }
 
 export function revokeImagePreviewUrls(previewUrls: string[]) {
-  previewUrls.forEach((url) => URL.revokeObjectURL(url));
+  previewUrls.forEach((url) => {
+    URL.revokeObjectURL(url);
+  });
 }
 
 function isHeicImage(image: File) {
@@ -60,9 +60,7 @@ export async function prepareWorkoutImageUploads(images: File[]) {
 }
 
 async function prepareWorkoutImageUpload(image: File) {
-  const previewableBlob = isHeicImage(image)
-    ? await convertHeicImageForPreview(image)
-    : image;
+  const previewableBlob = isHeicImage(image) ? await convertHeicImageForPreview(image) : image;
 
   if (previewableBlob.size <= WORKOUT_UPLOAD_MAX_BYTES && !isHeicImage(image)) {
     return image;
@@ -71,10 +69,7 @@ async function prepareWorkoutImageUpload(image: File) {
   const bitmap = await createImageBitmap(previewableBlob);
 
   try {
-    const { width, height } = getResizedDimensions(
-      bitmap.width,
-      bitmap.height,
-    );
+    const { width, height } = getResizedDimensions(bitmap.width, bitmap.height);
     const canvas = document.createElement("canvas");
     canvas.width = width;
     canvas.height = height;
@@ -90,10 +85,7 @@ async function prepareWorkoutImageUpload(image: File) {
     let quality = WORKOUT_UPLOAD_INITIAL_QUALITY;
     let optimizedBlob = await createCanvasBlob(canvas, quality);
 
-    while (
-      optimizedBlob.size > WORKOUT_UPLOAD_MAX_BYTES &&
-      quality > WORKOUT_UPLOAD_MIN_QUALITY
-    ) {
+    while (optimizedBlob.size > WORKOUT_UPLOAD_MAX_BYTES && quality > WORKOUT_UPLOAD_MIN_QUALITY) {
       quality = Math.max(WORKOUT_UPLOAD_MIN_QUALITY, quality - 0.08);
       optimizedBlob = await createCanvasBlob(canvas, quality);
     }
@@ -111,10 +103,7 @@ async function prepareWorkoutImageUpload(image: File) {
 }
 
 function getResizedDimensions(width: number, height: number) {
-  const scale = Math.min(
-    1,
-    WORKOUT_UPLOAD_MAX_DIMENSION / Math.max(width, height),
-  );
+  const scale = Math.min(1, WORKOUT_UPLOAD_MAX_DIMENSION / Math.max(width, height));
 
   return {
     width: Math.max(1, Math.round(width * scale)),

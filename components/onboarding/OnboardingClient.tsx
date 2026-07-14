@@ -14,7 +14,11 @@ export function OnboardingClient() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(profile),
     });
-    const payload = (await response.json()) as { success: boolean; user?: PublicAppUser; error?: string };
+    const payload = (await response.json()) as {
+      success: boolean;
+      user?: PublicAppUser;
+      error?: string;
+    };
     if (!response.ok || !payload.success || !payload.user) {
       throw new Error(payload.error ?? "Unable to create your profile.");
     }

@@ -39,9 +39,7 @@ const socialLinksSchema = z
     linkedin: optionalUrlSchema,
   })
   .strict()
-  .transform((value) =>
-    value.facebook || value.instagram || value.linkedin ? value : undefined,
-  )
+  .transform((value) => (value.facebook || value.instagram || value.linkedin ? value : undefined))
   .optional();
 
 export const profileUpdateSchema = z

@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { useEffect } from "react";
 import { WorkoutForm } from "@/components/WorkoutForm";
 import type { AppCopy } from "@/lib/i18n";
 import type { WorkoutInput } from "@/lib/workout-types";

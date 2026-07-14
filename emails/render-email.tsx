@@ -2,8 +2,8 @@ import { render } from "@react-email/render";
 
 import WorkoutReminderEmail, {
   getWorkoutReminderEmailText,
-  workoutReminderEmailSubject,
   type WorkoutReminderEmailProps,
+  workoutReminderEmailSubject,
 } from "./workout-reminder";
 
 export type RenderedEmail = {

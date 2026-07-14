@@ -16,7 +16,11 @@ async function main() {
   const { clerkClient } = await import("@clerk/nextjs/server");
   const clerk = await clerkClient();
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL;
-  const pending = [] as Array<{ profile: (typeof profiles)[number]; email: string; appUrl?: string }>;
+  const pending = [] as Array<{
+    profile: (typeof profiles)[number];
+    email: string;
+    appUrl?: string;
+  }>;
 
   for (const profile of profiles) {
     const workouts = await listWorkoutsByProfile(profile.id);
@@ -42,7 +46,9 @@ async function main() {
     return;
   }
   if (process.env.REMINDER_DRY_RUN === "1") {
-    console.log(`Dry run: would remind ${pending.map(({ profile }) => profile.id).join(", ")} on ${today}.`);
+    console.log(
+      `Dry run: would remind ${pending.map(({ profile }) => profile.id).join(", ")} on ${today}.`,
+    );
     return;
   }
 

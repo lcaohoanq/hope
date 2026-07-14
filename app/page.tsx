@@ -1,15 +1,9 @@
 import { auth } from "@clerk/nextjs/server";
+import Image from "next/image";
 import Link from "next/link";
-import {
-  FaArrowRight,
-  FaCalendarCheck,
-  FaChartLine,
-  FaDumbbell,
-  FaLeaf,
-} from "react-icons/fa";
+import { FaArrowRight, FaCalendarCheck, FaChartLine, FaDumbbell, FaLeaf } from "react-icons/fa";
 import { getProfileByClerkId } from "@/lib/repositories/profiles";
 import { getCanonicalUserPath } from "@/lib/users";
-import Image from "next/image";
 
 const featureCards = [
   {
@@ -26,11 +20,17 @@ const featureCards = [
   },
   {
     title: "Return gently",
-    description:
-      "Missed days stay part of the record, so the next workout is easier to begin.",
+    description: "Missed days stay part of the record, so the next workout is easier to begin.",
     icon: FaLeaf,
   },
 ];
+
+const consistencyCells = Array.from({ length: 84 }, (_, index) => ({
+  id: `consistency-cell-${index}`,
+  intensity: ["bg-panel-muted", "bg-[#dbe8dc]", "bg-[#a7c4ad]", "bg-accent"][
+    (index * 7 + index) % 4
+  ],
+}));
 
 export const metadata = {
   title: "Hope - Workout consistency tracker",
@@ -42,7 +42,9 @@ export default async function Home() {
   const { userId } = await auth();
   const authenticatedUser = userId ? await getProfileByClerkId(userId) : undefined;
   const primaryHref = userId
-    ? authenticatedUser ? getCanonicalUserPath(authenticatedUser) : "/auth/continue"
+    ? authenticatedUser
+      ? getCanonicalUserPath(authenticatedUser)
+      : "/auth/continue"
     : "/login";
   const primaryLabel = userId ? "Open dashboard" : "Sign in";
 
@@ -97,8 +99,8 @@ export default async function Home() {
               Build a quieter record of showing up.
             </h1>
             <p className="mt-6 max-w-2xl text-base leading-8 text-muted sm:text-lg">
-              Hope turns workouts into a calm, visual habit record: log each
-              session, review your heatmap, and keep the next day within reach.
+              Hope turns workouts into a calm, visual habit record: log each session, review your
+              heatmap, and keep the next day within reach.
             </p>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -122,28 +124,16 @@ export default async function Home() {
 
             <div className="mt-10 grid max-w-2xl grid-cols-3 divide-x divide-border overflow-hidden rounded-lg border border-border bg-panel/64 backdrop-blur">
               <div className="p-4">
-                <p className="font-mono text-2xl font-semibold text-text">
-                  365
-                </p>
-                <p className="mt-1 text-xs leading-5 text-muted">
-                  days in view
-                </p>
+                <p className="font-mono text-2xl font-semibold text-text">365</p>
+                <p className="mt-1 text-xs leading-5 text-muted">days in view</p>
               </div>
               <div className="p-4">
-                <p className="font-mono text-2xl font-semibold text-text">
-                  4
-                </p>
-                <p className="mt-1 text-xs leading-5 text-muted">
-                  focused fields
-                </p>
+                <p className="font-mono text-2xl font-semibold text-text">4</p>
+                <p className="mt-1 text-xs leading-5 text-muted">focused fields</p>
               </div>
               <div className="p-4">
-                <p className="font-mono text-2xl font-semibold text-text">
-                  1
-                </p>
-                <p className="mt-1 text-xs leading-5 text-muted">
-                  steady ritual
-                </p>
+                <p className="font-mono text-2xl font-semibold text-text">1</p>
+                <p className="mt-1 text-xs leading-5 text-muted">steady ritual</p>
               </div>
             </div>
           </div>
@@ -159,9 +149,7 @@ export default async function Home() {
                   <p className="text-xs font-semibold uppercase tracking-[0.14em] text-accent">
                     This week
                   </p>
-                  <h2 className="mt-1 text-xl font-semibold text-text">
-                    Movement log
-                  </h2>
+                  <h2 className="mt-1 text-xl font-semibold text-text">Movement log</h2>
                 </div>
                 <div className="grid h-10 w-10 place-items-center rounded-md bg-[#edf3ec] text-accent">
                   <FaCalendarCheck aria-hidden="true" className="h-4 w-4" />
@@ -179,47 +167,27 @@ export default async function Home() {
                     className="grid grid-cols-[44px_minmax(0,1fr)_auto] items-center gap-3 rounded-md border border-border bg-panel px-3 py-3"
                     key={day}
                   >
-                    <span className="font-mono text-xs font-semibold text-muted">
-                      {day}
-                    </span>
-                    <span className="truncate text-sm font-semibold text-text">
-                      {label}
-                    </span>
-                    <span className="text-xs font-medium text-muted">
-                      {value}
-                    </span>
-                    <span
-                      aria-hidden="true"
-                      className={`col-span-3 h-2 rounded-[2px] ${color}`}
-                    />
+                    <span className="font-mono text-xs font-semibold text-muted">{day}</span>
+                    <span className="truncate text-sm font-semibold text-text">{label}</span>
+                    <span className="text-xs font-medium text-muted">{value}</span>
+                    <span aria-hidden="true" className={`col-span-3 h-2 rounded-[2px] ${color}`} />
                   </div>
                 ))}
               </div>
 
               <div className="mt-5 rounded-lg border border-border bg-[#fbfbfa] p-4">
                 <div className="mb-3 flex items-center justify-between">
-                  <p className="text-sm font-semibold text-text">
-                    Consistency map
-                  </p>
+                  <p className="text-sm font-semibold text-text">Consistency map</p>
                   <p className="font-mono text-xs text-muted">Jul 2026</p>
                 </div>
                 <div className="grid grid-cols-[repeat(14,minmax(0,1fr))] gap-1">
-                  {Array.from({ length: 84 }, (_, index) => {
-                    const intensity = [
-                      "bg-panel-muted",
-                      "bg-[#dbe8dc]",
-                      "bg-[#a7c4ad]",
-                      "bg-accent",
-                    ][(index * 7 + index) % 4];
-
-                    return (
-                      <span
-                        aria-hidden="true"
-                        className={`aspect-square rounded-[2px] ${intensity}`}
-                        key={index}
-                      />
-                    );
-                  })}
+                  {consistencyCells.map((cell) => (
+                    <span
+                      aria-hidden="true"
+                      className={`aspect-square rounded-[2px] ${cell.intensity}`}
+                      key={cell.id}
+                    />
+                  ))}
                 </div>
               </div>
             </div>
@@ -238,12 +206,8 @@ export default async function Home() {
                 <div className="grid h-10 w-10 place-items-center rounded-md bg-[#edf3ec] text-accent">
                   <Icon aria-hidden="true" className="h-4 w-4" />
                 </div>
-                <h2 className="mt-5 text-lg font-semibold text-text">
-                  {feature.title}
-                </h2>
-                <p className="mt-3 text-sm leading-6 text-muted">
-                  {feature.description}
-                </p>
+                <h2 className="mt-5 text-lg font-semibold text-text">{feature.title}</h2>
+                <p className="mt-3 text-sm leading-6 text-muted">{feature.description}</p>
               </article>
             );
           })}

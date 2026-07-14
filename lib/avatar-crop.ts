@@ -2,11 +2,7 @@ import type { Area } from "react-easy-crop";
 
 const AVATAR_OUTPUT_SIZE = 1024;
 
-export async function createCroppedAvatarFile(
-  imageUrl: string,
-  crop: Area,
-  originalName: string,
-) {
+export async function createCroppedAvatarFile(imageUrl: string, crop: Area, originalName: string) {
   const image = await loadImage(imageUrl);
   const canvas = document.createElement("canvas");
   const context = canvas.getContext("2d");
@@ -51,12 +47,16 @@ function loadImage(src: string) {
 
 function canvasToBlob(canvas: HTMLCanvasElement, type: string, quality: number) {
   return new Promise<Blob>((resolve, reject) => {
-    canvas.toBlob((blob) => {
-      if (blob) {
-        resolve(blob);
-      } else {
-        reject(new Error("The cropped image could not be created."));
-      }
-    }, type, quality);
+    canvas.toBlob(
+      (blob) => {
+        if (blob) {
+          resolve(blob);
+        } else {
+          reject(new Error("The cropped image could not be created."));
+        }
+      },
+      type,
+      quality,
+    );
   });
 }

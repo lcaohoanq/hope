@@ -1,8 +1,8 @@
 "use client";
 
-import { memo, type ReactNode } from "react";
 import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
+import { memo, type ReactNode } from "react";
 
 type AuthLayoutProps = {
   children: ReactNode;
@@ -11,7 +11,9 @@ type AuthLayoutProps = {
 const LoginPersonScene = dynamic(
   () => import("@/components/auth/LoginPersonScene").then((module) => module.LoginPersonScene),
   {
-    loading: () => <div aria-hidden="true" className="h-full w-full animate-pulse bg-panel-muted" />,
+    loading: () => (
+      <div aria-hidden="true" className="h-full w-full animate-pulse bg-panel-muted" />
+    ),
     ssr: false,
   },
 );
@@ -40,6 +42,7 @@ const LoginSceneStage = memo(function LoginSceneStage() {
       <div
         aria-label="Interactive walking person model"
         className="relative h-full w-full cursor-grab active:cursor-grabbing"
+        role="img"
       >
         <LoginPersonScene />
       </div>

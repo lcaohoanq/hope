@@ -60,8 +60,7 @@ export const translations = {
       avatarCropZoomOut: "Thu nhỏ",
       avatarInvalidType: "Vui lòng chọn ảnh JPG, PNG hoặc WebP.",
       avatarTooLarge: "Ảnh đại diện phải có dung lượng từ 5MB trở xuống.",
-      avatarUploadPending:
-        "Ảnh mới đang được lưu. Bạn vẫn có thể thấy preview trong lúc chờ.",
+      avatarUploadPending: "Ảnh mới đang được lưu. Bạn vẫn có thể thấy preview trong lúc chờ.",
       avatarUpdated: "Đã cập nhật ảnh đại diện.",
       birthYear: "Năm sinh",
       closeWorkoutForm: "Đóng biểu mẫu tập luyện",
@@ -107,12 +106,9 @@ export const translations = {
     },
     errors: {
       imageLimit: (limit: number) => `Chọn tối đa ${limit} ảnh.`,
-      imagePreviewFailed:
-        "Chưa thể tạo preview cho ảnh HEIC này. Vui lòng thử ảnh khác.",
-      invalidJson: (fallback: string) =>
-        `${fallback} Máy chủ trả về dữ liệu JSON không hợp lệ.`,
-      nonJson: (fallback: string) =>
-        `${fallback} Máy chủ không trả về dữ liệu JSON.`,
+      imagePreviewFailed: "Chưa thể tạo preview cho ảnh HEIC này. Vui lòng thử ảnh khác.",
+      invalidJson: (fallback: string) => `${fallback} Máy chủ trả về dữ liệu JSON không hợp lệ.`,
+      nonJson: (fallback: string) => `${fallback} Máy chủ không trả về dữ liệu JSON.`,
       saveWorkout: "Chưa thể lưu buổi tập.",
       startBeforeEnd: "Giờ bắt đầu phải sớm hơn giờ kết thúc.",
       timeRequired: "Vui lòng nhập giờ bắt đầu và giờ kết thúc.",
@@ -127,8 +123,7 @@ export const translations = {
       editWorkout: "Sửa buổi tập",
       end: "Kết thúc",
       endTime: "Giờ kết thúc",
-      imageSlotAvailable: (count: number) =>
-        `Còn ${count} vị trí ảnh có thể thêm.`,
+      imageSlotAvailable: (count: number) => `Còn ${count} vị trí ảnh có thể thêm.`,
       images: "Ảnh",
       existingImages: (count: number) => `${count} ảnh hiện có`,
       logWorkout: "Ghi lại buổi tập",
@@ -147,8 +142,7 @@ export const translations = {
       publicWorkout: "Buổi tập công khai",
       publicWorkoutHelp: "Tắt để chỉ mình bạn xem được buổi tập này.",
       removeImage: (index: number) => `Xóa ảnh ${index}`,
-      selectedEditPreviewAlt: (index: number) =>
-        `Ảnh chỉnh sửa đã chọn ${index}`,
+      selectedEditPreviewAlt: (index: number) => `Ảnh chỉnh sửa đã chọn ${index}`,
       selectedPreviewAlt: (index: number) => `Ảnh buổi tập đã chọn ${index}`,
       start: "Bắt đầu",
       startTime: "Giờ bắt đầu",
@@ -314,12 +308,9 @@ export const translations = {
     },
     errors: {
       imageLimit: (limit: number) => `Choose up to ${limit} images.`,
-      imagePreviewFailed:
-        "Unable to preview this HEIC image. Please try another image.",
-      invalidJson: (fallback: string) =>
-        `${fallback} The server returned invalid JSON.`,
-      nonJson: (fallback: string) =>
-        `${fallback} The server returned a non-JSON response.`,
+      imagePreviewFailed: "Unable to preview this HEIC image. Please try another image.",
+      invalidJson: (fallback: string) => `${fallback} The server returned invalid JSON.`,
+      nonJson: (fallback: string) => `${fallback} The server returned a non-JSON response.`,
       saveWorkout: "Unable to save workout.",
       startBeforeEnd: "Start time must be earlier than end time.",
       timeRequired: "Start time and end time are required.",
@@ -337,8 +328,7 @@ export const translations = {
       imageSlotAvailable: (count: number) =>
         `${count} image slot${count === 1 ? "" : "s"} available.`,
       images: "Images",
-      existingImages: (count: number) =>
-        `${count} existing image${count === 1 ? "" : "s"}`,
+      existingImages: (count: number) => `${count} existing image${count === 1 ? "" : "s"}`,
       logWorkout: "Log a workout",
       newImages: "New images",
       note: "Caption",
@@ -355,10 +345,8 @@ export const translations = {
       publicWorkout: "Public workout",
       publicWorkoutHelp: "Turn off to make this workout visible only to you.",
       removeImage: (index: number) => `Remove image ${index}`,
-      selectedEditPreviewAlt: (index: number) =>
-        `Selected edit preview ${index}`,
-      selectedPreviewAlt: (index: number) =>
-        `Selected workout preview ${index}`,
+      selectedEditPreviewAlt: (index: number) => `Selected edit preview ${index}`,
+      selectedPreviewAlt: (index: number) => `Selected workout preview ${index}`,
       start: "Start",
       startTime: "Start time",
       submit: "Log workout",
@@ -380,33 +368,18 @@ export const translations = {
     },
     heatmap: {
       lifetime: "Lifetime",
-      months: [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
-      ],
+      months: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
       noData: "No data",
       noTrackingYet: "No tracking yet",
       noWorkout: "No workout",
       weekdays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
       view: "View",
       workout: "Workout",
-      workoutCount: (count: number) =>
-        `${count} workout${count === 1 ? "" : "s"}`,
+      workoutCount: (count: number) => `${count} workout${count === 1 ? "" : "s"}`,
       yearTitle: (year: number) => `Your ${year}`,
     },
     modal: {
-      addMoreImages: (count: number) =>
-        `Add up to ${count} more image${count === 1 ? "" : "s"}.`,
+      addMoreImages: (count: number) => `Add up to ${count} more image${count === 1 ? "" : "s"}.`,
       backToEditWorkout: "Back to edit",
       backToWorkoutDetail: "Back to workout detail",
       closeWorkoutDetail: "Close workout detail",
@@ -415,8 +388,7 @@ export const translations = {
       expandWorkoutImage: "Expand workout image",
       nextWorkoutImage: "Show next image",
       previousWorkoutImage: "Show previous image",
-      loggedWorkoutCount: (count: number) =>
-        `${count} workout${count === 1 ? "" : "s"} logged`,
+      loggedWorkoutCount: (count: number) => `${count} workout${count === 1 ? "" : "s"} logged`,
       minimizeWorkoutImage: "Minimize image",
       noWorkoutLogged: "No workout logged.",
       showWorkoutImage: (index: number) => `Show workout image ${index}`,

@@ -1,14 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { FaArrowLeft } from "react-icons/fa";
 import { readApiJson } from "@/components/dashboard/workout-api";
 import { translations } from "@/lib/i18n";
-import {
-  getProfileUpdateFieldErrors,
-  profileUpdateSchema,
-} from "@/lib/profile-update";
+import { getProfileUpdateFieldErrors, profileUpdateSchema } from "@/lib/profile-update";
 import { getCanonicalUserPath, type PublicAppUser } from "@/lib/users";
 import { PrivacySettingsCard } from "./PrivacySettingsCard";
 
@@ -127,16 +124,12 @@ export function ProfileSettingsForm({ user }: ProfileSettingsFormProps) {
           setFieldErrors(payload.fieldErrors);
         }
 
-        throw new Error(
-          "error" in payload ? payload.error : copy.profileSettings.saveFailed,
-        );
+        throw new Error("error" in payload ? payload.error : copy.profileSettings.saveFailed);
       }
 
       window.location.assign(getCanonicalUserPath(payload.profile));
     } catch (error) {
-      setSubmitError(
-        error instanceof Error ? error.message : copy.profileSettings.saveFailed,
-      );
+      setSubmitError(error instanceof Error ? error.message : copy.profileSettings.saveFailed);
       setIsSaving(false);
     }
   }
@@ -167,12 +160,12 @@ export function ProfileSettingsForm({ user }: ProfileSettingsFormProps) {
           <p className="mt-4 max-w-2xl text-base leading-7 text-muted">
             {copy.profileSettings.description}
           </p>
-          <p className="mt-2 text-sm text-muted">
-            {copy.profileSettings.usernameLocked}
-          </p>
+          <p className="mt-2 text-sm text-muted">{copy.profileSettings.usernameLocked}</p>
         </header>
 
-        <div className="mb-6"><PrivacySettingsCard user={user} /></div>
+        <div className="mb-6">
+          <PrivacySettingsCard user={user} />
+        </div>
         <form className="grid gap-6" noValidate onSubmit={handleSubmit}>
           <FormSection
             description={copy.profileSettings.basicDescription}
@@ -181,12 +174,14 @@ export function ProfileSettingsForm({ user }: ProfileSettingsFormProps) {
             <div className="grid gap-5 sm:grid-cols-2">
               <FormField
                 error={fieldErrors.displayName}
+                htmlFor="displayName"
                 label={copy.profileSettings.displayName}
               >
                 <input
                   aria-invalid={Boolean(fieldErrors.displayName)}
                   className={inputClassName}
                   disabled={isSaving}
+                  id="displayName"
                   maxLength={80}
                   name="displayName"
                   onChange={(event) => updateField("displayName", event.target.value)}
@@ -195,12 +190,14 @@ export function ProfileSettingsForm({ user }: ProfileSettingsFormProps) {
               </FormField>
               <FormField
                 error={fieldErrors.birthYear}
+                htmlFor="birthYear"
                 label={copy.profileSettings.birthYear}
               >
                 <input
                   aria-invalid={Boolean(fieldErrors.birthYear)}
                   className={inputClassName}
                   disabled={isSaving}
+                  id="birthYear"
                   inputMode="numeric"
                   max={new Date().getFullYear()}
                   min={1900}
@@ -218,22 +215,32 @@ export function ProfileSettingsForm({ user }: ProfileSettingsFormProps) {
             title={copy.profileSettings.profileTitle}
           >
             <div className="grid gap-5 sm:grid-cols-2">
-              <FormField error={fieldErrors["bio.vi"]} label={copy.profileSettings.bioVietnamese}>
+              <FormField
+                error={fieldErrors["bio.vi"]}
+                htmlFor="bio.vi"
+                label={copy.profileSettings.bioVietnamese}
+              >
                 <textarea
                   aria-invalid={Boolean(fieldErrors["bio.vi"])}
                   className={textareaClassName}
                   disabled={isSaving}
+                  id="bio.vi"
                   maxLength={500}
                   name="bio.vi"
                   onChange={(event) => updateField("bioVi", event.target.value)}
                   value={form.bioVi}
                 />
               </FormField>
-              <FormField error={fieldErrors["bio.en"]} label={copy.profileSettings.bioEnglish}>
+              <FormField
+                error={fieldErrors["bio.en"]}
+                htmlFor="bio.en"
+                label={copy.profileSettings.bioEnglish}
+              >
                 <textarea
                   aria-invalid={Boolean(fieldErrors["bio.en"])}
                   className={textareaClassName}
                   disabled={isSaving}
+                  id="bio.en"
                   maxLength={500}
                   name="bio.en"
                   onChange={(event) => updateField("bioEn", event.target.value)}
@@ -242,12 +249,14 @@ export function ProfileSettingsForm({ user }: ProfileSettingsFormProps) {
               </FormField>
               <FormField
                 error={fieldErrors["pronouns.vi"]}
+                htmlFor="pronouns.vi"
                 label={copy.profileSettings.pronounsVietnamese}
               >
                 <input
                   aria-invalid={Boolean(fieldErrors["pronouns.vi"])}
                   className={inputClassName}
                   disabled={isSaving}
+                  id="pronouns.vi"
                   maxLength={50}
                   name="pronouns.vi"
                   onChange={(event) => updateField("pronounsVi", event.target.value)}
@@ -256,12 +265,14 @@ export function ProfileSettingsForm({ user }: ProfileSettingsFormProps) {
               </FormField>
               <FormField
                 error={fieldErrors["pronouns.en"]}
+                htmlFor="pronouns.en"
                 label={copy.profileSettings.pronounsEnglish}
               >
                 <input
                   aria-invalid={Boolean(fieldErrors["pronouns.en"])}
                   className={inputClassName}
                   disabled={isSaving}
+                  id="pronouns.en"
                   maxLength={50}
                   name="pronouns.en"
                   onChange={(event) => updateField("pronounsEn", event.target.value)}
@@ -361,14 +372,16 @@ function FormSection({
 function FormField({
   children,
   error,
+  htmlFor,
   label,
 }: {
   children: React.ReactNode;
   error?: string;
+  htmlFor: string;
   label: string;
 }) {
   return (
-    <label className="grid gap-2 text-sm font-semibold text-text">
+    <label className="grid gap-2 text-sm font-semibold text-text" htmlFor={htmlFor}>
       {label}
       {children}
       {error ? <span className="text-xs font-medium text-danger">{error}</span> : null}
@@ -392,11 +405,12 @@ function UrlField({
   value: string;
 }) {
   return (
-    <FormField error={error} label={label}>
+    <FormField error={error} htmlFor={name} label={label}>
       <input
         aria-invalid={Boolean(error)}
         className={inputClassName}
         disabled={disabled}
+        id={name}
         maxLength={2048}
         name={name}
         onChange={(event) => onChange(event.target.value)}

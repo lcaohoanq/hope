@@ -1,9 +1,4 @@
-import type {
-  AppTheme,
-  HeatmapView,
-  PublicAppUser,
-  UserLocation,
-} from "@/lib/users";
+import type { AppTheme, HeatmapView, PublicAppUser, UserLocation } from "@/lib/users";
 import type { Workout, WorkoutInput, WorkoutUpdateInput } from "@/lib/workout-types";
 
 export function getInitialTheme({
@@ -21,15 +16,10 @@ export function getInitialTheme({
 
   const storedTheme = window.localStorage.getItem(storageKey);
 
-  return storedTheme === "light" || storedTheme === "dark"
-    ? storedTheme
-    : fallbackTheme;
+  return storedTheme === "light" || storedTheme === "dark" ? storedTheme : fallbackTheme;
 }
 
-export function resolveDefaultHeatmapView(
-  user: PublicAppUser,
-  currentYear: number,
-): HeatmapView {
+export function resolveDefaultHeatmapView(user: PublicAppUser, currentYear: number): HeatmapView {
   const defaultView = user.settings.heatmap.defaultView;
 
   if (defaultView.mode === "lifetime") {
@@ -38,18 +28,11 @@ export function resolveDefaultHeatmapView(
 
   return {
     mode: "year",
-    year: clampYear(
-      defaultView.year ?? currentYear,
-      user.birthYear,
-      currentYear,
-    ),
+    year: clampYear(defaultView.year ?? currentYear, user.birthYear, currentYear),
   };
 }
 
-export function filterWorkoutsForHeatmapView(
-  workouts: Workout[],
-  view: HeatmapView,
-) {
+export function filterWorkoutsForHeatmapView(workouts: Workout[], view: HeatmapView) {
   if (view.mode === "lifetime") {
     return workouts;
   }

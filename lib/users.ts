@@ -1,13 +1,9 @@
 import type { Language, LocalizedText } from "@/lib/i18n";
 import type { UserProfile, Workout } from "@/lib/workout-types";
 
-export type HeatmapView =
-  | { mode: "lifetime" }
-  | { mode: "year"; year: number };
+export type HeatmapView = { mode: "lifetime" } | { mode: "year"; year: number };
 
-export type HeatmapDefaultView =
-  | { mode: "lifetime" }
-  | { mode: "year"; year?: number };
+export type HeatmapDefaultView = { mode: "lifetime" } | { mode: "year"; year?: number };
 
 export type UserLocation = {
   label: LocalizedText;
@@ -49,10 +45,7 @@ export type AppUser = UserProfile & {
   isPrivate: boolean;
 };
 
-export type PublicAppUser = Omit<
-  AppUser,
-  "clerkUserId" | "avatarPublicId" | "reminderEnabled"
->;
+export type PublicAppUser = Omit<AppUser, "clerkUserId" | "avatarPublicId" | "reminderEnabled">;
 
 export const DEFAULT_USER_PLAN: UserPlan = "standard";
 
