@@ -21,7 +21,7 @@ function toWorkoutImage(row: WorkoutImageRow): StoredWorkoutImage {
   return {
     src: row.secureUrl,
     publicId: row.publicId,
-    format: row.format === "webp" ? "webp" : "avif",
+    format: row.format === "webp" || row.format === "jpg" ? row.format : "avif",
     width: row.width,
     height: row.height,
     sizeBytes: row.sizeBytes,

@@ -11,6 +11,9 @@ export const ALLOWED_WORKOUT_IMAGE_MIME_TYPES = new Set([
   "image/heif",
 ]);
 
+export const OPTIMIZED_WORKOUT_IMAGE_MIME_TYPES = new Set(["image/webp", "image/jpeg"]);
+export const OPTIMIZED_WORKOUT_IMAGE_FORMATS = new Set(["webp", "jpg"]);
+
 export class WorkoutImageValidationError extends Error {
   constructor(message: string) {
     super(message);

@@ -1,8 +1,12 @@
 import { prepareWorkoutImageUploads } from "@/lib/image-previews";
-import { MAX_OPTIMIZED_WORKOUT_IMAGE_BYTES, MAX_WORKOUT_IMAGES } from "@/lib/workout-images";
+import {
+  MAX_OPTIMIZED_WORKOUT_IMAGE_BYTES,
+  MAX_WORKOUT_IMAGES,
+  OPTIMIZED_WORKOUT_IMAGE_MIME_TYPES,
+} from "@/lib/workout-images";
 
 type UploadTicket = {
-  params: Record<string, boolean | number | string>;
+  params: Record<string, boolean | number | string | string[]>;
   publicId: string;
   signature: string;
 };
@@ -50,7 +54,10 @@ export async function uploadWorkoutImagesDirectly(images: File[]) {
 
   try {
     for (const [index, image] of optimizedImages.entries()) {
-      if (image.type !== "image/webp" || image.size > MAX_OPTIMIZED_WORKOUT_IMAGE_BYTES) {
+      if (
+        !OPTIMIZED_WORKOUT_IMAGE_MIME_TYPES.has(image.type) ||
+        image.size > MAX_OPTIMIZED_WORKOUT_IMAGE_BYTES
+      ) {
         throw new Error("Unable to optimize this workout image for upload.");
       }
 
