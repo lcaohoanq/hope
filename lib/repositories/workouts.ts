@@ -21,11 +21,22 @@ function toWorkoutImage(row: WorkoutImageRow): StoredWorkoutImage {
   return {
     src: row.secureUrl,
     publicId: row.publicId,
-    format: "avif",
+    format: row.format === "webp" ? "webp" : "avif",
     width: row.width,
     height: row.height,
     sizeBytes: row.sizeBytes,
   };
+}
+
+export async function listAttachedWorkoutImagePublicIds(publicIds: string[]) {
+  if (publicIds.length === 0) return [];
+
+  const rows = await getDatabase()
+    .select({ publicId: workoutImages.publicId })
+    .from(workoutImages)
+    .where(inArray(workoutImages.publicId, publicIds));
+
+  return rows.map((row) => row.publicId);
 }
 
 function toWorkout(row: WorkoutRow, images: WorkoutImageRow[]): StoredWorkout {

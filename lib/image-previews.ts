@@ -1,3 +1,9 @@
+import {
+  MAX_OPTIMIZED_WORKOUT_IMAGE_BYTES,
+  MAX_WORKOUT_IMAGE_DIMENSION,
+  validateWorkoutImageUpload,
+} from "@/lib/workout-images";
+
 export async function createImagePreviewUrls(images: File[]) {
   const previewUrls: string[] = [];
 
@@ -44,10 +50,11 @@ async function convertHeicImageForPreview(image: File) {
   return Array.isArray(convertedImage) ? convertedImage[0] : convertedImage;
 }
 
-const WORKOUT_UPLOAD_MAX_BYTES = 5 * 1024 * 1024;
-const WORKOUT_UPLOAD_MAX_DIMENSION = 1600;
 const WORKOUT_UPLOAD_INITIAL_QUALITY = 0.82;
-const WORKOUT_UPLOAD_MIN_QUALITY = 0.58;
+const WORKOUT_UPLOAD_MIN_QUALITY = 0.56;
+const WORKOUT_UPLOAD_QUALITY_STEP = 0.06;
+const WORKOUT_UPLOAD_DIMENSION_SCALE = 0.82;
+const WORKOUT_UPLOAD_MIN_DIMENSION = 640;
 
 export async function prepareWorkoutImageUploads(images: File[]) {
   const optimizedImages: File[] = [];
@@ -60,50 +67,77 @@ export async function prepareWorkoutImageUploads(images: File[]) {
 }
 
 async function prepareWorkoutImageUpload(image: File) {
+  validateWorkoutImageUpload(image);
   const previewableBlob = isHeicImage(image) ? await convertHeicImageForPreview(image) : image;
-
-  if (previewableBlob.size <= WORKOUT_UPLOAD_MAX_BYTES && !isHeicImage(image)) {
-    return image;
-  }
-
   const bitmap = await createImageBitmap(previewableBlob);
 
   try {
-    const { width, height } = getResizedDimensions(bitmap.width, bitmap.height);
     const canvas = document.createElement("canvas");
-    canvas.width = width;
-    canvas.height = height;
-
     const context = canvas.getContext("2d");
 
     if (!context) {
       throw new Error("Unable to prepare this workout image.");
     }
 
-    context.drawImage(bitmap, 0, 0, width, height);
+    let dimensions = getResizedDimensions(bitmap.width, bitmap.height);
 
-    let quality = WORKOUT_UPLOAD_INITIAL_QUALITY;
-    let optimizedBlob = await createCanvasBlob(canvas, quality);
+    while (true) {
+      canvas.width = dimensions.width;
+      canvas.height = dimensions.height;
+      context.drawImage(bitmap, 0, 0, dimensions.width, dimensions.height);
 
-    while (optimizedBlob.size > WORKOUT_UPLOAD_MAX_BYTES && quality > WORKOUT_UPLOAD_MIN_QUALITY) {
-      quality = Math.max(WORKOUT_UPLOAD_MIN_QUALITY, quality - 0.08);
-      optimizedBlob = await createCanvasBlob(canvas, quality);
+      let quality = WORKOUT_UPLOAD_INITIAL_QUALITY;
+
+      while (true) {
+        const optimizedBlob = await createCanvasBlob(canvas, quality);
+
+        if (optimizedBlob.size <= MAX_OPTIMIZED_WORKOUT_IMAGE_BYTES) {
+          return new File([optimizedBlob], getOptimizedWorkoutImageName(image.name), {
+            type: optimizedBlob.type,
+          });
+        }
+
+        if (quality <= WORKOUT_UPLOAD_MIN_QUALITY) {
+          break;
+        }
+
+        quality = Math.max(
+          WORKOUT_UPLOAD_MIN_QUALITY,
+          Number((quality - WORKOUT_UPLOAD_QUALITY_STEP).toFixed(2)),
+        );
+      }
+
+      const longestEdge = Math.max(dimensions.width, dimensions.height);
+
+      if (longestEdge <= WORKOUT_UPLOAD_MIN_DIMENSION) {
+        break;
+      }
+
+      dimensions = scaleDimensions(dimensions.width, dimensions.height);
     }
 
-    if (optimizedBlob.size > WORKOUT_UPLOAD_MAX_BYTES) {
-      throw new Error("Please choose a smaller workout image.");
-    }
-
-    return new File([optimizedBlob], getOptimizedWorkoutImageName(image.name), {
-      type: optimizedBlob.type,
-    });
+    throw new Error("Unable to reduce this workout image below 1MB.");
   } finally {
     bitmap.close();
   }
 }
 
 function getResizedDimensions(width: number, height: number) {
-  const scale = Math.min(1, WORKOUT_UPLOAD_MAX_DIMENSION / Math.max(width, height));
+  const scale = Math.min(1, MAX_WORKOUT_IMAGE_DIMENSION / Math.max(width, height));
+
+  return {
+    width: Math.max(1, Math.round(width * scale)),
+    height: Math.max(1, Math.round(height * scale)),
+  };
+}
+
+function scaleDimensions(width: number, height: number) {
+  const longestEdge = Math.max(width, height);
+  const nextLongestEdge = Math.max(
+    WORKOUT_UPLOAD_MIN_DIMENSION,
+    Math.round(longestEdge * WORKOUT_UPLOAD_DIMENSION_SCALE),
+  );
+  const scale = nextLongestEdge / longestEdge;
 
   return {
     width: Math.max(1, Math.round(width * scale)),

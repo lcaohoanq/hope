@@ -8,7 +8,7 @@ const clerkRoutes = [
   /^\/(?:login|sign-up)(?:\/|$)/,
   /^\/auth\/(?:continue|resolve)\/?$/,
   /^\/settings\/profile\/?$/,
-  /^\/api\/(?:feed|notifications|workouts)\/?$/,
+  /^\/api\/(?:feed|notifications|workout-images|workouts)\/?$/,
   /^\/api\/users\/(?:avatar|privacy|profile|settings)\/?$/,
   /^\/api\/follow-requests\/[^/]+\/?$/,
   /^\/api\/profiles\/[^/]+\/(?:connections|follow)\/?$/,

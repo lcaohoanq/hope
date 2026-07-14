@@ -1,6 +1,6 @@
 export type WorkoutImage = {
   src: string;
-  format: "avif";
+  format: "avif" | "webp";
   width: number;
   height: number;
   sizeBytes: number;
@@ -35,6 +35,7 @@ export type CreateWorkoutRequest = {
   endTime?: unknown;
   note?: unknown;
   isPublic?: unknown;
+  imagePublicIds?: unknown;
 };
 
 export type UpdateWorkoutRequest = CreateWorkoutRequest & {

@@ -1,5 +1,5 @@
-import { prepareWorkoutImageUploads } from "@/lib/image-previews";
 import type { UserSettings } from "@/lib/users";
+import { uploadWorkoutImagesDirectly } from "@/lib/workout-image-upload";
 import type { Workout, WorkoutData, WorkoutInput, WorkoutUpdateInput } from "@/lib/workout-types";
 import { wait } from "./dashboard-utils";
 
@@ -70,46 +70,20 @@ export async function fetchWorkoutDataWithRetry(userId: string, fallbackMessage:
 }
 
 export async function createWorkoutRequestInit(input: WorkoutInput | WorkoutUpdateInput) {
-  const hasImages = input.images && input.images.length > 0;
-  const imageSrcs = "imageSrcs" in input ? input.imageSrcs : undefined;
+  const { images = [], ...workoutInput } = input;
+  const uploadedImagePublicIds = await uploadWorkoutImagesDirectly(images);
 
-  if (!hasImages) {
-    return {
+  return {
+    requestInit: {
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        ...input,
-        ...(imageSrcs ? { imageSrcs } : {}),
+        ...workoutInput,
+        imagePublicIds: uploadedImagePublicIds,
       }),
-    };
-  }
-
-  const body = new FormData();
-
-  if ("id" in input) {
-    body.set("id", input.id);
-  }
-
-  body.set("date", input.date);
-  body.set("type", input.type);
-  body.set("startTime", input.startTime);
-  body.set("endTime", input.endTime);
-  body.set("note", input.note);
-  body.set("isPublic", String(input.isPublic));
-
-  imageSrcs?.forEach((src) => {
-    body.append("imageSrcs", src);
-  });
-
-  const uploadImages = await prepareWorkoutImageUploads(input.images ?? []);
-
-  uploadImages.forEach((image) => {
-    body.append("images", image);
-  });
-
-  return {
-    body,
+    },
+    uploadedImagePublicIds,
   };
 }
 

@@ -32,6 +32,7 @@ import { getAvatarUrl } from "@/lib/profile-utils";
 import { getSocialCopy } from "@/lib/social-copy";
 import type { SocialSummary } from "@/lib/social-types";
 import type { AppTheme, HeatmapView, PublicAppUser } from "@/lib/users";
+import { cleanupWorkoutImageUploads } from "@/lib/workout-image-upload";
 import type { Workout, WorkoutInput, WorkoutUpdateInput } from "@/lib/workout-types";
 
 type HopeDashboardProps = {
@@ -150,12 +151,15 @@ export function HopeDashboard({
   async function handleSubmitWorkout(input: WorkoutInput) {
     setIsSubmittingWorkout(true);
     setIsUploadingWorkoutImages(hasWorkoutImages(input));
+    let uploadedImagePublicIds: string[] = [];
+    let workoutSaved = false;
 
     try {
-      const requestInit = await createWorkoutRequestInit(input);
+      const preparedRequest = await createWorkoutRequestInit(input);
+      uploadedImagePublicIds = preparedRequest.uploadedImagePublicIds;
       const response = await fetch("/api/workouts", {
         method: "POST",
-        ...requestInit,
+        ...preparedRequest.requestInit,
       });
       const payload = await readApiJson<CreateWorkoutResponse>(response, copy.errors.saveWorkout);
 
@@ -163,6 +167,7 @@ export function HopeDashboard({
         throw new Error("error" in payload ? payload.error : copy.errors.saveWorkout);
       }
 
+      workoutSaved = true;
       setWorkouts((current) =>
         [...current, payload.workout].sort((a, b) => {
           const dateSort = a.date.localeCompare(b.date);
@@ -176,6 +181,12 @@ export function HopeDashboard({
       );
       await loadWorkouts();
       setIsWorkoutDialogOpen(false);
+    } catch (error) {
+      if (!workoutSaved) {
+        await cleanupWorkoutImageUploads(uploadedImagePublicIds);
+      }
+
+      throw error;
     } finally {
       setIsSubmittingWorkout(false);
       setIsUploadingWorkoutImages(false);
@@ -184,12 +195,15 @@ export function HopeDashboard({
 
   async function handleUpdateWorkout(input: WorkoutUpdateInput) {
     setIsUploadingWorkoutImages(hasWorkoutImages(input));
+    let uploadedImagePublicIds: string[] = [];
+    let workoutSaved = false;
 
     try {
-      const requestInit = await createWorkoutRequestInit(input);
+      const preparedRequest = await createWorkoutRequestInit(input);
+      uploadedImagePublicIds = preparedRequest.uploadedImagePublicIds;
       const response = await fetch("/api/workouts", {
         method: "PATCH",
-        ...requestInit,
+        ...preparedRequest.requestInit,
       });
       const payload = await readApiJson<UpdateWorkoutResponse>(response, copy.errors.updateWorkout);
 
@@ -197,6 +211,7 @@ export function HopeDashboard({
         throw new Error("error" in payload ? payload.error : copy.errors.updateWorkout);
       }
 
+      workoutSaved = true;
       setWorkouts((current) =>
         current
           .map((workout) => (workout.id === payload.workout.id ? payload.workout : workout))
@@ -213,6 +228,12 @@ export function HopeDashboard({
       await loadWorkouts();
 
       return payload.workout;
+    } catch (error) {
+      if (!workoutSaved) {
+        await cleanupWorkoutImageUploads(uploadedImagePublicIds);
+      }
+
+      throw error;
     } finally {
       setIsUploadingWorkoutImages(false);
     }

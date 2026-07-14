@@ -1,13 +1,6 @@
-import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { resolveOwner } from "@/lib/auth";
-import {
-  cleanupUploadedAssets,
-  deleteImage,
-  getWorkoutImagePublicId,
-  type UploadedAsset,
-  uploadImageBuffer,
-} from "@/lib/cloudinary";
+import { deleteImage, getVerifiedWorkoutImageAssets, type UploadedAsset } from "@/lib/cloudinary";
 import { getTodayInTimezone } from "@/lib/date-utils";
 import { resolveProfileAccess } from "@/lib/profile-access";
 import { getProfileById } from "@/lib/repositories/profiles";
@@ -20,12 +13,8 @@ import {
   updateWorkout,
 } from "@/lib/repositories/workouts";
 import { canUserEditWorkoutDate, normalizeUserId } from "@/lib/users";
-import {
-  MAX_WORKOUT_IMAGES,
-  type OptimizedWorkoutImage,
-  optimizeWorkoutImage,
-  validateWorkoutImageUpload,
-} from "@/lib/workout-images";
+import { cleanupUnattachedWorkoutImageAssets } from "@/lib/workout-image-assets";
+import { MAX_WORKOUT_IMAGES } from "@/lib/workout-images";
 import type { CreateWorkoutRequest, UpdateWorkoutRequest, Workout } from "@/lib/workout-types";
 import {
   createWorkoutRecord,
@@ -99,34 +88,41 @@ export async function POST(request: Request) {
   if (owner.status === "signed-out") return unauthorized();
   if (owner.status === "onboarding") return onboardingRequired();
 
-  let payload: Awaited<ReturnType<typeof parseCreateWorkoutPayload>>;
+  let body: CreateWorkoutRequest;
   try {
-    payload = await parseCreateWorkoutPayload(request);
+    body = (await request.json()) as CreateWorkoutRequest;
   } catch {
     return NextResponse.json(
-      { success: false, error: "Request body must be valid JSON or multipart form data." },
+      { success: false, error: "Request body must be valid JSON." },
       { status: 400 },
     );
   }
-  const validation = validateCreateWorkoutRequest(payload.body);
-  if (!validation.success)
-    return NextResponse.json({ success: false, error: validation.error }, { status: 400 });
 
-  let optimizedImages: OptimizedWorkoutImage[];
+  const imagePublicIds = parseImagePublicIds(body.imagePublicIds);
+  if (!imagePublicIds.success) {
+    return NextResponse.json({ success: false, error: imagePublicIds.error }, { status: 400 });
+  }
+
+  const validation = validateCreateWorkoutRequest(body);
+  if (!validation.success) {
+    await safeCleanupNewAssets(owner.profile.id, imagePublicIds.publicIds);
+    return NextResponse.json({ success: false, error: validation.error }, { status: 400 });
+  }
+
+  let assets: UploadedAsset[];
   try {
-    optimizedImages = await prepareWorkoutImages(payload.imageFiles, validation.workoutInput.date);
+    assets = await prepareWorkoutImageAssets(owner.profile.id, imagePublicIds.publicIds);
   } catch (error) {
+    await safeCleanupNewAssets(owner.profile.id, imagePublicIds.publicIds);
     return imageError(error);
   }
 
   const workout = createWorkoutRecord({ ...validation.workoutInput, userId: owner.profile.id });
-  let assets: UploadedAsset[] = [];
   try {
-    assets = await uploadWorkoutImages(optimizedImages, owner.profile.id, workout.id, 0);
     const saved = await insertWorkout({ workout, assets });
     return NextResponse.json({ success: true, workout: publicWorkout(saved) });
   } catch (error) {
-    await cleanupUploadedAssets(assets.map((asset) => asset.publicId));
+    await safeCleanupNewAssets(owner.profile.id, imagePublicIds.publicIds);
     console.error("Unable to save workout.", error);
     return NextResponse.json({ success: false, error: "Unable to save workout." }, { status: 500 });
   }
@@ -137,28 +133,39 @@ export async function PATCH(request: Request) {
   if (owner.status === "signed-out") return unauthorized();
   if (owner.status === "onboarding") return onboardingRequired();
 
-  let payload: Awaited<ReturnType<typeof parseUpdateWorkoutPayload>>;
+  let body: UpdateWorkoutRequest;
   try {
-    payload = await parseUpdateWorkoutPayload(request);
+    body = (await request.json()) as UpdateWorkoutRequest;
   } catch {
     return NextResponse.json(
-      { success: false, error: "Request body must be valid JSON or multipart form data." },
+      { success: false, error: "Request body must be valid JSON." },
       { status: 400 },
     );
   }
-  const validation = validateUpdateWorkoutRequest(payload.body);
-  if (!validation.success)
+
+  const imagePublicIds = parseImagePublicIds(body.imagePublicIds);
+  if (!imagePublicIds.success) {
+    return NextResponse.json({ success: false, error: imagePublicIds.error }, { status: 400 });
+  }
+
+  const validation = validateUpdateWorkoutRequest(body);
+  if (!validation.success) {
+    await safeCleanupNewAssets(owner.profile.id, imagePublicIds.publicIds);
     return NextResponse.json({ success: false, error: validation.error }, { status: 400 });
+  }
 
   const existing = await getOwnedWorkout(validation.workoutId, owner.profile.id);
-  if (!existing)
+  if (!existing) {
+    await safeCleanupNewAssets(owner.profile.id, imagePublicIds.publicIds);
     return NextResponse.json({ success: false, error: "Workout was not found." }, { status: 404 });
+  }
 
   const today = getTodayInTimezone();
   if (
     !canUserEditWorkoutDate(owner.profile, existing.date, today) ||
     !canUserEditWorkoutDate(owner.profile, validation.workoutInput.date, today)
   ) {
+    await safeCleanupNewAssets(owner.profile.id, imagePublicIds.publicIds);
     return NextResponse.json(
       { success: false, error: "Editing past workouts is not enabled for this user." },
       { status: 403 },
@@ -166,14 +173,15 @@ export async function PATCH(request: Request) {
   }
 
   const retained = getRetainedImages(existing, validation.imageSrcs);
-  let optimizedImages: OptimizedWorkoutImage[];
+  let newAssets: UploadedAsset[];
   try {
-    optimizedImages = await prepareWorkoutImages(
-      payload.imageFiles,
-      validation.workoutInput.date,
+    newAssets = await prepareWorkoutImageAssets(
+      owner.profile.id,
+      imagePublicIds.publicIds,
       retained.length,
     );
   } catch (error) {
+    await safeCleanupNewAssets(owner.profile.id, imagePublicIds.publicIds);
     return imageError(error);
   }
 
@@ -182,14 +190,7 @@ export async function PATCH(request: Request) {
     ...validation.workoutInput,
     userId: owner.profile.id,
   };
-  let newAssets: UploadedAsset[] = [];
   try {
-    newAssets = await uploadWorkoutImages(
-      optimizedImages,
-      owner.profile.id,
-      existing.id,
-      retained.length,
-    );
     const saved = await updateWorkout({
       existing,
       workout: nextWorkout,
@@ -206,7 +207,7 @@ export async function PATCH(request: Request) {
     });
     return NextResponse.json({ success: true, workout: publicWorkout(saved) });
   } catch (error) {
-    await cleanupUploadedAssets(newAssets.map((asset) => asset.publicId));
+    await safeCleanupNewAssets(owner.profile.id, imagePublicIds.publicIds);
     console.error("Unable to update workout.", error);
     return NextResponse.json(
       { success: false, error: "Unable to update workout." },
@@ -215,82 +216,50 @@ export async function PATCH(request: Request) {
   }
 }
 
-async function parseCreateWorkoutPayload(request: Request) {
-  if (!(request.headers.get("content-type") ?? "").toLowerCase().includes("multipart/form-data")) {
-    return { body: (await request.json()) as CreateWorkoutRequest, imageFiles: [] as File[] };
+function parseImagePublicIds(value: unknown) {
+  if (typeof value === "undefined") {
+    return { success: true as const, publicIds: [] as string[] };
   }
-  const formData = await request.formData();
-  return {
-    body: formDataToWorkoutBody(formData),
-    imageFiles: getImageFiles(formData),
-  };
-}
 
-async function parseUpdateWorkoutPayload(request: Request) {
-  if (!(request.headers.get("content-type") ?? "").toLowerCase().includes("multipart/form-data")) {
-    return { body: (await request.json()) as UpdateWorkoutRequest, imageFiles: [] as File[] };
+  if (
+    !Array.isArray(value) ||
+    value.length > MAX_WORKOUT_IMAGES ||
+    !value.every((publicId) => typeof publicId === "string" && publicId.length > 0)
+  ) {
+    return {
+      success: false as const,
+      error: `Please upload no more than ${MAX_WORKOUT_IMAGES} valid images per workout.`,
+    };
   }
-  const formData = await request.formData();
-  return {
-    body: {
-      ...formDataToWorkoutBody(formData),
-      id: formData.get("id"),
-      imageSrcs: formData.getAll("imageSrcs"),
-    },
-    imageFiles: getImageFiles(formData),
-  };
-}
 
-function formDataToWorkoutBody(formData: FormData): CreateWorkoutRequest {
-  return {
-    date: formData.get("date"),
-    type: formData.get("type"),
-    startTime: formData.get("startTime"),
-    endTime: formData.get("endTime"),
-    note: formData.get("note"),
-    isPublic: formData.get("isPublic") === "true",
-  };
-}
+  const publicIds = value as string[];
 
-function getImageFiles(formData: FormData) {
-  return formData
-    .getAll("images")
-    .filter((value): value is File => value instanceof File && value.size > 0);
-}
-
-async function prepareWorkoutImages(imageFiles: File[], workoutDate: string, existingCount = 0) {
-  if (existingCount + imageFiles.length > MAX_WORKOUT_IMAGES)
-    throw new Error(`Please upload no more than ${MAX_WORKOUT_IMAGES} images per workout.`);
-  const images: OptimizedWorkoutImage[] = [];
-  for (const file of imageFiles) {
-    validateWorkoutImageUpload(file);
-    images.push(
-      await optimizeWorkoutImage({
-        buffer: Buffer.from(await file.arrayBuffer()),
-        workoutDate,
-        originalMimeType: file.type,
-      }),
-    );
+  if (new Set(publicIds).size !== publicIds.length) {
+    return { success: false as const, error: "Workout image uploads must be unique." };
   }
-  return images;
+
+  return { success: true as const, publicIds };
 }
 
-async function uploadWorkoutImages(
-  images: OptimizedWorkoutImage[],
+async function prepareWorkoutImageAssets(
   profileId: string,
-  workoutId: string,
-  offset: number,
+  publicIds: string[],
+  existingCount = 0,
 ) {
-  const assets: UploadedAsset[] = [];
+  if (existingCount + publicIds.length > MAX_WORKOUT_IMAGES) {
+    throw new Error(`Please upload no more than ${MAX_WORKOUT_IMAGES} images per workout.`);
+  }
+
+  return getVerifiedWorkoutImageAssets(profileId, publicIds);
+}
+
+async function safeCleanupNewAssets(profileId: string, publicIds: string[]) {
+  if (publicIds.length === 0) return;
+
   try {
-    for (const [index, image] of images.entries()) {
-      const publicId = `${getWorkoutImagePublicId(profileId, workoutId, offset + index)}-${randomUUID()}`;
-      assets.push(await uploadImageBuffer(image.buffer, publicId));
-    }
-    return assets;
+    await cleanupUnattachedWorkoutImageAssets(profileId, publicIds);
   } catch (error) {
-    await cleanupUploadedAssets(assets.map((asset) => asset.publicId));
-    throw error;
+    console.error("Unable to clean up new workout images.", error);
   }
 }
 
