@@ -1,18 +1,23 @@
-import { and, asc, desc, eq, inArray, lt, or } from "drizzle-orm";
+import { randomUUID } from "node:crypto";
+import { and, asc, count, desc, eq, inArray, lt, lte, or, sql } from "drizzle-orm";
 import type { UploadedAsset } from "@/lib/cloudinary";
 import { getDatabase } from "@/lib/db";
 import {
+  notifications,
   profileFollows,
   profiles,
   type WorkoutImageRow,
   type WorkoutRow,
+  workoutComments,
   workoutImages,
+  workoutLikes,
   workouts,
 } from "@/lib/db/schema";
-import type { FeedItem } from "@/lib/social-types";
+import type { FeedItem, WorkoutComment } from "@/lib/social-types";
 import { toPublicUser } from "@/lib/users";
 import type { Workout, WorkoutImage } from "@/lib/workout-types";
 import { toAppUser } from "./profiles";
+import { getRelationshipStatus } from "./social";
 
 export type StoredWorkoutImage = WorkoutImage & { publicId: string };
 export type StoredWorkout = Workout & { storedImages: StoredWorkoutImage[] };
@@ -66,6 +71,101 @@ async function loadImages(workoutIds: string[]) {
     .orderBy(asc(workoutImages.position));
 }
 
+async function loadEngagement(
+  workoutRows: WorkoutRow[],
+  viewerProfileId?: string,
+  previewLimit = 2,
+) {
+  const workoutIds = workoutRows.map((row) => row.id);
+  if (workoutIds.length === 0) return new Map<string, Omit<FeedItem, "profile" | "workout">>();
+
+  const db = getDatabase();
+  const rankedComments = db
+    .select({
+      id: workoutComments.id,
+      workoutId: workoutComments.workoutId,
+      authorProfileId: workoutComments.authorProfileId,
+      body: workoutComments.body,
+      createdAt: workoutComments.createdAt,
+      updatedAt: workoutComments.updatedAt,
+      rank: sql<number>`row_number() over (partition by ${workoutComments.workoutId} order by ${workoutComments.createdAt} desc, ${workoutComments.id} desc)`.as(
+        "rank",
+      ),
+    })
+    .from(workoutComments)
+    .where(inArray(workoutComments.workoutId, workoutIds))
+    .as("ranked_workout_comments");
+
+  const [likeCounts, commentCounts, viewerLikes, previewRows] = await Promise.all([
+    db
+      .select({ workoutId: workoutLikes.workoutId, value: count() })
+      .from(workoutLikes)
+      .where(inArray(workoutLikes.workoutId, workoutIds))
+      .groupBy(workoutLikes.workoutId),
+    db
+      .select({ workoutId: workoutComments.workoutId, value: count() })
+      .from(workoutComments)
+      .where(inArray(workoutComments.workoutId, workoutIds))
+      .groupBy(workoutComments.workoutId),
+    viewerProfileId
+      ? db
+          .select({ workoutId: workoutLikes.workoutId })
+          .from(workoutLikes)
+          .where(
+            and(
+              inArray(workoutLikes.workoutId, workoutIds),
+              eq(workoutLikes.profileId, viewerProfileId),
+            ),
+          )
+      : Promise.resolve([]),
+    db
+      .select()
+      .from(rankedComments)
+      .where(lte(rankedComments.rank, previewLimit))
+      .orderBy(asc(rankedComments.createdAt), asc(rankedComments.id)),
+  ]);
+
+  const authorIds = [...new Set(previewRows.map((row) => row.authorProfileId))];
+  const authorRows = authorIds.length
+    ? await db.select().from(profiles).where(inArray(profiles.id, authorIds))
+    : [];
+  const authors = new Map(authorRows.map((row) => [row.id, toPublicUser(toAppUser(row))]));
+  const owners = new Map(workoutRows.map((row) => [row.id, row.profileId]));
+  const comments = new Map<string, WorkoutComment[]>();
+  for (const row of previewRows) {
+    const author = authors.get(row.authorProfileId);
+    if (!author) continue;
+    const item: WorkoutComment = {
+      id: row.id,
+      workoutId: row.workoutId,
+      author,
+      body: row.body,
+      createdAt: row.createdAt.toISOString(),
+      updatedAt: row.updatedAt.toISOString(),
+      viewerCanEdit: viewerProfileId === row.authorProfileId,
+      viewerCanDelete:
+        viewerProfileId === row.authorProfileId || viewerProfileId === owners.get(row.workoutId),
+    };
+    comments.set(row.workoutId, [...(comments.get(row.workoutId) ?? []), item]);
+  }
+
+  const likesByWorkout = new Map(likeCounts.map((row) => [row.workoutId, row.value]));
+  const commentsByWorkout = new Map(commentCounts.map((row) => [row.workoutId, row.value]));
+  const likedWorkouts = new Set(viewerLikes.map((row) => row.workoutId));
+  return new Map(
+    workoutIds.map((workoutId) => [
+      workoutId,
+      {
+        likeCount: likesByWorkout.get(workoutId) ?? 0,
+        commentCount: commentsByWorkout.get(workoutId) ?? 0,
+        viewerHasLiked: likedWorkouts.has(workoutId),
+        viewerCanInteract: Boolean(viewerProfileId),
+        commentsPreview: comments.get(workoutId) ?? [],
+      },
+    ]),
+  );
+}
+
 export async function listWorkoutsByProfile(
   profileId: string,
   visibility: "all" | "public" = "all",
@@ -95,8 +195,7 @@ export async function listFeedWorkouts(profileId: string, cursor?: string, limit
     .where(
       and(eq(profileFollows.followerProfileId, profileId), eq(profileFollows.status, "accepted")),
     );
-  const followedIds = followed.map((row) => row.id);
-  if (followedIds.length === 0) return { items: [] as FeedItem[], nextCursor: null };
+  const visibleProfileIds = [profileId, ...followed.map((row) => row.id)];
 
   const [cursorDate, cursorId] = cursor ? cursor.split("|") : [];
   const cursorCondition =
@@ -107,7 +206,7 @@ export async function listFeedWorkouts(profileId: string, cursor?: string, limit
         )
       : undefined;
   const condition = and(
-    inArray(workouts.profileId, followedIds),
+    inArray(workouts.profileId, visibleProfileIds),
     eq(workouts.isPublic, true),
     cursorCondition,
   );
@@ -124,9 +223,11 @@ export async function listFeedWorkouts(profileId: string, cursor?: string, limit
     .from(profiles)
     .where(inArray(profiles.id, [...new Set(page.map((row) => row.profileId))]));
   const authors = new Map(authorRows.map((row) => [row.id, toPublicUser(toAppUser(row))]));
+  const engagement = await loadEngagement(page, profileId);
   const items = page.flatMap((row): FeedItem[] => {
     const profile = authors.get(row.profileId);
-    return profile
+    const social = engagement.get(row.id);
+    return profile && social
       ? [
           {
             profile,
@@ -134,6 +235,7 @@ export async function listFeedWorkouts(profileId: string, cursor?: string, limit
               row,
               images.filter((image) => image.workoutId === row.id),
             ),
+            ...social,
           },
         ]
       : [];
@@ -143,6 +245,255 @@ export async function listFeedWorkouts(profileId: string, cursor?: string, limit
     items,
     nextCursor: rows.length > limit && last ? `${last.createdAt.toISOString()}|${last.id}` : null,
   };
+}
+
+export async function getWorkoutAccess(workoutId: string, viewerProfileId?: string) {
+  const [row] = await getDatabase()
+    .select()
+    .from(workouts)
+    .where(eq(workouts.id, workoutId))
+    .limit(1);
+  if (!row?.isPublic) return { status: "not-found" as const };
+
+  const [profileRow] = await getDatabase()
+    .select()
+    .from(profiles)
+    .where(eq(profiles.id, row.profileId))
+    .limit(1);
+  if (!profileRow) return { status: "not-found" as const };
+  const profile = toAppUser(profileRow);
+  if (profile.isPrivate) {
+    const relationship = await getRelationshipStatus(viewerProfileId, profile.id);
+    if (relationship !== "self" && relationship !== "following") {
+      return { status: "forbidden" as const };
+    }
+  }
+  return { status: "ready" as const, row, profile };
+}
+
+export async function getWorkoutPost(workoutId: string, viewerProfileId?: string) {
+  const access = await getWorkoutAccess(workoutId, viewerProfileId);
+  if (access.status !== "ready") return access;
+  const [images, engagement] = await Promise.all([
+    loadImages([workoutId]),
+    loadEngagement([access.row], viewerProfileId),
+  ]);
+  const social = engagement.get(workoutId);
+  if (!social) return { status: "not-found" as const };
+  return {
+    status: "ready" as const,
+    item: {
+      profile: toPublicUser(access.profile),
+      workout: toWorkout(access.row, images),
+      ...social,
+    } satisfies FeedItem,
+  };
+}
+
+export async function likeWorkout(workoutId: string, profileId: string) {
+  const access = await getWorkoutAccess(workoutId, profileId);
+  if (access.status !== "ready") return access;
+  await getDatabase().transaction(async (tx) => {
+    const inserted = await tx
+      .insert(workoutLikes)
+      .values({ workoutId, profileId })
+      .onConflictDoNothing()
+      .returning({ id: workoutLikes.id });
+    if (inserted.length > 0 && access.row.profileId !== profileId) {
+      await tx
+        .insert(notifications)
+        .values({
+          id: randomUUID(),
+          recipientProfileId: access.row.profileId,
+          actorProfileId: profileId,
+          workoutId,
+          type: "workout_liked",
+        })
+        .onConflictDoNothing();
+    }
+  });
+  const [summary] = await getDatabase()
+    .select({ value: count() })
+    .from(workoutLikes)
+    .where(eq(workoutLikes.workoutId, workoutId));
+  return { status: "ready" as const, likeCount: summary.value, viewerHasLiked: true };
+}
+
+export async function unlikeWorkout(workoutId: string, profileId: string) {
+  const access = await getWorkoutAccess(workoutId, profileId);
+  if (access.status !== "ready") return access;
+  await getDatabase().transaction(async (tx) => {
+    await tx
+      .delete(workoutLikes)
+      .where(and(eq(workoutLikes.workoutId, workoutId), eq(workoutLikes.profileId, profileId)));
+    await tx
+      .delete(notifications)
+      .where(
+        and(
+          eq(notifications.type, "workout_liked"),
+          eq(notifications.workoutId, workoutId),
+          eq(notifications.actorProfileId, profileId),
+        ),
+      );
+  });
+  const [summary] = await getDatabase()
+    .select({ value: count() })
+    .from(workoutLikes)
+    .where(eq(workoutLikes.workoutId, workoutId));
+  return { status: "ready" as const, likeCount: summary.value, viewerHasLiked: false };
+}
+
+function toComment(
+  row: typeof workoutComments.$inferSelect,
+  author: ReturnType<typeof toPublicUser>,
+  viewerProfileId: string | undefined,
+  workoutOwnerProfileId: string,
+): WorkoutComment {
+  return {
+    id: row.id,
+    workoutId: row.workoutId,
+    author,
+    body: row.body,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+    viewerCanEdit: viewerProfileId === row.authorProfileId,
+    viewerCanDelete:
+      viewerProfileId === row.authorProfileId || viewerProfileId === workoutOwnerProfileId,
+  };
+}
+
+export async function listWorkoutComments(
+  workoutId: string,
+  viewerProfileId?: string,
+  cursor?: string,
+  limit = 20,
+) {
+  const access = await getWorkoutAccess(workoutId, viewerProfileId);
+  if (access.status !== "ready") return access;
+  const [cursorDate, cursorId] = cursor ? cursor.split("|") : [];
+  const cursorCondition =
+    cursorDate && cursorId
+      ? or(
+          lt(workoutComments.createdAt, new Date(cursorDate)),
+          and(
+            eq(workoutComments.createdAt, new Date(cursorDate)),
+            lt(workoutComments.id, cursorId),
+          ),
+        )
+      : undefined;
+  const rows = await getDatabase()
+    .select()
+    .from(workoutComments)
+    .where(and(eq(workoutComments.workoutId, workoutId), cursorCondition))
+    .orderBy(desc(workoutComments.createdAt), desc(workoutComments.id))
+    .limit(limit + 1);
+  const page = rows.slice(0, limit);
+  const authorIds = [...new Set(page.map((row) => row.authorProfileId))];
+  const authorRows = authorIds.length
+    ? await getDatabase().select().from(profiles).where(inArray(profiles.id, authorIds))
+    : [];
+  const authors = new Map(authorRows.map((row) => [row.id, toPublicUser(toAppUser(row))]));
+  const items = page
+    .flatMap((row) => {
+      const author = authors.get(row.authorProfileId);
+      return author ? [toComment(row, author, viewerProfileId, access.row.profileId)] : [];
+    })
+    .reverse();
+  const oldest = page.at(-1);
+  return {
+    status: "ready" as const,
+    items,
+    nextCursor:
+      rows.length > limit && oldest ? `${oldest.createdAt.toISOString()}|${oldest.id}` : null,
+  };
+}
+
+export async function createWorkoutComment(
+  workoutId: string,
+  authorProfileId: string,
+  body: string,
+) {
+  const access = await getWorkoutAccess(workoutId, authorProfileId);
+  if (access.status !== "ready") return access;
+  const row = await getDatabase().transaction(async (tx) => {
+    const [comment] = await tx
+      .insert(workoutComments)
+      .values({ id: randomUUID(), workoutId, authorProfileId, body })
+      .returning();
+    if (access.row.profileId !== authorProfileId) {
+      await tx.insert(notifications).values({
+        id: randomUUID(),
+        recipientProfileId: access.row.profileId,
+        actorProfileId: authorProfileId,
+        workoutId,
+        commentId: comment.id,
+        type: "workout_commented",
+      });
+    }
+    return comment;
+  });
+  const [authorRow] = await getDatabase()
+    .select()
+    .from(profiles)
+    .where(eq(profiles.id, authorProfileId))
+    .limit(1);
+  if (!authorRow) return { status: "not-found" as const };
+  return {
+    status: "ready" as const,
+    comment: toComment(
+      row,
+      toPublicUser(toAppUser(authorRow)),
+      authorProfileId,
+      access.row.profileId,
+    ),
+  };
+}
+
+export async function updateWorkoutComment(commentId: string, profileId: string, body: string) {
+  const [existing] = await getDatabase()
+    .select()
+    .from(workoutComments)
+    .where(eq(workoutComments.id, commentId))
+    .limit(1);
+  if (!existing) return { status: "not-found" as const };
+  if (existing.authorProfileId !== profileId) return { status: "forbidden" as const };
+  const access = await getWorkoutAccess(existing.workoutId, profileId);
+  if (access.status !== "ready") return access;
+  const [row] = await getDatabase()
+    .update(workoutComments)
+    .set({ body, updatedAt: new Date() })
+    .where(eq(workoutComments.id, commentId))
+    .returning();
+  const [authorRow] = await getDatabase()
+    .select()
+    .from(profiles)
+    .where(eq(profiles.id, profileId))
+    .limit(1);
+  if (!row || !authorRow) return { status: "not-found" as const };
+  return {
+    status: "ready" as const,
+    comment: toComment(row, toPublicUser(toAppUser(authorRow)), profileId, access.row.profileId),
+  };
+}
+
+export async function deleteWorkoutComment(commentId: string, profileId: string) {
+  const [existing] = await getDatabase()
+    .select()
+    .from(workoutComments)
+    .where(eq(workoutComments.id, commentId))
+    .limit(1);
+  if (!existing) return { status: "not-found" as const };
+  const [workout] = await getDatabase()
+    .select({ profileId: workouts.profileId })
+    .from(workouts)
+    .where(eq(workouts.id, existing.workoutId))
+    .limit(1);
+  if (!workout) return { status: "not-found" as const };
+  if (existing.authorProfileId !== profileId && workout.profileId !== profileId) {
+    return { status: "forbidden" as const };
+  }
+  await getDatabase().delete(workoutComments).where(eq(workoutComments.id, commentId));
+  return { status: "ready" as const, workoutId: existing.workoutId };
 }
 
 export async function getOwnedWorkout(workoutId: string, profileId: string) {

@@ -291,6 +291,8 @@ export async function listNotifications(profileId: string, cursor?: string, limi
     id: row.id,
     type: row.type,
     actor: row.actorProfileId ? actorMap.get(row.actorProfileId) : undefined,
+    workoutId: row.workoutId ?? undefined,
+    commentId: row.commentId ?? undefined,
     isRead: Boolean(row.readAt),
     createdAt: row.createdAt.toISOString(),
   }));
@@ -313,5 +315,11 @@ export async function markNotificationsRead(profileId: string, notificationId?: 
 }
 
 export function notificationType(value: string): value is NotificationType {
-  return value === "follow_request" || value === "new_follower" || value === "follow_accepted";
+  return (
+    value === "follow_request" ||
+    value === "new_follower" ||
+    value === "follow_accepted" ||
+    value === "workout_liked" ||
+    value === "workout_commented"
+  );
 }
