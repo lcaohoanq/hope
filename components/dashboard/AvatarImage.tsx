@@ -29,7 +29,7 @@ export function AvatarImage({
 
   if (src.startsWith("blob:")) {
     return (
-      // eslint-disable-next-line @next/next/no-img-element
+      // biome-ignore lint/performance/noImgElement: Blob URLs cannot be optimized by next/image.
       <img alt={alt} className={className} onLoad={onLoad} src={src} />
     );
   }

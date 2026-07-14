@@ -1,5 +1,5 @@
+/* biome-ignore-all lint/performance/noImgElement: Feed images use user-provided remote URLs. */
 "use client";
-/* eslint-disable @next/next/no-img-element */
 
 import Link from "next/link";
 import { useEffect, useState } from "react";

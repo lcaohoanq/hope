@@ -336,7 +336,7 @@ export function WorkoutForm({
                 className="aspect-square overflow-hidden rounded-md border border-border bg-panel-muted"
                 key={url}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
+                {/* biome-ignore lint/performance/noImgElement: Local object URL previews cannot use next/image. */}
                 <img
                   alt={copy.form.selectedPreviewAlt(index + 1)}
                   className="h-full w-full object-cover"
