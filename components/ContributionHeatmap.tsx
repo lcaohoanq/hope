@@ -258,7 +258,7 @@ export function ContributionHeatmap({
         </div>
       </div>
 
-      <div className="mt-6 max-h-[620px] overflow-auto pr-1">
+      <div className="relative z-0 mt-6 max-h-[620px] overflow-auto pr-1">
         <div className="grid min-w-[900px] gap-5">
           {descendingHeatmapYears.map(({ year, weeks }) => (
             <div className="grid grid-cols-[44px_32px_1fr] items-start gap-x-3" key={year}>
@@ -301,7 +301,7 @@ export function ContributionHeatmap({
                       return (
                         <button
                           aria-label={`${day.date}: ${label}`}
-                          className={`relative z-0 h-2.5 w-2.5 rounded-[2px] outline-none ring-offset-2 ring-offset-panel transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:z-10 hover:ring-2 hover:ring-text/20 focus:z-10 focus-visible:ring-2 focus-visible:ring-accent ${
+                          className={`relative h-2.5 w-2.5 rounded-[2px] outline-none ring-offset-2 ring-offset-panel transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:ring-2 hover:ring-text/20 focus-visible:ring-2 focus-visible:ring-accent ${
                             hasWorkout
                               ? "bg-accent"
                               : isTrackable
@@ -354,7 +354,7 @@ export function ContributionHeatmap({
       </div>
       {activeTooltip ? (
         <div
-          className={`pointer-events-none fixed z-[9999] ${
+          className={`pointer-events-none fixed z-[100000] ${
             activeTooltip.placement === "above"
               ? "-translate-x-1/2 -translate-y-full"
               : "-translate-x-1/2"
