@@ -19,4 +19,7 @@ pnpm-debug.log*
 
 *.md
 !README.md
+!.agents/skills/next-cache-components-adoption/**/*.md
+!.agents/skills/next-cache-components-optimizer/**/*.md
+!.agents/skills/next-dev-loop/**/*.md
 test-results/
