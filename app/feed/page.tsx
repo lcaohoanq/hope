@@ -18,7 +18,7 @@ export default async function FeedPage() {
       <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6">
         <h1 className="text-3xl font-semibold tracking-tight">{copy.feed}</h1>
         <p className="mt-2 mb-6 text-sm text-muted">{copy.feedDescription}</p>
-        <FeedClient language={user.preferredLanguage} />
+        <FeedClient language={user.preferredLanguage} viewer={user} />
       </div>
     </main>
   );

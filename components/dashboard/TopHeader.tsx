@@ -116,6 +116,16 @@ export function TopHeader({
         </Link>
       ) : (
         <div className="flex items-center justify-end gap-1">
+          {showNotifications ? (
+            <Link
+              aria-label={socialCopy.feed}
+              className="inline-flex h-10 items-center gap-2 rounded-md border border-transparent px-3 text-sm font-semibold text-muted transition hover:border-border hover:bg-panel-muted hover:text-text focus:outline-none focus-visible:ring-2 focus-visible:ring-accent active:scale-[0.98]"
+              href="/feed"
+            >
+              <FaUsers aria-hidden="true" className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">{socialCopy.feed}</span>
+            </Link>
+          ) : null}
           {showNotifications ? <NotificationBell language={language} /> : null}
           <div className="relative" ref={profileMenuRef}>
             <button
@@ -174,17 +184,6 @@ export function TopHeader({
                       >
                         <FaUser aria-hidden="true" className="h-3.5 w-3.5" />
                         <span>{copy.common.profile}</span>
-                      </Link>
-                    ) : null}
-
-                    {showNotifications ? (
-                      <Link
-                        className="flex h-9 items-center gap-2 rounded-md px-2 text-xs font-medium text-muted transition hover:bg-panel-muted hover:text-text"
-                        href="/feed"
-                        onClick={() => setIsProfileMenuOpen(false)}
-                      >
-                        <FaUsers aria-hidden="true" className="h-3.5 w-3.5" />
-                        <span>{socialCopy.feed}</span>
                       </Link>
                     ) : null}
 
