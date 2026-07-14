@@ -29,11 +29,9 @@ DIRECT_URL=
 CLOUDINARY_CLOUD_NAME=
 CLOUDINARY_API_KEY=
 CLOUDINARY_API_SECRET=
-APPWRITE_IMAGE_PROCESSOR_URL=
-APPWRITE_IMAGE_PROCESSOR_KEY=
 ```
 
-Use Supabase's transaction pooler URL for `DATABASE_URL` and a direct/session URL for `DIRECT_URL`. Do not expose either URL to the browser. Cloudinary API credentials are server-only.
+Use Supabase's transaction pooler URL for `DATABASE_URL` and a direct/session URL for `DIRECT_URL`. Do not expose either URL to the browser. Keep `CLOUDINARY_API_SECRET` server-only; authenticated workout uploads receive short-lived signed parameters from the app.
 
 ## Authentication flow
 

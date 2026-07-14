@@ -13,6 +13,14 @@ test("rejects signed-out workout and settings mutations", async ({ request }) =>
   });
   expect(workout.status()).toBe(401);
 
+  const imageUpload = await request.post("/api/workout-images", { data: { count: 1 } });
+  expect(imageUpload.status()).toBe(401);
+
+  const imageCleanup = await request.delete("/api/workout-images", {
+    data: { publicIds: ["hope/workouts/signed-out/image"] },
+  });
+  expect(imageCleanup.status()).toBe(401);
+
   const settings = await request.patch("/api/users/settings", { data: { theme: "dark" } });
   expect(settings.status()).toBe(401);
 
@@ -63,6 +71,17 @@ test("shows owner controls to the linked Clerk account", async ({ page }) => {
   await clerk.signIn({ page, emailAddress: ownerEmail! });
   await page.goto("/auth/continue");
   await expect(page).toHaveURL(`/${publicUsername}`);
+
+  const invalidUploadCount = await page.context().request.post("/api/workout-images", {
+    data: { count: 4 },
+  });
+  expect(invalidUploadCount.status()).toBe(400);
+
+  const foreignImageCleanup = await page.context().request.delete("/api/workout-images", {
+    data: { publicIds: ["hope/workouts/another-profile/image"] },
+  });
+  expect(foreignImageCleanup.status()).toBe(400);
+
   await expect(page.getByRole("button", { name: /add a workout/i })).toBeVisible();
   await expect(page.getByRole("link", { name: /edit profile|chỉnh sửa hồ sơ/i })).toHaveAttribute(
     "href",
