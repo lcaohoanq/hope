@@ -1,42 +1,55 @@
 import { auth } from "@clerk/nextjs/server";
+import Spline from "@splinetool/react-spline/next";
 import Image from "next/image";
 import Link from "next/link";
-import { FaArrowRight, FaCalendarCheck, FaChartLine, FaDumbbell, FaLeaf } from "react-icons/fa";
+import { Suspense } from "react";
+import { FaArrowRight, FaChartLine, FaDumbbell, FaLeaf } from "react-icons/fa";
 import { getProfileByClerkId } from "@/lib/repositories/profiles";
 import { getCanonicalUserPath } from "@/lib/users";
 
-const featureCards = [
+const SCENE_URL = "https://prod.spline.design/XLUYGWRp91S4SqN2/scene.splinecode";
+
+const features = [
   {
-    title: "Log the real session",
-    description:
-      "Keep the small details that matter: time, exercises, notes, and the proof you showed up.",
+    title: "Capture what happened",
+    description: "Keep time, exercises, notes, and progress together after every session.",
     icon: FaDumbbell,
   },
   {
-    title: "Read the rhythm",
-    description:
-      "A contribution-style heatmap makes consistency visible without turning training into noise.",
+    title: "Read the pattern",
+    description: "Turn scattered workouts into a rhythm you can understand at a glance.",
     icon: FaChartLine,
   },
   {
-    title: "Return gently",
-    description: "Missed days stay part of the record, so the next workout is easier to begin.",
+    title: "Return without pressure",
+    description: "Missed days stay in the record, so starting again feels natural.",
     icon: FaLeaf,
   },
 ];
 
-const consistencyCells = Array.from({ length: 84 }, (_, index) => ({
-  id: `consistency-cell-${index}`,
-  intensity: ["bg-panel-muted", "bg-[#dbe8dc]", "bg-[#a7c4ad]", "bg-accent"][
-    (index * 7 + index) % 4
-  ],
-}));
-
 export const metadata = {
-  title: "Hope - Workout consistency tracker",
+  title: "Hope - Make consistency visible",
   description:
-    "A quiet workout journal for logging movement, seeing consistency, and returning to the next session.",
+    "A calm workout journal for logging movement, seeing your rhythm, and beginning the next session.",
 };
+
+function SceneFallback() {
+  return (
+    <div
+      aria-label="Loading interactive movement scene"
+      className="absolute inset-0 grid place-items-center bg-panel-muted"
+      role="status"
+    >
+      <div className="flex items-center gap-3 text-sm font-medium text-muted">
+        <span
+          aria-hidden="true"
+          className="h-2.5 w-2.5 rounded-full bg-accent motion-safe:animate-pulse"
+        />
+        Preparing the scene
+      </div>
+    </div>
+  );
+}
 
 export default async function Home() {
   const { userId } = await auth();
@@ -46,173 +59,120 @@ export default async function Home() {
       ? getCanonicalUserPath(authenticatedUser)
       : "/auth/continue"
     : "/login";
-  const primaryLabel = userId ? "Open dashboard" : "Sign in";
+  const primaryLabel = userId ? "Open dashboard" : "Start your journal";
 
   return (
-    <main className="relative min-h-[100dvh] overflow-hidden bg-app text-text">
+    <main className="relative overflow-hidden bg-app text-text">
       <div
         aria-hidden="true"
-        className="absolute inset-0 opacity-70"
+        className="pointer-events-none absolute inset-x-0 top-0 h-[52rem]"
         style={{
-          backgroundImage:
-            "linear-gradient(rgba(68,64,60,0.055) 1px, transparent 1px), linear-gradient(90deg, rgba(68,64,60,0.055) 1px, transparent 1px)",
-          backgroundSize: "32px 32px",
+          background:
+            "radial-gradient(circle at 15% 8%, oklch(var(--color-accent) / 0.13), transparent 32%), radial-gradient(circle at 76% 12%, oklch(var(--color-panel-muted) / 0.72), transparent 34%)",
         }}
       />
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 bg-[radial-gradient(circle_at_16%_10%,rgba(219,232,220,0.88),transparent_31%),radial-gradient(circle_at_82%_22%,rgba(254,243,199,0.48),transparent_28%),radial-gradient(circle_at_54%_78%,rgba(255,255,255,0.82),rgba(247,245,240,0.48)_42%,rgba(247,245,240,0.95)_78%)]"
-      />
 
-      <div className="relative mx-auto flex min-h-[100dvh] max-w-7xl flex-col px-4 py-5 sm:px-6 lg:px-8">
-        <header className="flex items-center justify-between gap-4">
+      <div className="relative mx-auto max-w-[1440px] px-4 sm:px-6 lg:px-8">
+        <header className="flex h-20 items-center justify-between gap-4">
           <Link
-            className="inline-flex items-center gap-2 text-sm font-semibold tracking-[-0.01em] text-text"
+            className="inline-flex items-center gap-2.5 text-sm font-semibold tracking-[-0.02em] text-text"
             href="/"
           >
             <Image
               alt=""
               aria-hidden="true"
-              className="h-5 w-5 shrink-0"
-              height={20}
+              className="h-6 w-6 shrink-0"
+              height={24}
               src="/favicon.ico"
               unoptimized
-              width={20}
+              width={24}
             />
             Hope
           </Link>
 
           <Link
-            className="inline-flex h-10 items-center justify-center rounded-md border border-border bg-panel/80 px-4 text-sm font-semibold text-text transition hover:border-accent/40 hover:text-accent active:scale-[0.98]"
+            className="inline-flex h-10 items-center justify-center whitespace-nowrap rounded-full border border-border bg-panel/80 px-4 text-sm font-semibold text-text backdrop-blur transition duration-300 hover:border-accent/45 hover:text-accent active:scale-[0.98]"
             href={primaryHref}
           >
             {primaryLabel}
           </Link>
         </header>
 
-        <section className="grid flex-1 items-center gap-12 py-14 lg:grid-cols-[minmax(0,0.95fr)_minmax(420px,1fr)] lg:py-20">
-          <div className="max-w-3xl">
-            <p className="inline-flex rounded-md border border-border bg-panel/72 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-accent">
-              Personal movement journal
+        <section className="grid min-h-[calc(100dvh-5rem)] items-center gap-9 pb-10 pt-5 md:pb-14 lg:grid-cols-[minmax(0,0.82fr)_minmax(520px,1.18fr)] lg:gap-8 lg:pb-16 lg:pt-4">
+          <div className="relative max-w-2xl lg:pr-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">
+              Your personal movement journal
             </p>
-            <h1 className="mt-6 max-w-4xl text-5xl font-semibold leading-[0.96] tracking-[-0.04em] text-text sm:text-6xl lg:text-7xl">
-              Build a quieter record of showing up.
+            <h1 className="mt-5 text-5xl font-semibold leading-[0.96] tracking-[-0.055em] text-text sm:text-6xl lg:text-[4.75rem]">
+              Make consistency visible.
             </h1>
-            <p className="mt-6 max-w-2xl text-base leading-8 text-muted sm:text-lg">
-              Hope turns workouts into a calm, visual habit record: log each session, review your
-              heatmap, and keep the next day within reach.
+            <p className="mt-6 max-w-[33rem] text-base leading-7 text-muted sm:text-lg sm:leading-8">
+              Log every workout, see your rhythm, and make the next session easier to begin.
             </p>
 
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <div className="mt-8 flex flex-wrap items-center gap-4">
               <Link
-                className="group inline-flex h-12 items-center justify-center gap-2 rounded-md bg-accent px-5 text-sm font-semibold text-accent-contrast transition hover:bg-accent/90 active:scale-[0.98]"
+                className="group inline-flex h-12 items-center justify-center gap-2 whitespace-nowrap rounded-full bg-accent px-5 text-sm font-semibold text-accent-contrast transition duration-300 hover:brightness-95 active:scale-[0.98]"
                 href={primaryHref}
               >
                 {primaryLabel}
                 <FaArrowRight
                   aria-hidden="true"
-                  className="h-3.5 w-3.5 transition group-hover:translate-x-0.5"
+                  className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-0.5"
                 />
               </Link>
               <Link
-                className="inline-flex h-12 items-center justify-center rounded-md border border-border bg-panel/78 px-5 text-sm font-semibold text-text transition hover:border-accent/40 hover:text-accent active:scale-[0.98]"
-                href="/login"
+                className="inline-flex h-12 items-center justify-center whitespace-nowrap rounded-full px-2 text-sm font-semibold text-text underline decoration-border underline-offset-8 transition duration-300 hover:text-accent hover:decoration-accent"
+                href="#features"
               >
-                View login
+                See what matters
               </Link>
             </div>
-
-            <div className="mt-10 grid max-w-2xl grid-cols-3 divide-x divide-border overflow-hidden rounded-lg border border-border bg-panel/64 backdrop-blur">
-              <div className="p-4">
-                <p className="font-mono text-2xl font-semibold text-text">365</p>
-                <p className="mt-1 text-xs leading-5 text-muted">days in view</p>
-              </div>
-              <div className="p-4">
-                <p className="font-mono text-2xl font-semibold text-text">4</p>
-                <p className="mt-1 text-xs leading-5 text-muted">focused fields</p>
-              </div>
-              <div className="p-4">
-                <p className="font-mono text-2xl font-semibold text-text">1</p>
-                <p className="mt-1 text-xs leading-5 text-muted">steady ritual</p>
-              </div>
-            </div>
           </div>
 
-          <div className="relative">
-            <div
-              aria-hidden="true"
-              className="absolute -inset-4 rounded-[28px] bg-panel/28 blur-2xl"
-            />
-            <div className="relative rounded-lg border border-border bg-panel/86 p-4 shadow-[0_28px_100px_rgba(17,17,17,0.09)] backdrop-blur sm:p-5">
-              <div className="flex items-center justify-between border-b border-border pb-4">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-accent">
-                    This week
-                  </p>
-                  <h2 className="mt-1 text-xl font-semibold text-text">Movement log</h2>
-                </div>
-                <div className="grid h-10 w-10 place-items-center rounded-md bg-[#edf3ec] text-accent">
-                  <FaCalendarCheck aria-hidden="true" className="h-4 w-4" />
-                </div>
-              </div>
-
-              <div className="mt-5 grid gap-3">
-                {[
-                  ["Mon", "Run", "32 min", "bg-accent"],
-                  ["Tue", "Strength", "48 min", "bg-[#84a98c]"],
-                  ["Wed", "Mobility", "18 min", "bg-[#b7c8ae]"],
-                  ["Thu", "Rest", "Logged", "bg-panel-muted"],
-                ].map(([day, label, value, color]) => (
-                  <div
-                    className="grid grid-cols-[44px_minmax(0,1fr)_auto] items-center gap-3 rounded-md border border-border bg-panel px-3 py-3"
-                    key={day}
-                  >
-                    <span className="font-mono text-xs font-semibold text-muted">{day}</span>
-                    <span className="truncate text-sm font-semibold text-text">{label}</span>
-                    <span className="text-xs font-medium text-muted">{value}</span>
-                    <span aria-hidden="true" className={`col-span-3 h-2 rounded-[2px] ${color}`} />
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-5 rounded-lg border border-border bg-[#fbfbfa] p-4">
-                <div className="mb-3 flex items-center justify-between">
-                  <p className="text-sm font-semibold text-text">Consistency map</p>
-                  <p className="font-mono text-xs text-muted">Jul 2026</p>
-                </div>
-                <div className="grid grid-cols-[repeat(14,minmax(0,1fr))] gap-1">
-                  {consistencyCells.map((cell) => (
-                    <span
-                      aria-hidden="true"
-                      className={`aspect-square rounded-[2px] ${cell.intensity}`}
-                      key={cell.id}
-                    />
-                  ))}
-                </div>
-              </div>
-            </div>
+          <div
+            aria-label="Interactive 3D movement scene"
+            className="relative h-[52dvh] min-h-[390px] overflow-hidden rounded-[1.5rem] border border-border bg-panel-muted shadow-panel sm:h-[58dvh] lg:h-[min(72dvh,760px)] lg:min-h-[560px]"
+            role="img"
+          >
+            <Suspense fallback={<SceneFallback />}>
+              <Spline
+                className="absolute inset-0 h-full w-full [&_canvas]:!h-full [&_canvas]:!w-full [&_canvas]:touch-pan-y"
+                scene={SCENE_URL}
+              />
+            </Suspense>
           </div>
-        </section>
-
-        <section className="grid gap-4 pb-14 md:grid-cols-3">
-          {featureCards.map((feature) => {
-            const Icon = feature.icon;
-
-            return (
-              <article
-                className="rounded-lg border border-border bg-panel/76 p-5 backdrop-blur transition hover:border-accent/35 hover:bg-panel"
-                key={feature.title}
-              >
-                <div className="grid h-10 w-10 place-items-center rounded-md bg-[#edf3ec] text-accent">
-                  <Icon aria-hidden="true" className="h-4 w-4" />
-                </div>
-                <h2 className="mt-5 text-lg font-semibold text-text">{feature.title}</h2>
-                <p className="mt-3 text-sm leading-6 text-muted">{feature.description}</p>
-              </article>
-            );
-          })}
         </section>
       </div>
+
+      <section className="relative border-t border-border bg-panel/[0.36]" id="features">
+        <div className="mx-auto grid max-w-[1440px] gap-12 px-4 py-20 sm:px-6 md:py-24 lg:grid-cols-[minmax(0,0.78fr)_minmax(0,1.22fr)] lg:gap-20 lg:px-8 lg:py-28">
+          <div className="max-w-lg">
+            <h2 className="text-3xl font-semibold leading-tight tracking-[-0.04em] text-text sm:text-4xl">
+              A record that helps you return.
+            </h2>
+            <p className="mt-5 max-w-md text-base leading-7 text-muted">
+              Hope keeps the signal clear, so progress feels useful instead of demanding.
+            </p>
+          </div>
+
+          <div className="grid gap-8 md:grid-cols-3 md:gap-5">
+            {features.map((feature) => {
+              const Icon = feature.icon;
+
+              return (
+                <article className="group" key={feature.title}>
+                  <div className="grid h-11 w-11 place-items-center rounded-full border border-border bg-panel text-accent transition duration-300 group-hover:-translate-y-0.5 group-hover:border-accent/45">
+                    <Icon aria-hidden="true" className="h-4 w-4" />
+                  </div>
+                  <h3 className="mt-5 text-base font-semibold text-text">{feature.title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-muted">{feature.description}</p>
+                </article>
+              );
+            })}
+          </div>
+        </div>
+      </section>
     </main>
   );
 }
