@@ -816,7 +816,7 @@ function EditWorkoutPanel({
                   workoutDate={editForm.date}
                 />
               ) : (
-                // eslint-disable-next-line @next/next/no-img-element
+                // biome-ignore lint/performance/noImgElement: Local object URL previews cannot use next/image.
                 <img
                   alt={copy.form.selectedEditPreviewAlt(
                     selectedEditImage.index + 1,
@@ -1020,7 +1020,7 @@ function EditWorkoutPanel({
                   }
                   type="button"
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  {/* biome-ignore lint/performance/noImgElement: Local object URL previews cannot use next/image. */}
                   <img
                     alt={copy.form.selectedEditPreviewAlt(index + 1)}
                     className="h-full w-full object-cover"

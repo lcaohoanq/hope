@@ -119,7 +119,7 @@ export function OnboardingOverlay({
               key={avatarSeed}
               transition={stepContentTransition}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
+              {/* biome-ignore lint/performance/noImgElement: DiceBear SVG previews are rendered directly. */}
               <img
                 alt="Random DiceBear Notionists avatar preview"
                 className="h-full w-full object-cover"

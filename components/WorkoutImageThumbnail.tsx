@@ -41,7 +41,7 @@ export function WorkoutImageThumbnail({
   }
 
   return (
-    // eslint-disable-next-line @next/next/no-img-element
+    // biome-ignore lint/performance/noImgElement: This component handles remote image fallback itself.
     <img
       alt={`Workout image for ${workoutDate}`}
       className={imageClassName}
