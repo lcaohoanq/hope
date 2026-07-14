@@ -63,7 +63,7 @@ export function ConnectionsPageClient({
             href={`/${profile.username}`}
             key={profile.id}
           >
-            <span className="h-12 w-12 overflow-hidden rounded-full">
+            <span className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full border border-border bg-panel-muted">
               <AvatarImage
                 alt=""
                 className="h-full w-full object-cover"

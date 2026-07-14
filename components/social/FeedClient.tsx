@@ -53,7 +53,7 @@ export function FeedClient({ language }: { language: Language }) {
           key={workout.id}
         >
           <div className="flex items-center gap-3 p-4">
-            <span className="h-10 w-10 overflow-hidden rounded-full">
+            <span className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border border-border bg-panel-muted">
               <AvatarImage
                 alt=""
                 className="h-full w-full object-cover"
