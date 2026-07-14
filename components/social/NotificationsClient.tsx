@@ -6,6 +6,13 @@ import type { Language } from "@/lib/i18n";
 import { getSocialCopy } from "@/lib/social-copy";
 import type { AppNotification } from "@/lib/social-types";
 
+function notificationHref(item: AppNotification) {
+  if (item.workoutId) {
+    return `/workouts/${item.workoutId}${item.commentId ? `#comment-${item.commentId}` : ""}`;
+  }
+  return item.actor ? `/${item.actor.username}` : "#";
+}
+
 export function NotificationsClient({ language }: { language: Language }) {
   const copy = getSocialCopy(language);
   const [items, setItems] = useState<AppNotification[]>([]);
@@ -66,27 +73,31 @@ export function NotificationsClient({ language }: { language: Language }) {
           {items.map((item) => (
             <div className={`p-4 ${item.isRead ? "" : "bg-panel-muted"}`} key={item.id}>
               <p className="text-sm text-text">
-                <Link className="font-semibold" href={item.actor ? `/${item.actor.username}` : "#"}>
-                  {item.actor?.displayName ?? "Someone"}
+                <Link className="font-semibold" href={notificationHref(item)}>
+                  {item.actor?.displayName ?? copy.someone}
                 </Link>{" "}
                 {item.type === "follow_request"
                   ? copy.followRequest
                   : item.type === "new_follower"
                     ? copy.newFollower
-                    : copy.followAccepted}
+                    : item.type === "follow_accepted"
+                      ? copy.followAccepted
+                      : item.type === "workout_liked"
+                        ? copy.workoutLiked
+                        : copy.workoutCommented}
               </p>
               {item.type === "follow_request" && item.actor ? (
                 <div className="mt-3 flex gap-2">
                   <button
                     className="rounded-md bg-accent px-3 py-2 text-xs font-semibold text-accent-contrast"
-                    onClick={() => void respond(item.actor!.id, "accept")}
+                    onClick={() => item.actor && void respond(item.actor.id, "accept")}
                     type="button"
                   >
                     {copy.accept}
                   </button>
                   <button
                     className="rounded-md border border-border px-3 py-2 text-xs font-semibold text-muted"
-                    onClick={() => void respond(item.actor!.id, "decline")}
+                    onClick={() => item.actor && void respond(item.actor.id, "decline")}
                     type="button"
                   >
                     {copy.decline}
