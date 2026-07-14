@@ -1,5 +1,5 @@
-import { defineConfig } from "@playwright/test";
 import { loadEnvConfig } from "@next/env";
+import { defineConfig } from "@playwright/test";
 
 loadEnvConfig(process.cwd());
 const e2ePort = process.env.E2E_PORT ?? "3000";
@@ -14,6 +14,12 @@ export default defineConfig({
       dependencies: ["setup"],
       testIgnore: /global\.setup\.ts/,
       use: { channel: "chromium" },
+    },
+    {
+      name: "firefox",
+      dependencies: ["setup"],
+      testIgnore: /global\.setup\.ts/,
+      use: { browserName: "firefox" },
     },
   ],
   reporter: "list",

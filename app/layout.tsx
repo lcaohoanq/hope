@@ -1,6 +1,4 @@
-import { ClerkProvider } from "@clerk/nextjs";
-import type { Metadata } from "next";
-import type { Viewport } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { AppShell } from "@/components/layouts/AppShell";
 import "./globals.css";
@@ -47,13 +45,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="vi">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable}`}
-        suppressHydrationWarning
-      >
-        <ClerkProvider afterSignOutUrl="/" signInUrl="/login" signUpUrl="/sign-up">
-          <AppShell>{children}</AppShell>
-        </ClerkProvider>
+      <body className={`${geistSans.variable} ${geistMono.variable}`} suppressHydrationWarning>
+        <AppShell>{children}</AppShell>
       </body>
     </html>
   );
