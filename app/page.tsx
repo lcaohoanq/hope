@@ -9,6 +9,7 @@ import {
 } from "react-icons/fa";
 import { getProfileByClerkId } from "@/lib/repositories/profiles";
 import { getCanonicalUserPath } from "@/lib/users";
+import Image from "next/image";
 
 const featureCards = [
   {
@@ -67,9 +68,15 @@ export default async function Home() {
             className="inline-flex items-center gap-2 text-sm font-semibold tracking-[-0.01em] text-text"
             href="/"
           >
-            <span className="grid h-8 w-8 place-items-center rounded-md border border-border bg-panel/78 text-accent shadow-[0_10px_30px_rgba(17,17,17,0.05)]">
-              H
-            </span>
+            <Image
+              alt=""
+              aria-hidden="true"
+              className="h-5 w-5 shrink-0"
+              height={20}
+              src="/favicon.ico"
+              unoptimized
+              width={20}
+            />
             Hope
           </Link>
 
