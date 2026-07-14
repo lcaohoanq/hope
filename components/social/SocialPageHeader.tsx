@@ -1,7 +1,9 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { Language } from "@/lib/i18n";
 import { getSocialCopy } from "@/lib/social-copy";
 import type { PublicAppUser } from "@/lib/users";
+import AppLogo from "../shared/AppLogo";
 
 export function SocialPageHeader({
   user,
@@ -14,7 +16,8 @@ export function SocialPageHeader({
   return (
     <header className="border-b border-border bg-app">
       <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4 sm:px-6">
-        <Link className="font-semibold text-text" href="/">
+        <Link className="font-semibold text-text flex items-center gap-2" href="/">
+          <AppLogo />
           Hope
         </Link>
         <nav className="flex items-center gap-4 text-sm font-semibold">
