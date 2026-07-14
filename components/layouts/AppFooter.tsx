@@ -1,9 +1,8 @@
+import Link from "next/link";
+
 const footerItems = [
-  "Privacy",
-  "Consistency",
-  "Movement",
-  "Progress",
-  "Contact",
+  { href: "/term-of-services", label: "Điều khoản" },
+  { href: "/privacy-policy", label: "Quyền riêng tư" },
 ];
 
 export function AppFooter() {
@@ -13,9 +12,13 @@ export function AppFooter() {
         <span className="font-semibold text-muted">Hope</span>
         <span>© 2026 Hope</span>
         {footerItems.map((item) => (
-          <span className="transition hover:text-accent" key={item}>
-            {item}
-          </span>
+          <Link
+            className="transition hover:text-accent"
+            href={item.href}
+            key={item.href}
+          >
+            {item.label}
+          </Link>
         ))}
       </div>
     </footer>
