@@ -18,6 +18,7 @@ import { NotificationBell } from "@/components/social/NotificationBell";
 import { type AppCopy, type Language, languageOptions } from "@/lib/i18n";
 import { getSocialCopy } from "@/lib/social-copy";
 import type { AppTheme, PublicAppUser } from "@/lib/users";
+import AppLogo from "../shared/AppLogo";
 import { AvatarImage } from "./AvatarImage";
 
 type TopHeaderProps = {
@@ -95,15 +96,7 @@ export function TopHeader({
         className="inline-flex h-10 items-center gap-2 rounded-md px-3 text-sm font-semibold text-muted transition hover:bg-panel-muted hover:text-text"
         href="/"
       >
-        <Image
-          alt=""
-          aria-hidden="true"
-          className="h-5 w-5 shrink-0"
-          height={20}
-          src="/favicon.ico"
-          unoptimized
-          width={20}
-        />
+        <AppLogo />
         {copy.common.home}
       </Link>
       {!showSignOut ? (
