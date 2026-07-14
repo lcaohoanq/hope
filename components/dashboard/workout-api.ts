@@ -1,11 +1,6 @@
 import { prepareWorkoutImageUploads } from "@/lib/image-previews";
 import type { UserSettings } from "@/lib/users";
-import type {
-  Workout,
-  WorkoutData,
-  WorkoutInput,
-  WorkoutUpdateInput,
-} from "@/lib/workout-types";
+import type { Workout, WorkoutData, WorkoutInput, WorkoutUpdateInput } from "@/lib/workout-types";
 import { wait } from "./dashboard-utils";
 
 type ApiErrorResponse = {
@@ -43,25 +38,15 @@ export type UpdateSettingsResponse =
 
 const WORKOUT_LOAD_RETRY_DELAYS_MS = [500, 1000];
 
-export async function fetchWorkoutDataWithRetry(
-  userId: string,
-  fallbackMessage: string,
-) {
+export async function fetchWorkoutDataWithRetry(userId: string, fallbackMessage: string) {
   let lastError: unknown;
 
-  for (
-    let attempt = 0;
-    attempt <= WORKOUT_LOAD_RETRY_DELAYS_MS.length;
-    attempt += 1
-  ) {
+  for (let attempt = 0; attempt <= WORKOUT_LOAD_RETRY_DELAYS_MS.length; attempt += 1) {
     try {
       const response = await fetch(`/api/workouts?userId=${userId}`, {
         cache: "no-store",
       });
-      const payload = await readApiJson<WorkoutData | ApiErrorResponse>(
-        response,
-        fallbackMessage,
-      );
+      const payload = await readApiJson<WorkoutData | ApiErrorResponse>(response, fallbackMessage);
 
       if (!response.ok || "success" in payload) {
         throw new Error("error" in payload ? payload.error : fallbackMessage);
@@ -84,9 +69,7 @@ export async function fetchWorkoutDataWithRetry(
   throw lastError instanceof Error ? lastError : new Error(fallbackMessage);
 }
 
-export async function createWorkoutRequestInit(
-  input: WorkoutInput | WorkoutUpdateInput,
-) {
+export async function createWorkoutRequestInit(input: WorkoutInput | WorkoutUpdateInput) {
   const hasImages = input.images && input.images.length > 0;
   const imageSrcs = "imageSrcs" in input ? input.imageSrcs : undefined;
 
@@ -130,16 +113,11 @@ export async function createWorkoutRequestInit(
   };
 }
 
-export async function readApiJson<T>(
-  response: Response,
-  fallbackMessage: string,
-) {
+export async function readApiJson<T>(response: Response, fallbackMessage: string) {
   const contentType = response.headers.get("content-type") ?? "";
 
   if (!contentType.includes("application/json")) {
-    throw new Error(
-      `${fallbackMessage} The server returned a non-JSON response.`,
-    );
+    throw new Error(`${fallbackMessage} The server returned a non-JSON response.`);
   }
 
   try {

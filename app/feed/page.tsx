@@ -1,9 +1,9 @@
 import { redirect } from "next/navigation";
-import { resolveOwner } from "@/lib/auth";
-import { toPublicUser } from "@/lib/users";
-import { getSocialCopy } from "@/lib/social-copy";
 import { FeedClient } from "@/components/social/FeedClient";
 import { SocialPageHeader } from "@/components/social/SocialPageHeader";
+import { resolveOwner } from "@/lib/auth";
+import { getSocialCopy } from "@/lib/social-copy";
+import { toPublicUser } from "@/lib/users";
 
 export const dynamic = "force-dynamic";
 export default async function FeedPage() {
@@ -12,5 +12,14 @@ export default async function FeedPage() {
   if (owner.status === "onboarding") redirect("/onboarding");
   const user = toPublicUser(owner.profile);
   const copy = getSocialCopy(user.preferredLanguage);
-  return <main className="min-h-dvh bg-app text-text"><SocialPageHeader user={user} /><div className="mx-auto max-w-2xl px-4 py-8 sm:px-6"><h1 className="text-3xl font-semibold tracking-tight">{copy.feed}</h1><p className="mt-2 mb-6 text-sm text-muted">{copy.feedDescription}</p><FeedClient language={user.preferredLanguage} /></div></main>;
+  return (
+    <main className="min-h-dvh bg-app text-text">
+      <SocialPageHeader user={user} />
+      <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6">
+        <h1 className="text-3xl font-semibold tracking-tight">{copy.feed}</h1>
+        <p className="mt-2 mb-6 text-sm text-muted">{copy.feedDescription}</p>
+        <FeedClient language={user.preferredLanguage} />
+      </div>
+    </main>
+  );
 }

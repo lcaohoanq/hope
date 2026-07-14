@@ -6,13 +6,28 @@
     "displayName": "Test User",
     "birthYear": 2004,
     "avatarSeed": "test",
-    "bio": { "en": "Testing the quiet little rituals that make movement easier to repeat.", "vi": "Thử những nhịp nhỏ, đều và đủ nhẹ để việc vận động dễ lặp lại hơn." },
-    "location": { "label": { "en": "Da Nang, Vietnam", "vi": "Đà Nẵng, Việt Nam" }, "coordinates": { "latitude": 16.0544, "longitude": 108.2022 }, "zoom": 13 },
+    "bio": {
+      "en": "Testing the quiet little rituals that make movement easier to repeat.",
+      "vi": "Thử những nhịp nhỏ, đều và đủ nhẹ để việc vận động dễ lặp lại hơn."
+    },
+    "location": {
+      "label": { "en": "Da Nang, Vietnam", "vi": "Đà Nẵng, Việt Nam" },
+      "coordinates": { "latitude": 16.0544, "longitude": 108.2022 },
+      "zoom": 13
+    },
     "pronouns": { "en": "they/them", "vi": "họ" },
     "preferredLanguage": "vi",
     "website": "https://example.com/test",
-    "socialLinks": { "facebook": "https://facebook.com/test.fitlog", "instagram": "https://instagram.com/test.fitlog", "linkedin": "https://linkedin.com/in/test-fitlog" },
-    "settings": { "theme": "light", "heatmap": { "defaultView": { "mode": "year" } }, "workouts": { "allowPastWorkoutEdits": false } },
+    "socialLinks": {
+      "facebook": "https://facebook.com/test.fitlog",
+      "instagram": "https://instagram.com/test.fitlog",
+      "linkedin": "https://linkedin.com/in/test-fitlog"
+    },
+    "settings": {
+      "theme": "light",
+      "heatmap": { "defaultView": { "mode": "year" } },
+      "workouts": { "allowPastWorkoutEdits": false }
+    },
     "reminderEnabled": true
   },
   {
@@ -24,12 +39,24 @@
     "avatarSeed": "lcaohoanq",
     "avatarUrl": "/uploads/avatars/hoang-1cf3de80-b2b.webp",
     "bio": { "en": "Expect the Not Expected.", "vi": "Expect the Not Expected." },
-    "location": { "label": { "en": "Ho Chi Minh City, Vietnam", "vi": "TP. Hồ Chí Minh, Việt Nam" }, "coordinates": { "latitude": 10.7769, "longitude": 106.7009 }, "zoom": 14 },
+    "location": {
+      "label": { "en": "Ho Chi Minh City, Vietnam", "vi": "TP. Hồ Chí Minh, Việt Nam" },
+      "coordinates": { "latitude": 10.7769, "longitude": 106.7009 },
+      "zoom": 14
+    },
     "pronouns": { "en": "he/him", "vi": "anh ấy" },
     "preferredLanguage": "en",
     "website": "https://lcaohoanq.works",
-    "socialLinks": { "facebook": "https://facebook.com/lcaohoanq", "instagram": "https://instagram.com/lcaohoanq", "linkedin": "https://linkedin.com/in/lcaohoanq" },
-    "settings": { "theme": "light", "heatmap": { "defaultView": { "mode": "year" } }, "workouts": { "allowPastWorkoutEdits": true } },
+    "socialLinks": {
+      "facebook": "https://facebook.com/lcaohoanq",
+      "instagram": "https://instagram.com/lcaohoanq",
+      "linkedin": "https://linkedin.com/in/lcaohoanq"
+    },
+    "settings": {
+      "theme": "light",
+      "heatmap": { "defaultView": { "mode": "year" } },
+      "workouts": { "allowPastWorkoutEdits": true }
+    },
     "reminderEnabled": true
   },
   {
@@ -39,13 +66,28 @@
     "displayName": "Linh",
     "birthYear": 2005,
     "avatarSeed": "linh",
-    "bio": { "en": "Building a steady rhythm one logged workout at a time.", "vi": "Xây nhịp sống đều hơn qua từng buổi tập được ghi lại." },
-    "location": { "label": { "en": "Hanoi, Vietnam", "vi": "Hà Nội, Việt Nam" }, "coordinates": { "latitude": 21.0285, "longitude": 105.8542 }, "zoom": 13 },
+    "bio": {
+      "en": "Building a steady rhythm one logged workout at a time.",
+      "vi": "Xây nhịp sống đều hơn qua từng buổi tập được ghi lại."
+    },
+    "location": {
+      "label": { "en": "Hanoi, Vietnam", "vi": "Hà Nội, Việt Nam" },
+      "coordinates": { "latitude": 21.0285, "longitude": 105.8542 },
+      "zoom": 13
+    },
     "pronouns": { "en": "she/her", "vi": "cô ấy" },
     "preferredLanguage": "vi",
     "website": "https://example.com/linh",
-    "socialLinks": { "facebook": "https://facebook.com/linh.fitlog", "instagram": "https://instagram.com/linh.fitlog", "linkedin": "https://linkedin.com/in/linh-fitlog" },
-    "settings": { "theme": "light", "heatmap": { "defaultView": { "mode": "year" } }, "workouts": { "allowPastWorkoutEdits": false } },
+    "socialLinks": {
+      "facebook": "https://facebook.com/linh.fitlog",
+      "instagram": "https://instagram.com/linh.fitlog",
+      "linkedin": "https://linkedin.com/in/linh-fitlog"
+    },
+    "settings": {
+      "theme": "light",
+      "heatmap": { "defaultView": { "mode": "year" } },
+      "workouts": { "allowPastWorkoutEdits": false }
+    },
     "reminderEnabled": true
   },
   {
@@ -56,10 +98,21 @@
     "birthYear": 2004,
     "avatarSeed": "mviet",
     "avatarUrl": "/uploads/avatars/mviet-c85b618b-2d6.webp",
-    "bio": { "en": "dù vỏ kẹo nó nhăn, nhưng bên trong vẫn ngọt", "vi": "dù vỏ kẹo nó nhăn, nhưng bên trong vẫn ngọt" },
-    "location": { "label": { "en": "Vietnam", "vi": "Việt Nam" }, "coordinates": { "latitude": 16, "longitude": 106 }, "zoom": 6 },
+    "bio": {
+      "en": "dù vỏ kẹo nó nhăn, nhưng bên trong vẫn ngọt",
+      "vi": "dù vỏ kẹo nó nhăn, nhưng bên trong vẫn ngọt"
+    },
+    "location": {
+      "label": { "en": "Vietnam", "vi": "Việt Nam" },
+      "coordinates": { "latitude": 16, "longitude": 106 },
+      "zoom": 6
+    },
     "preferredLanguage": "en",
-    "settings": { "theme": "light", "heatmap": { "defaultView": { "mode": "year" } }, "workouts": { "allowPastWorkoutEdits": false } },
+    "settings": {
+      "theme": "light",
+      "heatmap": { "defaultView": { "mode": "year" } },
+      "workouts": { "allowPastWorkoutEdits": false }
+    },
     "reminderEnabled": false
   }
 ]

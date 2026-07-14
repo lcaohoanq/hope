@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Cropper, { type Area, type Point } from "react-easy-crop";
 import { FaArrowsAlt, FaMinus, FaPlus, FaTimes } from "react-icons/fa";
-import type { AppCopy } from "@/lib/i18n";
 import { createCroppedAvatarFile } from "@/lib/avatar-crop";
+import type { AppCopy } from "@/lib/i18n";
 
 type AvatarCropDialogProps = {
   copy: AppCopy;
@@ -72,11 +72,7 @@ export function AvatarCropDialog({
     setCropError("");
 
     try {
-      const croppedFile = await createCroppedAvatarFile(
-        imageUrl,
-        croppedArea,
-        imageName,
-      );
+      const croppedFile = await createCroppedAvatarFile(imageUrl, croppedArea, imageName);
       const didSave = await onSave(croppedFile);
 
       if (didSave) {
@@ -84,9 +80,7 @@ export function AvatarCropDialog({
       }
     } catch (cropFailure) {
       setCropError(
-        cropFailure instanceof Error
-          ? cropFailure.message
-          : copy.dashboard.avatarCropFailed,
+        cropFailure instanceof Error ? cropFailure.message : copy.dashboard.avatarCropFailed,
       );
     }
   }
@@ -96,25 +90,22 @@ export function AvatarCropDialog({
   }
 
   return (
-    <div
-      className="fixed inset-0 z-[10000] flex items-center justify-center bg-text/55 p-3 sm:p-6"
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget && !isSaving) {
-          onClose();
-        }
-      }}
-    >
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center p-3 sm:p-6">
+      <button
+        aria-label={copy.common.close}
+        className="absolute inset-0 cursor-default bg-text/55"
+        disabled={isSaving}
+        onClick={onClose}
+        type="button"
+      />
       <section
         aria-labelledby="avatar-crop-title"
         aria-modal="true"
-        className="flex max-h-[calc(100dvh-24px)] w-full max-w-2xl flex-col overflow-hidden rounded-lg border border-border bg-panel text-text shadow-[0_28px_100px_rgba(15,23,42,0.3)] sm:max-h-[calc(100dvh-48px)]"
+        className="relative flex max-h-[calc(100dvh-24px)] w-full max-w-2xl flex-col overflow-hidden rounded-lg border border-border bg-panel text-text shadow-[0_28px_100px_rgba(15,23,42,0.3)] sm:max-h-[calc(100dvh-48px)]"
         role="dialog"
       >
         <header className="flex shrink-0 items-center justify-between gap-4 border-b border-border px-4 py-3 sm:px-5">
-          <h2
-            className="text-lg font-semibold tracking-[-0.02em]"
-            id="avatar-crop-title"
-          >
+          <h2 className="text-lg font-semibold tracking-[-0.02em]" id="avatar-crop-title">
             {copy.dashboard.avatarCropTitle}
           </h2>
           <button
@@ -195,9 +186,7 @@ export function AvatarCropDialog({
               </span>
             </label>
 
-            <p className="text-xs leading-5 text-muted">
-              {copy.dashboard.avatarCropPublic}
-            </p>
+            <p className="text-xs leading-5 text-muted">{copy.dashboard.avatarCropPublic}</p>
             {cropError || error ? (
               <p aria-live="polite" className="text-sm font-medium text-danger">
                 {cropError || error}
@@ -221,9 +210,7 @@ export function AvatarCropDialog({
             onClick={() => void handleSave()}
             type="button"
           >
-            {isSaving
-              ? copy.dashboard.avatarCropSaving
-              : copy.dashboard.avatarCropSave}
+            {isSaving ? copy.dashboard.avatarCropSaving : copy.dashboard.avatarCropSave}
           </button>
         </footer>
       </section>

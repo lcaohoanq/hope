@@ -16,7 +16,12 @@ function configureCloudinary() {
   if (!cloudName || !apiKey || !apiSecret) {
     throw new Error("Cloudinary server credentials are not configured.");
   }
-  cloudinary.config({ cloud_name: cloudName, api_key: apiKey, api_secret: apiSecret, secure: true });
+  cloudinary.config({
+    cloud_name: cloudName,
+    api_key: apiKey,
+    api_secret: apiSecret,
+    secure: true,
+  });
 }
 
 export async function uploadImageBuffer(buffer: Buffer, publicId: string): Promise<UploadedAsset> {
@@ -25,7 +30,8 @@ export async function uploadImageBuffer(buffer: Buffer, publicId: string): Promi
     const upload = cloudinary.uploader.upload_stream(
       { public_id: publicId, overwrite: true, resource_type: "image" },
       (error, result) => {
-        if (error || !result) return reject(error ?? new Error("Cloudinary upload returned no result."));
+        if (error || !result)
+          return reject(error ?? new Error("Cloudinary upload returned no result."));
         resolve({
           publicId: result.public_id,
           secureUrl: result.secure_url,

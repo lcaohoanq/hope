@@ -1,16 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import { AnimatePresence } from "framer-motion";
-import type { HeatmapDay, Workout, WorkoutUpdateInput } from "@/lib/workout-types";
-import {
-  createHeatmapYears,
-  createLifetimeHeatmapYears,
-} from "@/lib/workout-utils";
-import type { HeatmapView } from "@/lib/users";
-import type { AppCopy, Language } from "@/lib/i18n";
+import { useEffect, useRef, useState } from "react";
 import { WorkoutDayDetailModal } from "@/components/WorkoutDayDetailModal";
 import { WorkoutTooltip } from "@/components/WorkoutTooltip";
+import type { AppCopy, Language } from "@/lib/i18n";
+import type { HeatmapView } from "@/lib/users";
+import type { HeatmapDay, Workout, WorkoutUpdateInput } from "@/lib/workout-types";
+import { createHeatmapYears, createLifetimeHeatmapYears } from "@/lib/workout-utils";
 
 type ContributionHeatmapProps = {
   allowPastWorkoutEdits: boolean;
@@ -78,8 +75,7 @@ export function ContributionHeatmap({
           workouts,
         });
   const descendingHeatmapYears = [...heatmapYears].reverse();
-  const selectedViewValue =
-    view.mode === "lifetime" ? "lifetime" : String(view.year);
+  const selectedViewValue = view.mode === "lifetime" ? "lifetime" : String(view.year);
   const viewTitle =
     view.mode === "lifetime" ? copy.heatmap.lifetime : copy.heatmap.yearTitle(view.year);
   const [activeTooltip, setActiveTooltip] = useState<ActiveTooltip | null>(null);
@@ -94,8 +90,7 @@ export function ContributionHeatmap({
     })),
   ];
   const selectedViewLabel =
-    viewOptions.find((option) => option.value === selectedViewValue)?.label ??
-    selectedViewValue;
+    viewOptions.find((option) => option.value === selectedViewValue)?.label ?? selectedViewValue;
 
   useEffect(() => {
     if (!isViewPickerOpen) {
@@ -103,10 +98,7 @@ export function ContributionHeatmap({
     }
 
     function handlePointerDown(event: PointerEvent) {
-      if (
-        viewPickerRef.current &&
-        !viewPickerRef.current.contains(event.target as Node)
-      ) {
+      if (viewPickerRef.current && !viewPickerRef.current.contains(event.target as Node)) {
         setIsViewPickerOpen(false);
       }
     }
@@ -140,10 +132,7 @@ export function ContributionHeatmap({
     const rect = element.getBoundingClientRect();
     const minLeft = TOOLTIP_MARGIN + TOOLTIP_WIDTH / 2;
     const maxLeft = window.innerWidth - TOOLTIP_MARGIN - TOOLTIP_WIDTH / 2;
-    const left = Math.min(
-      Math.max(rect.left + rect.width / 2, minLeft),
-      maxLeft,
-    );
+    const left = Math.min(Math.max(rect.left + rect.width / 2, minLeft), maxLeft);
     const placement = rect.top < 180 ? "below" : "above";
 
     setActiveTooltip({
@@ -165,9 +154,7 @@ export function ContributionHeatmap({
       }
 
       const nextWorkouts = current.workouts
-        .map((workout) =>
-          workout.id === updatedWorkout.id ? updatedWorkout : workout,
-        )
+        .map((workout) => (workout.id === updatedWorkout.id ? updatedWorkout : workout))
         .filter((workout) => workout.date === updatedWorkout.date)
         .sort((a, b) => {
           const dateSort = a.date.localeCompare(b.date);
@@ -191,9 +178,7 @@ export function ContributionHeatmap({
 
   function handleViewChange(value: string) {
     onViewChange(
-      value === "lifetime"
-        ? { mode: "lifetime" }
-        : { mode: "year", year: Number(value) },
+      value === "lifetime" ? { mode: "lifetime" } : { mode: "year", year: Number(value) },
     );
     setIsViewPickerOpen(false);
   }
@@ -202,9 +187,7 @@ export function ContributionHeatmap({
     <section className="rounded-lg border border-border p-5 sm:p-6">
       <div className="flex flex-col gap-4 border-b border-border pb-5 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <h2 className="mt-2 text-xl font-semibold tracking-[-0.02em] text-text">
-            {viewTitle}
-          </h2>
+          <h2 className="mt-2 text-xl font-semibold tracking-[-0.02em] text-text">{viewTitle}</h2>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <div
@@ -278,16 +261,11 @@ export function ContributionHeatmap({
       <div className="mt-6 max-h-[620px] overflow-auto pr-1">
         <div className="grid min-w-[900px] gap-5">
           {descendingHeatmapYears.map(({ year, weeks }) => (
-            <div
-              className="grid grid-cols-[44px_32px_1fr] items-start gap-x-3"
-              key={year}
-            >
+            <div className="grid grid-cols-[44px_32px_1fr] items-start gap-x-3" key={year}>
               <div className="mt-5 grid grid-rows-7 gap-1 text-[9px] text-text">
                 {copy.heatmap.weekdays.map((label, labelIndex) => (
                   <span key={label} className="flex h-2.5 items-center">
-                    {labelIndex === 1 || labelIndex === 3 || labelIndex === 5
-                      ? label
-                      : ""}
+                    {labelIndex === 1 || labelIndex === 3 || labelIndex === 5 ? label : ""}
                   </span>
                 ))}
               </div>
@@ -296,26 +274,20 @@ export function ContributionHeatmap({
                   aria-hidden="true"
                   className="mb-2 grid h-3 auto-cols-[10px] grid-flow-col gap-1 text-[9px] leading-none text-text"
                 >
-                  {getMonthMarkers(weeks, copy).map((label, index) => (
-                    <span className="w-2.5" key={`${year}-${index}-${label}`}>
-                      {label}
+                  {getMonthMarkers(weeks, copy).map((marker) => (
+                    <span className="w-2.5" key={`${year}-${marker.id}`}>
+                      {marker.label}
                     </span>
                   ))}
                 </div>
-                <div
+                <section
                   aria-label={`${year} workout heatmap`}
                   className="relative isolate grid auto-cols-[10px] grid-flow-col grid-rows-7 gap-1"
                 >
-                  {weeks.map((week, weekIndex) =>
-                    week.map((day, dayIndex) => {
+                  {createKeyedHeatmapWeeks(year, weeks).map((week) =>
+                    week.map(({ day, key }) => {
                       if (!day) {
-                        return (
-                          <span
-                            aria-hidden="true"
-                            className="h-2.5 w-2.5"
-                            key={`empty-${year}-${weekIndex}-${dayIndex}`}
-                          />
-                        );
+                        return <span aria-hidden="true" className="h-2.5 w-2.5" key={key} />;
                       }
 
                       const hasWorkout = day.status === "workout";
@@ -355,8 +327,7 @@ export function ContributionHeatmap({
                           }
                           onMouseLeave={() => setActiveTooltip(null)}
                           onClick={(event) => {
-                            const rect =
-                              event.currentTarget.getBoundingClientRect();
+                            const rect = event.currentTarget.getBoundingClientRect();
 
                             setActiveTooltip(null);
                             setSelectedDay({
@@ -369,13 +340,13 @@ export function ContributionHeatmap({
                               },
                             });
                           }}
-                          key={day.date}
+                          key={key}
                           type="button"
                         />
                       );
                     }),
                   )}
-                </div>
+                </section>
               </div>
             </div>
           ))}
@@ -424,13 +395,22 @@ export function ContributionHeatmap({
 }
 
 function getMonthMarkers(weeks: Array<Array<HeatmapDay | null>>, copy: AppCopy) {
-  return weeks.map((week) => {
+  return weeks.map((week, index) => {
+    const firstDay = week.find((day) => day !== null);
     const firstOfMonth = week.find((day) => day?.date.endsWith("-01"));
 
-    if (!firstOfMonth) {
-      return "";
-    }
-
-    return copy.heatmap.months[Number(firstOfMonth.date.slice(5, 7)) - 1];
+    return {
+      id: firstDay?.date ?? `empty-week-${index}`,
+      label: firstOfMonth ? copy.heatmap.months[Number(firstOfMonth.date.slice(5, 7)) - 1] : "",
+    };
   });
+}
+
+function createKeyedHeatmapWeeks(year: number, weeks: Array<Array<HeatmapDay | null>>) {
+  return weeks.map((week, weekIndex) =>
+    week.map((day, dayIndex) => ({
+      day,
+      key: day?.date ?? `empty-${year}-${weekIndex}-${dayIndex}`,
+    })),
+  );
 }

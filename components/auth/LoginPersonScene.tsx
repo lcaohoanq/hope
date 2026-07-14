@@ -1,6 +1,5 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useRef } from "react";
 import {
   Clone,
   ContactShadows,
@@ -10,15 +9,16 @@ import {
   useTexture,
 } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
-import { LoopRepeat, RepeatWrapping, SRGBColorSpace } from "three";
+import { Suspense, useEffect, useMemo, useRef } from "react";
 import type { Group } from "three";
+import { LoopRepeat, RepeatWrapping, SRGBColorSpace } from "three";
 
 const MODEL_PATH = "/models/login-person.glb";
 const SHIBA_MODEL_PATH = "/models/Shiba-Inu.glb";
 const TREE_MODEL_PATH = "/models/Tree.glb";
 const ROCKY_TERRAIN_PATH = "/grounds/rocky_terrain_02_1k/textures";
 const PEBBLE_GROUND_PATH = "/grounds/pebble_ground_01_1k/textures";
-const INITIAL_CAMERA_POSITION: [number, number, number] = [-5, 5 , 8.7];
+const INITIAL_CAMERA_POSITION: [number, number, number] = [-5, 5, 8.7];
 const INITIAL_CAMERA_TARGET: [number, number, number] = [0.1, 0.75, 0];
 
 function LoginPersonModel() {
@@ -71,12 +71,7 @@ function ShibaInuModel() {
   }, [actions]);
 
   return (
-    <group
-      ref={groupRef}
-      position={[0.55, -1.0, 0.78]}
-      rotation={[0, -0.12, 0]}
-      scale={0.45}
-    >
+    <group ref={groupRef} position={[0.55, -1.0, 0.78]} rotation={[0, -0.12, 0]} scale={0.45}>
       <primitive object={scene} />
     </group>
   );
@@ -97,9 +92,9 @@ function TreeModel() {
 
   return (
     <group>
-      {trees.map((tree, index) => (
+      {trees.map((tree) => (
         <Clone
-          key={`${tree.position.join("-")}-${index}`}
+          key={tree.position.join("-")}
           object={scene}
           position={tree.position}
           rotation={[0, tree.rotation, 0]}
@@ -135,14 +130,12 @@ function GroundStrip({ paths, position, repeat, size }: GroundStripProps) {
 
     configuredColorMap.colorSpace = SRGBColorSpace;
 
-    [configuredColorMap, configuredNormalMap, configuredRoughnessMap].forEach(
-      (texture) => {
-        texture.wrapS = RepeatWrapping;
-        texture.wrapT = RepeatWrapping;
-        texture.repeat.set(repeat[0], repeat[1]);
-        texture.needsUpdate = true;
-      },
-    );
+    [configuredColorMap, configuredNormalMap, configuredRoughnessMap].forEach((texture) => {
+      texture.wrapS = RepeatWrapping;
+      texture.wrapT = RepeatWrapping;
+      texture.repeat.set(repeat[0], repeat[1]);
+      texture.needsUpdate = true;
+    });
 
     return {
       colorMap: configuredColorMap,
@@ -233,13 +226,7 @@ export function LoginPersonScene() {
           minPolarAngle={Math.PI / 4.5}
           target={INITIAL_CAMERA_TARGET}
         />
-        <ContactShadows
-          blur={2.8}
-          far={4}
-          opacity={0.24}
-          position={[0, -0.92, 0]}
-          scale={5}
-        />
+        <ContactShadows blur={2.8} far={4} opacity={0.24} position={[0, -0.92, 0]} scale={5} />
       </Suspense>
     </Canvas>
   );

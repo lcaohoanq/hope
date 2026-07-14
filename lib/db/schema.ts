@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import {
   boolean,
   check,
@@ -11,14 +12,8 @@ import {
   timestamp,
   uniqueIndex,
 } from "drizzle-orm/pg-core";
-import { sql } from "drizzle-orm";
 import type { Language, LocalizedText } from "@/lib/i18n";
-import type {
-  UserLocation,
-  UserPlan,
-  UserSettings,
-  UserSocialLinks,
-} from "@/lib/users";
+import type { UserLocation, UserPlan, UserSettings, UserSocialLinks } from "@/lib/users";
 
 export const profiles = pgTable(
   "profiles",
@@ -51,7 +46,9 @@ export const workouts = pgTable(
   "workouts",
   {
     id: text("id").primaryKey(),
-    profileId: text("profile_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+    profileId: text("profile_id")
+      .notNull()
+      .references(() => profiles.id, { onDelete: "cascade" }),
     date: date("date", { mode: "string" }).notNull(),
     type: text("type").notNull(),
     startTime: text("start_time").notNull(),
@@ -68,7 +65,9 @@ export const workoutImages = pgTable(
   "workout_images",
   {
     id: serial("id").primaryKey(),
-    workoutId: text("workout_id").notNull().references(() => workouts.id, { onDelete: "cascade" }),
+    workoutId: text("workout_id")
+      .notNull()
+      .references(() => workouts.id, { onDelete: "cascade" }),
     position: integer("position").notNull(),
     publicId: text("public_id").notNull().unique(),
     secureUrl: text("secure_url").notNull(),
@@ -81,17 +80,18 @@ export const workoutImages = pgTable(
 );
 
 export type FollowStatus = "pending" | "accepted";
-export type NotificationType =
-  | "follow_request"
-  | "new_follower"
-  | "follow_accepted";
+export type NotificationType = "follow_request" | "new_follower" | "follow_accepted";
 
 export const profileFollows = pgTable(
   "profile_follows",
   {
     id: serial("id").primaryKey(),
-    followerProfileId: text("follower_profile_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
-    followingProfileId: text("following_profile_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+    followerProfileId: text("follower_profile_id")
+      .notNull()
+      .references(() => profiles.id, { onDelete: "cascade" }),
+    followingProfileId: text("following_profile_id")
+      .notNull()
+      .references(() => profiles.id, { onDelete: "cascade" }),
     status: text("status").$type<FollowStatus>().notNull(),
     requestedAt: timestamp("requested_at", { withTimezone: true }).notNull().defaultNow(),
     acceptedAt: timestamp("accepted_at", { withTimezone: true }),
@@ -100,7 +100,10 @@ export const profileFollows = pgTable(
     uniqueIndex("profile_follows_pair_idx").on(table.followerProfileId, table.followingProfileId),
     index("profile_follows_follower_status_idx").on(table.followerProfileId, table.status),
     index("profile_follows_following_status_idx").on(table.followingProfileId, table.status),
-    check("profile_follows_not_self_check", sql`${table.followerProfileId} <> ${table.followingProfileId}`),
+    check(
+      "profile_follows_not_self_check",
+      sql`${table.followerProfileId} <> ${table.followingProfileId}`,
+    ),
     check("profile_follows_status_check", sql`${table.status} in ('pending', 'accepted')`),
   ],
 );
@@ -109,8 +112,12 @@ export const notifications = pgTable(
   "notifications",
   {
     id: text("id").primaryKey(),
-    recipientProfileId: text("recipient_profile_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
-    actorProfileId: text("actor_profile_id").references(() => profiles.id, { onDelete: "set null" }),
+    recipientProfileId: text("recipient_profile_id")
+      .notNull()
+      .references(() => profiles.id, { onDelete: "cascade" }),
+    actorProfileId: text("actor_profile_id").references(() => profiles.id, {
+      onDelete: "set null",
+    }),
     type: text("type").$type<NotificationType>().notNull(),
     readAt: timestamp("read_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -118,7 +125,10 @@ export const notifications = pgTable(
   (table) => [
     index("notifications_recipient_created_idx").on(table.recipientProfileId, table.createdAt),
     index("notifications_recipient_read_idx").on(table.recipientProfileId, table.readAt),
-    check("notifications_type_check", sql`${table.type} in ('follow_request', 'new_follower', 'follow_accepted')`),
+    check(
+      "notifications_type_check",
+      sql`${table.type} in ('follow_request', 'new_follower', 'follow_accepted')`,
+    ),
   ],
 );
 

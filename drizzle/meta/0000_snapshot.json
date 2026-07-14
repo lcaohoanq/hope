@@ -151,23 +151,17 @@
         "profiles_clerk_user_id_unique": {
           "name": "profiles_clerk_user_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "clerk_user_id"
-          ]
+          "columns": ["clerk_user_id"]
         },
         "profiles_username_unique": {
           "name": "profiles_username_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "username"
-          ]
+          "columns": ["username"]
         },
         "profiles_avatar_public_id_unique": {
           "name": "profiles_avatar_public_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "avatar_public_id"
-          ]
+          "columns": ["avatar_public_id"]
         }
       },
       "policies": {},
@@ -261,12 +255,8 @@
           "name": "workout_images_workout_id_workouts_id_fk",
           "tableFrom": "workout_images",
           "tableTo": "workouts",
-          "columnsFrom": [
-            "workout_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["workout_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -276,9 +266,7 @@
         "workout_images_public_id_unique": {
           "name": "workout_images_public_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "public_id"
-          ]
+          "columns": ["public_id"]
         }
       },
       "policies": {},
@@ -373,12 +361,8 @@
           "name": "workouts_profile_id_profiles_id_fk",
           "tableFrom": "workouts",
           "tableTo": "profiles",
-          "columnsFrom": [
-            "profile_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["profile_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }

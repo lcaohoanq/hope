@@ -1,15 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { ActivityTypeSelector } from "@/components/ActivityTypeSelector";
 import { appendCaptionPill, hasCaptionPill } from "@/lib/caption-utils";
 import type { AppCopy } from "@/lib/i18n";
-import {
-  createImagePreviewUrls,
-  revokeImagePreviewUrls,
-} from "@/lib/image-previews";
+import { createImagePreviewUrls, revokeImagePreviewUrls } from "@/lib/image-previews";
 import type { WorkoutInput } from "@/lib/workout-types";
 import { calculateDurationMinutes } from "@/lib/workout-utils";
-import { ActivityTypeSelector } from "@/components/ActivityTypeSelector";
 
 type WorkoutFormProps = {
   copy: AppCopy;
@@ -49,13 +46,7 @@ function isRequiredWorkoutField(field: keyof WorkoutInput) {
   return REQUIRED_WORKOUT_FIELDS.has(field as RequiredWorkoutField);
 }
 
-function FieldLabel({
-  children,
-  required,
-}: {
-  children: ReactNode;
-  required?: boolean;
-}) {
+function FieldLabel({ children, required }: { children: ReactNode; required?: boolean }) {
   return (
     <span className="inline-flex items-center gap-1">
       <span>{children}</span>
@@ -157,10 +148,7 @@ export function WorkoutForm({
 
     const type = form.type.trim();
     const note = form.note.trim();
-    const durationMinutes = calculateDurationMinutes(
-      form.startTime,
-      form.endTime,
-    );
+    const durationMinutes = calculateDurationMinutes(form.startTime, form.endTime);
 
     if (!type) {
       setError(copy.errors.typeRequired);
@@ -193,19 +181,12 @@ export function WorkoutForm({
       setImageInputKey((current) => current + 1);
       setSuccess(copy.form.success);
     } catch (submitError) {
-      setError(
-        submitError instanceof Error
-          ? submitError.message
-          : copy.errors.saveWorkout,
-      );
+      setError(submitError instanceof Error ? submitError.message : copy.errors.saveWorkout);
     }
   }
 
   return (
-    <form
-      className="rounded-lg border border-border bg-panel p-5 sm:p-6"
-      onSubmit={handleSubmit}
-    >
+    <form className="rounded-lg border border-border bg-panel p-5 sm:p-6" onSubmit={handleSubmit}>
       <div className="border-b border-border pb-5">
         <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted">
           {copy.form.todayEntry}
@@ -229,9 +210,7 @@ export function WorkoutForm({
         />
 
         <label className="grid gap-2 text-sm font-medium text-text">
-          <FieldLabel required={isRequiredWorkoutField("date")}>
-            {copy.form.date}
-          </FieldLabel>
+          <FieldLabel required={isRequiredWorkoutField("date")}>{copy.form.date}</FieldLabel>
           <input
             className="h-11 rounded-md border border-border bg-panel-muted px-3 text-base font-normal text-text outline-none transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] focus:border-accent focus:bg-panel focus:ring-2 focus:ring-accent/15 disabled:cursor-not-allowed disabled:opacity-60"
             onChange={(event) => updateField("date", event.target.value)}
@@ -269,12 +248,16 @@ export function WorkoutForm({
         <label className="flex items-center justify-between gap-4 rounded-md border border-border bg-panel-muted p-3 text-sm">
           <span>
             <span className="block font-semibold text-text">{copy.form.publicWorkout}</span>
-            <span className="mt-0.5 block text-xs font-normal text-muted">{copy.form.publicWorkoutHelp}</span>
+            <span className="mt-0.5 block text-xs font-normal text-muted">
+              {copy.form.publicWorkoutHelp}
+            </span>
           </span>
           <input
             checked={form.isPublic}
             className="h-5 w-5 accent-[var(--color-accent)]"
-            onChange={(event) => setForm((current) => ({ ...current, isPublic: event.target.checked }))}
+            onChange={(event) =>
+              setForm((current) => ({ ...current, isPublic: event.target.checked }))
+            }
             type="checkbox"
           />
         </label>
@@ -305,9 +288,7 @@ export function WorkoutForm({
                       : "border-border bg-panel-muted text-muted hover:border-accent/50 hover:text-text"
                   }`}
                   key={pill}
-                  onClick={() =>
-                    updateField("note", appendCaptionPill(form.note, pill))
-                  }
+                  onClick={() => updateField("note", appendCaptionPill(form.note, pill))}
                   type="button"
                 >
                   {pill}
@@ -358,9 +339,7 @@ export function WorkoutForm({
           </p>
         ) : null}
         {error ? <p className="text-sm font-medium text-danger">{error}</p> : null}
-        {success ? (
-          <p className="text-sm font-medium text-accent">{success}</p>
-        ) : null}
+        {success ? <p className="text-sm font-medium text-accent">{success}</p> : null}
       </div>
 
       <button

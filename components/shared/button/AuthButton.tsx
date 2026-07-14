@@ -1,14 +1,13 @@
-import React from 'react';
-import styled from 'styled-components';
+import React from "react";
+import styled from "styled-components";
 
 const Button = () => {
   return (
     <StyledWrapper>
-      <button> Pick up!
-      </button>
+      <button type="button"> Pick up!</button>
     </StyledWrapper>
   );
-}
+};
 
 const StyledWrapper = styled.div`
   button {

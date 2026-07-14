@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useId, useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { type ReactNode, useEffect, useId, useState } from "react";
 import type { IconType } from "react-icons";
 import { FaBicycle, FaBook, FaEllipsisH } from "react-icons/fa";
 import type { AppCopy } from "@/lib/i18n";
@@ -129,18 +129,9 @@ export function ActivityTypeSelector({
       >
         <span className="inline-flex min-w-0 items-center gap-2">
           {selectedOption ? (
-            <selectedOption.Icon
-              aria-hidden="true"
-              className="h-4 w-4 shrink-0 text-muted"
-            />
+            <selectedOption.Icon aria-hidden="true" className="h-4 w-4 shrink-0 text-muted" />
           ) : null}
-          <span
-            className={
-              selectedLabel
-                ? "truncate text-text"
-                : "truncate text-muted"
-            }
-          >
+          <span className={selectedLabel ? "truncate text-text" : "truncate text-muted"}>
             {selectedLabel || copy.activity.selectActivity}
           </span>
         </span>
@@ -170,10 +161,7 @@ export function ActivityTypeSelector({
               variants={ACTIVITY_MODAL_PANEL_VARIANTS}
             >
               <div className="flex items-start justify-between gap-4 border-b border-border p-4 sm:p-5">
-                <h3
-                  className="text-lg font-semibold tracking-[-0.02em] text-text"
-                  id={titleId}
-                >
+                <h3 className="text-lg font-semibold tracking-[-0.02em] text-text" id={titleId}>
                   {copy.activity.modalTitle}
                 </h3>
                 <button
@@ -195,9 +183,7 @@ export function ActivityTypeSelector({
                     <button
                       aria-pressed={isSelected}
                       className={`group relative flex min-h-28 flex-col items-center justify-center gap-3 rounded-md border bg-panel p-4 text-center shadow-[0_10px_30px_rgba(28,25,23,0.08)] transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:border-border hover:shadow-[0_18px_38px_rgba(28,25,23,0.14)] focus:outline-none focus:ring-2 focus:ring-accent/20 active:translate-y-0 ${
-                        isSelected
-                          ? "border-accent ring-2 ring-accent/20"
-                          : "border-border"
+                        isSelected ? "border-accent ring-2 ring-accent/20" : "border-border"
                       }`}
                       key={option.key}
                       onClick={() => selectActivity(option.key)}
@@ -211,13 +197,8 @@ export function ActivityTypeSelector({
                           </span>
                         </span>
                       ) : null}
-                      <option.Icon
-                        aria-hidden="true"
-                        className="h-7 w-7 text-text"
-                      />
-                      <span className="text-sm font-semibold text-text">
-                        {optionLabel}
-                      </span>
+                      <option.Icon aria-hidden="true" className="h-7 w-7 text-text" />
+                      <span className="text-sm font-semibold text-text">{optionLabel}</span>
                     </button>
                   );
                 })}

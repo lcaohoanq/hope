@@ -1,6 +1,6 @@
+import path from "node:path";
 import { clerk } from "@clerk/testing/playwright";
 import { expect, test } from "@playwright/test";
-import path from "node:path";
 
 const publicUsername = process.env.E2E_PUBLIC_PROFILE_USERNAME;
 const ownerEmail = process.env.E2E_CLERK_USER_EMAIL;
@@ -45,14 +45,20 @@ test("rejects signed-out workout and settings mutations", async ({ request }) =>
 });
 
 test("keeps a migrated profile public and canonical", async ({ page }) => {
-  test.skip(!publicUsername, "Set E2E_PUBLIC_PROFILE_USERNAME after seeding the isolated Supabase database.");
+  test.skip(
+    !publicUsername,
+    "Set E2E_PUBLIC_PROFILE_USERNAME after seeding the isolated Supabase database.",
+  );
   await page.goto(`/@${publicUsername}`);
   await expect(page).toHaveURL(`/${publicUsername}`);
   await expect(page.getByRole("button", { name: /add a workout/i })).toHaveCount(0);
 });
 
 test("shows owner controls to the linked Clerk account", async ({ page }) => {
-  test.skip(!publicUsername || !ownerEmail, "Set E2E public profile and Clerk test user variables.");
+  test.skip(
+    !publicUsername || !ownerEmail,
+    "Set E2E public profile and Clerk test user variables.",
+  );
   await page.goto("/");
   await clerk.signIn({ page, emailAddress: ownerEmail! });
   await page.goto("/auth/continue");
@@ -65,14 +71,15 @@ test("shows owner controls to the linked Clerk account", async ({ page }) => {
 });
 
 test("lets the owner reposition and crop an avatar before upload", async ({ page }) => {
-  test.skip(!publicUsername || !ownerEmail, "Set E2E public profile and Clerk test user variables.");
+  test.skip(
+    !publicUsername || !ownerEmail,
+    "Set E2E public profile and Clerk test user variables.",
+  );
   await page.goto("/");
   await clerk.signIn({ page, emailAddress: ownerEmail! });
   await page.goto(`/${publicUsername}`);
 
-  const avatarInput = page.locator(
-    'input[type="file"][accept="image/jpeg,image/png,image/webp"]',
-  );
+  const avatarInput = page.locator('input[type="file"][accept="image/jpeg,image/png,image/webp"]');
   const imagePath = path.join(process.cwd(), "public/apple-touch-icon.png");
 
   await avatarInput.setInputFiles(imagePath);
@@ -80,9 +87,7 @@ test("lets the owner reposition and crop an avatar before upload", async ({ page
     name: /adjust profile picture|điều chỉnh ảnh đại diện/i,
   });
   await expect(dialog).toBeVisible();
-  await expect(
-    dialog.getByText(/drag the image|kéo ảnh/i),
-  ).toBeVisible();
+  await expect(dialog.getByText(/drag the image|kéo ảnh/i)).toBeVisible();
   await dialog.getByRole("slider").fill("1.5");
   await dialog.getByRole("button", { name: /cancel|hủy/i }).click();
   await expect(dialog).toBeHidden();
@@ -117,7 +122,10 @@ test("lets the owner reposition and crop an avatar before upload", async ({ page
 });
 
 test("validates and updates the owner's public profile", async ({ page }) => {
-  test.skip(!publicUsername || !ownerEmail, "Set E2E public profile and Clerk test user variables.");
+  test.skip(
+    !publicUsername || !ownerEmail,
+    "Set E2E public profile and Clerk test user variables.",
+  );
   await page.goto("/");
   await clerk.signIn({ page, emailAddress: ownerEmail! });
   await page.goto("/settings/profile");

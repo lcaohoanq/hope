@@ -76,9 +76,7 @@ export function LegalPage({
           <p className="mt-6 max-w-2xl text-base leading-7 text-muted sm:text-lg sm:leading-8">
             {description}
           </p>
-          <p className="mt-5 font-mono text-xs text-muted">
-            Có hiệu lực từ {effectiveDate}
-          </p>
+          <p className="mt-5 font-mono text-xs text-muted">Có hiệu lực từ {effectiveDate}</p>
         </section>
 
         <div className="grid items-start gap-8 pb-20 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-14 lg:pb-28">

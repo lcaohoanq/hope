@@ -1,5 +1,5 @@
-import { expect, test } from "@playwright/test";
 import { setupClerkTestingToken } from "@clerk/testing/playwright";
+import { expect, test } from "@playwright/test";
 
 const groundTextures = [
   "/grounds/rocky_terrain_02_1k/textures/rocky_terrain_02_diff_1k.png",
@@ -14,7 +14,9 @@ test("renders the login page and 3D scene shell", async ({ page, request }) => {
   await setupClerkTestingToken({ page });
   await page.goto("/login");
 
-  await expect(page.getByRole("heading", { name: /sign in to hope/i })).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByRole("heading", { name: /sign in to hope/i })).toBeVisible({
+    timeout: 20_000,
+  });
   await expect(page.getByLabel(/email address/i)).toBeVisible({ timeout: 20_000 });
   await expect(page.getByLabel(/password/i)).toHaveCount(0);
 
@@ -31,7 +33,9 @@ test("renders the login page and 3D scene shell", async ({ page, request }) => {
 test("renders public registration with email and username", async ({ page }) => {
   await setupClerkTestingToken({ page });
   await page.goto("/sign-up");
-  await expect(page.getByText("Create your account", { exact: true })).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByText("Create your account", { exact: true })).toBeVisible({
+    timeout: 20_000,
+  });
   await expect(page.getByLabel(/email address/i)).toBeVisible({ timeout: 20_000 });
   await expect(page.getByLabel(/username/i)).toBeVisible({ timeout: 20_000 });
 });

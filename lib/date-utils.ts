@@ -47,9 +47,7 @@ export function getLastNDays(endDateKey: string, count: number) {
   const end = parseDateKey(endDateKey);
   const start = addDays(end, -(count - 1));
 
-  return Array.from({ length: count }, (_, index) =>
-    toDateKey(addDays(start, index)),
-  );
+  return Array.from({ length: count }, (_, index) => toDateKey(addDays(start, index)));
 }
 
 export function getDaysInRange(startDateKey: string, endDateKey: string) {

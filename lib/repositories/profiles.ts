@@ -1,8 +1,8 @@
 import { and, eq, isNotNull, isNull } from "drizzle-orm";
 import { getDatabase } from "@/lib/db";
-import { profiles, type ProfileRow } from "@/lib/db/schema";
+import { type ProfileRow, profiles } from "@/lib/db/schema";
 import type { ValidatedProfileUpdate } from "@/lib/profile-update";
-import type { AppUser, AppTheme } from "@/lib/users";
+import type { AppTheme, AppUser } from "@/lib/users";
 import { getDefaultUserSettings, normalizeUsername } from "@/lib/users";
 
 export function toAppUser(row: ProfileRow): AppUser {
@@ -35,13 +35,21 @@ export async function getProfileById(id: string) {
 }
 
 export async function getProfileByClerkId(clerkUserId: string) {
-  const [row] = await getDatabase().select().from(profiles).where(eq(profiles.clerkUserId, clerkUserId)).limit(1);
+  const [row] = await getDatabase()
+    .select()
+    .from(profiles)
+    .where(eq(profiles.clerkUserId, clerkUserId))
+    .limit(1);
   return row ? toAppUser(row) : undefined;
 }
 
 export async function getProfileByUsername(username: string) {
   const normalizedUsername = normalizeUsername(username);
-  const [row] = await getDatabase().select().from(profiles).where(eq(profiles.username, normalizedUsername)).limit(1);
+  const [row] = await getDatabase()
+    .select()
+    .from(profiles)
+    .where(eq(profiles.username, normalizedUsername))
+    .limit(1);
   return row ? toAppUser(row) : undefined;
 }
 
@@ -100,7 +108,10 @@ export async function createProfile(input: {
 
 export async function updateProfileTheme(profile: AppUser, theme: AppTheme) {
   const settings = { ...profile.settings, theme };
-  await getDatabase().update(profiles).set({ settings, updatedAt: new Date() }).where(eq(profiles.id, profile.id));
+  await getDatabase()
+    .update(profiles)
+    .set({ settings, updatedAt: new Date() })
+    .where(eq(profiles.id, profile.id));
   return settings;
 }
 
@@ -111,16 +122,17 @@ export async function updateProfileAvatar(input: {
 }) {
   const [row] = await getDatabase()
     .update(profiles)
-    .set({ avatarUrl: input.avatarUrl, avatarPublicId: input.avatarPublicId, updatedAt: new Date() })
+    .set({
+      avatarUrl: input.avatarUrl,
+      avatarPublicId: input.avatarPublicId,
+      updatedAt: new Date(),
+    })
     .where(eq(profiles.id, input.profileId))
     .returning();
   return row ? toAppUser(row) : undefined;
 }
 
-export async function updatePublicProfile(
-  profileId: string,
-  input: ValidatedProfileUpdate,
-) {
+export async function updatePublicProfile(profileId: string, input: ValidatedProfileUpdate) {
   const [row] = await getDatabase()
     .update(profiles)
     .set({

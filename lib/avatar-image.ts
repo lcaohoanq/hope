@@ -1,9 +1,5 @@
 export const MAX_AVATAR_BYTES = 5 * 1024 * 1024;
-export const AVATAR_MIME_TYPES = new Set([
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-]);
+export const AVATAR_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 export type AvatarValidationError = "invalid-type" | "too-large";
 

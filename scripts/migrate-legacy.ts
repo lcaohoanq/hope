@@ -2,7 +2,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import { loadEnvConfig } from "@next/env";
 import { eq, sql } from "drizzle-orm";
-import { cleanupUploadedAssets, uploadImageBuffer, type UploadedAsset } from "@/lib/cloudinary";
+import { cleanupUploadedAssets, type UploadedAsset, uploadImageBuffer } from "@/lib/cloudinary";
 import { closeDatabase, getDatabase } from "@/lib/db";
 import { profiles, workoutImages, workouts } from "@/lib/db/schema";
 import type { AppUser } from "@/lib/users";
@@ -25,7 +25,8 @@ async function readJson<T>(filePath: string): Promise<T> {
 }
 
 function localUploadPath(src: string) {
-  if (!src.startsWith("/uploads/") || src.includes("..")) throw new Error(`Unsafe asset path: ${src}`);
+  if (!src.startsWith("/uploads/") || src.includes(".."))
+    throw new Error(`Unsafe asset path: ${src}`);
   return path.join(process.cwd(), "public", src);
 }
 
@@ -33,12 +34,17 @@ async function readManifest(required: boolean) {
   try {
     return await readJson<ManifestEntry[]>(manifestPath);
   } catch (error) {
-    if (required) throw new Error(".migration-users.json is required for a live migration.", { cause: error });
+    if (required)
+      throw new Error(".migration-users.json is required for a live migration.", { cause: error });
     return [];
   }
 }
 
-async function validateSources(profileRows: SnapshotProfile[], data: WorkoutData, manifest: ManifestEntry[]) {
+async function validateSources(
+  profileRows: SnapshotProfile[],
+  data: WorkoutData,
+  manifest: ManifestEntry[],
+) {
   const profileIds = new Set<string>();
   const usernames = new Set<string>();
   const workoutIds = new Set<string>();
@@ -51,24 +57,37 @@ async function validateSources(profileRows: SnapshotProfile[], data: WorkoutData
     profileIds.add(profile.id);
     usernames.add(profile.username);
     if (profile.avatarUrl) {
-      try { await fs.access(localUploadPath(profile.avatarUrl)); } catch { missingAssets.push(profile.avatarUrl); }
+      try {
+        await fs.access(localUploadPath(profile.avatarUrl));
+      } catch {
+        missingAssets.push(profile.avatarUrl);
+      }
     }
   }
   for (const workout of data.workouts) {
     if (workoutIds.has(workout.id)) throw new Error(`Duplicate workout id: ${workout.id}`);
-    if (!workout.userId || !profileIds.has(workout.userId)) throw new Error(`Workout ${workout.id} references unknown profile ${workout.userId}.`);
+    if (!workout.userId || !profileIds.has(workout.userId))
+      throw new Error(`Workout ${workout.id} references unknown profile ${workout.userId}.`);
     workoutIds.add(workout.id);
     for (const image of workout.images ?? []) {
-      try { await fs.access(localUploadPath(image.src)); } catch { missingAssets.push(image.src); }
+      try {
+        await fs.access(localUploadPath(image.src));
+      } catch {
+        missingAssets.push(image.src);
+      }
     }
   }
   for (const entry of manifest) {
-    if (!profileIds.has(entry.appUserId)) throw new Error(`Manifest references unknown profile ${entry.appUserId}.`);
-    if (manifestIds.has(entry.appUserId)) throw new Error(`Duplicate manifest profile ${entry.appUserId}.`);
-    if (!entry.email.includes("@")) throw new Error(`Invalid migration email for ${entry.appUserId}.`);
+    if (!profileIds.has(entry.appUserId))
+      throw new Error(`Manifest references unknown profile ${entry.appUserId}.`);
+    if (manifestIds.has(entry.appUserId))
+      throw new Error(`Duplicate manifest profile ${entry.appUserId}.`);
+    if (!entry.email.includes("@"))
+      throw new Error(`Invalid migration email for ${entry.appUserId}.`);
     manifestIds.add(entry.appUserId);
   }
-  if (missingAssets.length > 0) throw new Error(`Missing source assets:\n${missingAssets.join("\n")}`);
+  if (missingAssets.length > 0)
+    throw new Error(`Missing source assets:\n${missingAssets.join("\n")}`);
 
   return {
     profileCount: profileRows.length,
@@ -97,7 +116,10 @@ async function linkOrInviteUsers(manifest: ManifestEntry[]) {
       await clerk.users.updateUserMetadata(existing.id, {
         publicMetadata: { ...existing.publicMetadata, appUserId: entry.appUserId },
       });
-      await db.update(profiles).set({ clerkUserId: existing.id, updatedAt: new Date() }).where(eq(profiles.id, entry.appUserId));
+      await db
+        .update(profiles)
+        .set({ clerkUserId: existing.id, updatedAt: new Date() })
+        .where(eq(profiles.id, entry.appUserId));
       console.log(`Linked existing Clerk user to ${entry.appUserId}.`);
       continue;
     }
@@ -106,7 +128,9 @@ async function linkOrInviteUsers(manifest: ManifestEntry[]) {
       await clerk.invitations.createInvitation({
         emailAddress: entry.email,
         publicMetadata: { appUserId: entry.appUserId },
-        redirectUrl: process.env.NEXT_PUBLIC_APP_URL ? new URL("/sign-up", process.env.NEXT_PUBLIC_APP_URL).toString() : undefined,
+        redirectUrl: process.env.NEXT_PUBLIC_APP_URL
+          ? new URL("/sign-up", process.env.NEXT_PUBLIC_APP_URL).toString()
+          : undefined,
       });
       console.log(`Created Clerk invitation for ${entry.appUserId}.`);
     } catch (error) {
@@ -122,9 +146,13 @@ async function migrate() {
   const workoutData = validateWorkoutData(await readJson<unknown>(workoutsPath));
   const manifest = await readManifest(!dryRun);
   const summary = await validateSources(profileRows, workoutData, manifest);
-  console.log(`Validated ${summary.profileCount} profiles, ${summary.workoutCount} workouts, ${summary.avatarCount} avatars, and ${summary.imageCount} workout images.`);
+  console.log(
+    `Validated ${summary.profileCount} profiles, ${summary.workoutCount} workouts, ${summary.avatarCount} avatars, and ${summary.imageCount} workout images.`,
+  );
   if (dryRun) {
-    console.log(`Dry run complete. ${summary.invitationCount} invitation mappings found; no external state changed.`);
+    console.log(
+      `Dry run complete. ${summary.invitationCount} invitation mappings found; no external state changed.`,
+    );
     return;
   }
 
@@ -143,7 +171,10 @@ async function migrate() {
     for (const workout of workoutData.workouts) {
       const assets: MigratedAsset[] = [];
       for (const [position, image] of (workout.images ?? []).entries()) {
-        const asset = await uploadLegacyAsset(image.src, `hope/legacy/workouts/${workout.userId}/${workout.id}/${position}`);
+        const asset = await uploadLegacyAsset(
+          image.src,
+          `hope/legacy/workouts/${workout.userId}/${workout.id}/${position}`,
+        );
         uploaded.push(asset);
         assets.push(asset);
       }
@@ -154,69 +185,113 @@ async function migrate() {
     await db.transaction(async (tx) => {
       for (const profile of profileRows) {
         const avatar = avatars.get(profile.id);
-        await tx.insert(profiles).values({
-          id: profile.id,
-          username: profile.username.toLowerCase(),
-          plan: profile.plan,
-          displayName: profile.displayName,
-          birthYear: profile.birthYear,
-          avatarSeed: profile.avatarSeed,
-          avatarUrl: avatar?.secureUrl,
-          avatarPublicId: avatar?.publicId,
-          bio: profile.bio,
-          location: profile.location,
-          pronouns: profile.pronouns,
-          preferredLanguage: profile.preferredLanguage,
-          socialLinks: profile.socialLinks,
-          website: profile.website,
-          settings: profile.settings,
-          reminderEnabled: profile.reminderEnabled ?? false,
-        }).onConflictDoUpdate({
-          target: profiles.id,
-          set: {
-            username: profile.username.toLowerCase(), plan: profile.plan, displayName: profile.displayName,
-            birthYear: profile.birthYear, avatarSeed: profile.avatarSeed, avatarUrl: avatar?.secureUrl,
-            avatarPublicId: avatar?.publicId, bio: profile.bio, location: profile.location,
-            pronouns: profile.pronouns, preferredLanguage: profile.preferredLanguage,
-            socialLinks: profile.socialLinks, website: profile.website, settings: profile.settings,
-            reminderEnabled: profile.reminderEnabled ?? false, updatedAt: new Date(),
-          },
-        });
+        await tx
+          .insert(profiles)
+          .values({
+            id: profile.id,
+            username: profile.username.toLowerCase(),
+            plan: profile.plan,
+            displayName: profile.displayName,
+            birthYear: profile.birthYear,
+            avatarSeed: profile.avatarSeed,
+            avatarUrl: avatar?.secureUrl,
+            avatarPublicId: avatar?.publicId,
+            bio: profile.bio,
+            location: profile.location,
+            pronouns: profile.pronouns,
+            preferredLanguage: profile.preferredLanguage,
+            socialLinks: profile.socialLinks,
+            website: profile.website,
+            settings: profile.settings,
+            reminderEnabled: profile.reminderEnabled ?? false,
+          })
+          .onConflictDoUpdate({
+            target: profiles.id,
+            set: {
+              username: profile.username.toLowerCase(),
+              plan: profile.plan,
+              displayName: profile.displayName,
+              birthYear: profile.birthYear,
+              avatarSeed: profile.avatarSeed,
+              avatarUrl: avatar?.secureUrl,
+              avatarPublicId: avatar?.publicId,
+              bio: profile.bio,
+              location: profile.location,
+              pronouns: profile.pronouns,
+              preferredLanguage: profile.preferredLanguage,
+              socialLinks: profile.socialLinks,
+              website: profile.website,
+              settings: profile.settings,
+              reminderEnabled: profile.reminderEnabled ?? false,
+              updatedAt: new Date(),
+            },
+          });
       }
 
       for (const workout of workoutData.workouts) {
-        await tx.insert(workouts).values({
-          id: workout.id,
-          profileId: workout.userId!,
-          date: workout.date,
-          type: workout.type,
-          startTime: workout.startTime,
-          endTime: workout.endTime,
-          durationMinutes: workout.durationMinutes,
-          note: workout.note,
-          createdAt: new Date(workout.createdAt),
-        }).onConflictDoUpdate({
-          target: workouts.id,
-          set: { profileId: workout.userId!, date: workout.date, type: workout.type, startTime: workout.startTime, endTime: workout.endTime, durationMinutes: workout.durationMinutes, note: workout.note },
-        });
+        await tx
+          .insert(workouts)
+          .values({
+            id: workout.id,
+            profileId: workout.userId!,
+            date: workout.date,
+            type: workout.type,
+            startTime: workout.startTime,
+            endTime: workout.endTime,
+            durationMinutes: workout.durationMinutes,
+            note: workout.note,
+            createdAt: new Date(workout.createdAt),
+          })
+          .onConflictDoUpdate({
+            target: workouts.id,
+            set: {
+              profileId: workout.userId!,
+              date: workout.date,
+              type: workout.type,
+              startTime: workout.startTime,
+              endTime: workout.endTime,
+              durationMinutes: workout.durationMinutes,
+              note: workout.note,
+            },
+          });
         await tx.delete(workoutImages).where(eq(workoutImages.workoutId, workout.id));
         const assets = workoutAssets.get(workout.id) ?? [];
         if (assets.length > 0) {
-          await tx.insert(workoutImages).values(assets.map((asset, position) => ({
-            workoutId: workout.id, position, publicId: asset.publicId, secureUrl: asset.secureUrl,
-            format: asset.format, width: asset.width, height: asset.height, sizeBytes: asset.sizeBytes,
-          })));
+          await tx.insert(workoutImages).values(
+            assets.map((asset, position) => ({
+              workoutId: workout.id,
+              position,
+              publicId: asset.publicId,
+              secureUrl: asset.secureUrl,
+              format: asset.format,
+              width: asset.width,
+              height: asset.height,
+              sizeBytes: asset.sizeBytes,
+            })),
+          );
         }
       }
     });
     databaseCommitted = true;
 
     await linkOrInviteUsers(manifest);
-    const [profileCount] = await getDatabase().select({ count: sql<number>`count(*)::int` }).from(profiles);
-    const [workoutCount] = await getDatabase().select({ count: sql<number>`count(*)::int` }).from(workouts);
-    const [imageCount] = await getDatabase().select({ count: sql<number>`count(*)::int` }).from(workoutImages);
-    console.log(`Destination totals: ${profileCount.count} profiles, ${workoutCount.count} workouts, ${imageCount.count} workout images.`);
-    if (profileCount.count < summary.profileCount || workoutCount.count < summary.workoutCount || imageCount.count < summary.imageCount) {
+    const [profileCount] = await getDatabase()
+      .select({ count: sql<number>`count(*)::int` })
+      .from(profiles);
+    const [workoutCount] = await getDatabase()
+      .select({ count: sql<number>`count(*)::int` })
+      .from(workouts);
+    const [imageCount] = await getDatabase()
+      .select({ count: sql<number>`count(*)::int` })
+      .from(workoutImages);
+    console.log(
+      `Destination totals: ${profileCount.count} profiles, ${workoutCount.count} workouts, ${imageCount.count} workout images.`,
+    );
+    if (
+      profileCount.count < summary.profileCount ||
+      workoutCount.count < summary.workoutCount ||
+      imageCount.count < summary.imageCount
+    ) {
       throw new Error("Destination count verification failed.");
     }
   } catch (error) {

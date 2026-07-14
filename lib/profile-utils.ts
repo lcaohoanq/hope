@@ -1,7 +1,6 @@
 import type { UserProfile } from "@/lib/workout-types";
 
-const DICEBEAR_NOTIONISTS_BASE_URL =
-  "https://api.dicebear.com/10.x/notionists/svg";
+const DICEBEAR_NOTIONISTS_BASE_URL = "https://api.dicebear.com/10.x/notionists/svg";
 
 export const USER_PROFILE_STORAGE_KEY = "hope-profile";
 const USER_PROFILE_CHANGE_EVENT = "hope-profile-change";

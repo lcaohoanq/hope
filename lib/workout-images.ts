@@ -51,9 +51,7 @@ export function validateWorkoutImageUpload(file: File) {
   }
 
   if (file.size > MAX_WORKOUT_IMAGE_BYTES) {
-    throw new WorkoutImageValidationError(
-      "Each workout image must be 10MB or smaller.",
-    );
+    throw new WorkoutImageValidationError("Each workout image must be 10MB or smaller.");
   }
 }
 
@@ -73,27 +71,17 @@ export async function optimizeWorkoutImage({
   }
 
   const dateKey = DATE_PATTERN.test(workoutDate ?? "")
-    ? workoutDate ?? ""
+    ? (workoutDate ?? "")
     : new Date().toISOString().slice(0, 10);
   const convertedImage = await convertWorkoutImageWithAppwrite({
     buffer,
     workoutDate: dateKey,
     originalMimeType,
   });
-  const filename = normalizeOptimizedImageFilename(
-    convertedImage.filename,
-    dateKey,
-  );
+  const filename = normalizeOptimizedImageFilename(convertedImage.filename, dateKey);
   const year = filename.slice(0, 4);
   const month = filename.slice(5, 7);
-  const localPath = path.join(
-    process.cwd(),
-    "public",
-    "uploads",
-    year,
-    month,
-    filename,
-  );
+  const localPath = path.join(process.cwd(), "public", "uploads", year, month, filename);
   const repositoryPath = `public/uploads/${year}/${month}/${filename}`;
   const src = `/uploads/${year}/${month}/${filename}`;
   const optimizedBuffer = Buffer.from(convertedImage.outputBase64, "base64");
@@ -110,9 +98,7 @@ export async function optimizeWorkoutImage({
   };
 }
 
-export function getWorkoutImageMetadata(
-  image: OptimizedWorkoutImage,
-): WorkoutImage {
+export function getWorkoutImageMetadata(image: OptimizedWorkoutImage): WorkoutImage {
   return {
     src: image.src,
     format: image.format,
@@ -122,9 +108,7 @@ export function getWorkoutImageMetadata(
   };
 }
 
-export async function writeOptimizedWorkoutImagesLocally(
-  images: OptimizedWorkoutImage[],
-) {
+export async function writeOptimizedWorkoutImagesLocally(images: OptimizedWorkoutImage[]) {
   const writtenPaths: string[] = [];
 
   try {
@@ -139,9 +123,7 @@ export async function writeOptimizedWorkoutImagesLocally(
   }
 }
 
-export async function cleanupOptimizedWorkoutImagesLocally(
-  images: OptimizedWorkoutImage[],
-) {
+export async function cleanupOptimizedWorkoutImagesLocally(images: OptimizedWorkoutImage[]) {
   await cleanupLocalPaths(images.map((image) => image.localPath));
 }
 
@@ -188,12 +170,7 @@ async function cleanupLocalPaths(paths: string[]) {
       try {
         await fs.unlink(filePath);
       } catch (error) {
-        if (
-          !error ||
-          typeof error !== "object" ||
-          !("code" in error) ||
-          error.code !== "ENOENT"
-        ) {
+        if (!error || typeof error !== "object" || !("code" in error) || error.code !== "ENOENT") {
           throw error;
         }
       }
@@ -232,9 +209,7 @@ async function convertWorkoutImageWithAppwrite({
       }),
     });
   } catch {
-    throw new WorkoutImageValidationError(
-      "Unable to reach the image processing service.",
-    );
+    throw new WorkoutImageValidationError("Unable to reach the image processing service.");
   }
 
   let payload: AppwriteImageResponse;
@@ -263,13 +238,10 @@ async function convertWorkoutImageWithAppwrite({
 
 function getAppwriteImageProcessorUrl() {
   const url =
-    process.env.APPWRITE_IMAGE_PROCESSOR_URL ||
-    process.env.APPWRITE_PROCESS_IMAGE_FUNCTION_URL;
+    process.env.APPWRITE_IMAGE_PROCESSOR_URL || process.env.APPWRITE_PROCESS_IMAGE_FUNCTION_URL;
 
   if (!url) {
-    throw new WorkoutImageValidationError(
-      "Image processing service is not configured.",
-    );
+    throw new WorkoutImageValidationError("Image processing service is not configured.");
   }
 
   return url;
@@ -303,14 +275,8 @@ function normalizeAppwriteImageResponse(payload: AppwriteImageResponse) {
   };
 }
 
-function normalizeOptimizedImageFilename(
-  filename: string | null,
-  dateKey: string,
-) {
-  if (
-    filename &&
-    new RegExp(`^${dateKey}-workout-[a-z0-9-]+\\.avif$`).test(filename)
-  ) {
+function normalizeOptimizedImageFilename(filename: string | null, dateKey: string) {
+  if (filename && new RegExp(`^${dateKey}-workout-[a-z0-9-]+\\.avif$`).test(filename)) {
     return filename;
   }
 

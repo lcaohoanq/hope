@@ -1,5 +1,5 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
-import { NextResponse, type NextRequest } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { getProfileByClerkId, linkClerkUserToProfile } from "@/lib/repositories/profiles";
 import { getCanonicalUserPath } from "@/lib/users";
 

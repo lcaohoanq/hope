@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type CSSProperties } from "react";
+import { type CSSProperties, useState } from "react";
 import type { WorkoutImage } from "@/lib/workout-types";
 
 type WorkoutImageThumbnailProps = {
@@ -43,7 +43,7 @@ export function WorkoutImageThumbnail({
   return (
     // biome-ignore lint/performance/noImgElement: This component handles remote image fallback itself.
     <img
-      alt={`Workout image for ${workoutDate}`}
+      alt={`Workout for ${workoutDate}`}
       className={imageClassName}
       height={image.height}
       loading="lazy"

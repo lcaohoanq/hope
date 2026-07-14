@@ -4,7 +4,11 @@ import { getProfileByClerkId } from "@/lib/repositories/profiles";
 export type OwnerResolution =
   | { status: "signed-out" }
   | { status: "onboarding"; clerkUserId: string }
-  | { status: "ready"; clerkUserId: string; profile: NonNullable<Awaited<ReturnType<typeof getProfileByClerkId>>> };
+  | {
+      status: "ready";
+      clerkUserId: string;
+      profile: NonNullable<Awaited<ReturnType<typeof getProfileByClerkId>>>;
+    };
 
 export async function resolveOwner(): Promise<OwnerResolution> {
   const { userId } = await auth();

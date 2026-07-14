@@ -1,42 +1,38 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
 import { useClerk } from "@clerk/nextjs";
+import { useCallback, useEffect, useState } from "react";
 import { ContributionHeatmap } from "@/components/ContributionHeatmap";
-import { Loading } from "@/components/shared/Loading";
-import { StatsCards } from "@/components/StatsCards";
-import { TopHeader } from "@/components/dashboard/TopHeader";
-import { UserProfileSidebar } from "@/components/dashboard/UserProfileSidebar";
 import { AvatarCropDialog } from "@/components/dashboard/AvatarCropDialog";
-import { WorkoutDialog } from "@/components/dashboard/WorkoutDialog";
-import { WorkoutLoadingState } from "@/components/dashboard/WorkoutLoadingState";
 import {
   filterWorkoutsForHeatmapView,
   getInitialTheme,
   hasWorkoutImages,
   resolveDefaultHeatmapView,
 } from "@/components/dashboard/dashboard-utils";
+import { TopHeader } from "@/components/dashboard/TopHeader";
+import { UserProfileSidebar } from "@/components/dashboard/UserProfileSidebar";
+import { WorkoutDialog } from "@/components/dashboard/WorkoutDialog";
+import { WorkoutLoadingState } from "@/components/dashboard/WorkoutLoadingState";
 import {
+  type CreateWorkoutResponse,
   createWorkoutRequestInit,
   fetchWorkoutDataWithRetry,
   readApiJson,
-  type CreateWorkoutResponse,
   type UpdateSettingsResponse,
   type UpdateWorkoutResponse,
   type UploadAvatarResponse,
 } from "@/components/dashboard/workout-api";
-import { getTodayInTimezone } from "@/lib/date-utils";
-import { translations, type Language } from "@/lib/i18n";
-import { getAvatarUrl } from "@/lib/profile-utils";
+import { StatsCards } from "@/components/StatsCards";
+import { Loading } from "@/components/shared/Loading";
 import { validateAvatarFile } from "@/lib/avatar-image";
-import type { AppTheme, HeatmapView, PublicAppUser } from "@/lib/users";
-import type {
-  Workout,
-  WorkoutInput,
-  WorkoutUpdateInput,
-} from "@/lib/workout-types";
-import type { SocialSummary } from "@/lib/social-types";
+import { getTodayInTimezone } from "@/lib/date-utils";
+import { type Language, translations } from "@/lib/i18n";
+import { getAvatarUrl } from "@/lib/profile-utils";
 import { getSocialCopy } from "@/lib/social-copy";
+import type { SocialSummary } from "@/lib/social-types";
+import type { AppTheme, HeatmapView, PublicAppUser } from "@/lib/users";
+import type { Workout, WorkoutInput, WorkoutUpdateInput } from "@/lib/workout-types";
 
 type HopeDashboardProps = {
   isAuthenticated: boolean;
@@ -74,11 +70,8 @@ export function HopeDashboard({
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [isLoadingWorkouts, setIsLoadingWorkouts] = useState(socialSummary.canViewWorkouts);
   const [isSubmittingWorkout, setIsSubmittingWorkout] = useState(false);
-  const [isUploadingWorkoutImages, setIsUploadingWorkoutImages] =
-    useState(false);
-  const [avatarUrl, setAvatarUrl] = useState(
-    () => user.avatarUrl ?? getAvatarUrl(user.avatarSeed),
-  );
+  const [isUploadingWorkoutImages, setIsUploadingWorkoutImages] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState(() => user.avatarUrl ?? getAvatarUrl(user.avatarSeed));
   const [pendingAvatarPreviewUrl, setPendingAvatarPreviewUrl] = useState("");
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [avatarUploadMessage, setAvatarUploadMessage] = useState("");
@@ -87,33 +80,25 @@ export function HopeDashboard({
   const [avatarCropImageName, setAvatarCropImageName] = useState("");
   const [workoutLoadError, setWorkoutLoadError] = useState("");
   const [isWorkoutDialogOpen, setIsWorkoutDialogOpen] = useState(false);
-  const [selectedHeatmapView, setSelectedHeatmapView] = useState<HeatmapView>(
-    () => resolveDefaultHeatmapView(user, currentYear),
+  const [selectedHeatmapView, setSelectedHeatmapView] = useState<HeatmapView>(() =>
+    resolveDefaultHeatmapView(user, currentYear),
   );
-  const visibleWorkouts = filterWorkoutsForHeatmapView(
-    workouts,
-    selectedHeatmapView,
-  );
+  const visibleWorkouts = filterWorkoutsForHeatmapView(workouts, selectedHeatmapView);
   const displayedAvatarUrl = pendingAvatarPreviewUrl || avatarUrl;
   const headerUser = viewer ?? user;
   const headerAvatarUrl = isEditable
     ? displayedAvatarUrl
-    : headerUser.avatarUrl ?? getAvatarUrl(headerUser.avatarSeed);
+    : (headerUser.avatarUrl ?? getAvatarUrl(headerUser.avatarSeed));
 
   const loadWorkouts = useCallback(async () => {
     setIsLoadingWorkouts(true);
     setWorkoutLoadError("");
 
     try {
-      const payload = await fetchWorkoutDataWithRetry(
-        user.id,
-        copy.errors.workoutLoad,
-      );
+      const payload = await fetchWorkoutDataWithRetry(user.id, copy.errors.workoutLoad);
       setWorkouts(payload.workouts);
     } catch (error) {
-      setWorkoutLoadError(
-        error instanceof Error ? error.message : copy.errors.workoutLoad,
-      );
+      setWorkoutLoadError(error instanceof Error ? error.message : copy.errors.workoutLoad);
     } finally {
       setIsLoadingWorkouts(false);
     }
@@ -172,15 +157,10 @@ export function HopeDashboard({
         method: "POST",
         ...requestInit,
       });
-      const payload = await readApiJson<CreateWorkoutResponse>(
-        response,
-        copy.errors.saveWorkout,
-      );
+      const payload = await readApiJson<CreateWorkoutResponse>(response, copy.errors.saveWorkout);
 
       if (!response.ok || !payload.success) {
-        throw new Error(
-          "error" in payload ? payload.error : copy.errors.saveWorkout,
-        );
+        throw new Error("error" in payload ? payload.error : copy.errors.saveWorkout);
       }
 
       setWorkouts((current) =>
@@ -211,22 +191,15 @@ export function HopeDashboard({
         method: "PATCH",
         ...requestInit,
       });
-      const payload = await readApiJson<UpdateWorkoutResponse>(
-        response,
-        copy.errors.updateWorkout,
-      );
+      const payload = await readApiJson<UpdateWorkoutResponse>(response, copy.errors.updateWorkout);
 
       if (!response.ok || !payload.success) {
-        throw new Error(
-          "error" in payload ? payload.error : copy.errors.updateWorkout,
-        );
+        throw new Error("error" in payload ? payload.error : copy.errors.updateWorkout);
       }
 
       setWorkouts((current) =>
         current
-          .map((workout) =>
-            workout.id === payload.workout.id ? payload.workout : workout,
-          )
+          .map((workout) => (workout.id === payload.workout.id ? payload.workout : workout))
           .sort((a, b) => {
             const dateSort = a.date.localeCompare(b.date);
 
@@ -291,9 +264,7 @@ export function HopeDashboard({
       );
 
       if (!response.ok || !payload.success) {
-        throw new Error(
-          "error" in payload ? payload.error : copy.dashboard.avatarUploadFailed,
-        );
+        throw new Error("error" in payload ? payload.error : copy.dashboard.avatarUploadFailed);
       }
 
       setAvatarUrl(payload.avatarUrl);
@@ -305,9 +276,7 @@ export function HopeDashboard({
       URL.revokeObjectURL(previewUrl);
       setPendingAvatarPreviewUrl("");
       setAvatarUploadError(
-        error instanceof Error
-          ? error.message
-          : copy.dashboard.avatarUploadFailed,
+        error instanceof Error ? error.message : copy.dashboard.avatarUploadFailed,
       );
       return false;
     } finally {
@@ -350,9 +319,7 @@ export function HopeDashboard({
       );
 
       if (!response.ok || !payload.success) {
-        throw new Error(
-          "error" in payload ? payload.error : copy.header.themeUpdateFailed,
-        );
+        throw new Error("error" in payload ? payload.error : copy.header.themeUpdateFailed);
       }
 
       setTheme(payload.settings.theme);
@@ -363,9 +330,7 @@ export function HopeDashboard({
         window.localStorage.setItem(themeStorageKey, previousTheme);
       }
       setThemeMessage("");
-      setThemeError(
-        error instanceof Error ? error.message : copy.header.themeUpdateFailed,
-      );
+      setThemeError(error instanceof Error ? error.message : copy.header.themeUpdateFailed);
     } finally {
       setIsSavingTheme(false);
     }
@@ -376,9 +341,7 @@ export function HopeDashboard({
       {isSubmittingWorkout || isUploadingWorkoutImages ? (
         <Loading
           message={
-            isUploadingWorkoutImages
-              ? copy.dashboard.loadingImages
-              : copy.dashboard.savingWorkout
+            isUploadingWorkoutImages ? copy.dashboard.loadingImages : copy.dashboard.savingWorkout
           }
         />
       ) : null}
@@ -424,70 +387,78 @@ export function HopeDashboard({
             user={user}
           />
 
-          {socialSummary.canViewWorkouts ? <div className="grid min-w-0 gap-6">
-            {workoutLoadError ? (
-              <section className="rounded-lg border border-danger-border bg-danger-soft p-4 text-sm text-danger">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <p>{workoutLoadError}</p>
-                  <button
-                    className="h-9 rounded-md border border-danger-border bg-panel px-3 font-semibold text-danger transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-danger-soft active:scale-[0.98]"
-                    onClick={() => void loadWorkouts()}
-                    type="button"
-                  >
-                    {copy.common.retry}
-                  </button>
-                </div>
-              </section>
-            ) : null}
+          {socialSummary.canViewWorkouts ? (
+            <div className="grid min-w-0 gap-6">
+              {workoutLoadError ? (
+                <section className="rounded-lg border border-danger-border bg-danger-soft p-4 text-sm text-danger">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <p>{workoutLoadError}</p>
+                    <button
+                      className="h-9 rounded-md border border-danger-border bg-panel px-3 font-semibold text-danger transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-danger-soft active:scale-[0.98]"
+                      onClick={() => void loadWorkouts()}
+                      type="button"
+                    >
+                      {copy.common.retry}
+                    </button>
+                  </div>
+                </section>
+              ) : null}
 
-            {isLoadingWorkouts ? (
-              <WorkoutLoadingState />
-            ) : (
-              <StatsCards
-                copy={copy}
-                todayDateKey={todayDateKey}
-                view={selectedHeatmapView}
-                workouts={visibleWorkouts}
-              />
-            )}
+              {isLoadingWorkouts ? (
+                <WorkoutLoadingState />
+              ) : (
+                <StatsCards
+                  copy={copy}
+                  todayDateKey={todayDateKey}
+                  view={selectedHeatmapView}
+                  workouts={visibleWorkouts}
+                />
+              )}
 
-            {isLoadingWorkouts ? (
-              <section className="min-h-[480px] rounded-lg border border-border bg-panel p-5 sm:p-6">
-                <div className="h-5 w-40 animate-pulse rounded bg-panel-muted" />
-                <div className="mt-8 grid gap-5">
-                  {Array.from({ length: 8 }, (_, index) => (
-                    <div className="grid gap-2" key={index}>
-                      <div className="ml-24 h-3 w-80 rounded bg-panel-muted" />
-                      <div className="flex gap-3">
-                        <div className="h-3 w-10 rounded bg-panel-muted" />
-                        <div className="grid flex-1 grid-cols-12 gap-1">
-                          {Array.from({ length: 48 }, (_, cellIndex) => (
-                            <div
-                              className="h-2.5 rounded-[2px] bg-panel-muted"
-                              key={cellIndex}
-                            />
-                          ))}
+              {isLoadingWorkouts ? (
+                <section className="min-h-[480px] rounded-lg border border-border bg-panel p-5 sm:p-6">
+                  <div className="h-5 w-40 animate-pulse rounded bg-panel-muted" />
+                  <div className="mt-8 grid gap-5">
+                    {Array.from({ length: 8 }, (_, index) => (
+                      // biome-ignore lint/suspicious/noArrayIndexKey: Skeleton rows are fixed placeholders that never reorder.
+                      <div className="grid gap-2" key={index}>
+                        <div className="ml-24 h-3 w-80 rounded bg-panel-muted" />
+                        <div className="flex gap-3">
+                          <div className="h-3 w-10 rounded bg-panel-muted" />
+                          <div className="grid flex-1 grid-cols-12 gap-1">
+                            {Array.from({ length: 48 }, (_, cellIndex) => (
+                              // biome-ignore lint/suspicious/noArrayIndexKey: Skeleton cells are fixed placeholders that never reorder.
+                              <div className="h-2.5 rounded-[2px] bg-panel-muted" key={cellIndex} />
+                            ))}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            ) : (
-              <ContributionHeatmap
-                allowPastWorkoutEdits={user.settings.workouts.allowPastWorkoutEdits}
-                birthYear={birthYear}
-                canEditWorkouts={isEditable}
-                copy={copy}
-                language={language}
-                onUpdateWorkout={handleUpdateWorkout}
-                onViewChange={setSelectedHeatmapView}
-                view={selectedHeatmapView}
-                workouts={workouts}
-                todayDateKey={todayDateKey}
-              />
-            )}
-          </div> : <section className="grid min-h-[420px] place-items-center rounded-lg border border-border bg-panel p-8 text-center"><div className="max-w-md"><h2 className="text-xl font-semibold text-text">{socialCopy.privateProfile}</h2><p className="mt-3 text-sm leading-6 text-muted">{socialCopy.privateProfileHelp}</p></div></section>}
+                    ))}
+                  </div>
+                </section>
+              ) : (
+                <ContributionHeatmap
+                  allowPastWorkoutEdits={user.settings.workouts.allowPastWorkoutEdits}
+                  birthYear={birthYear}
+                  canEditWorkouts={isEditable}
+                  copy={copy}
+                  language={language}
+                  onUpdateWorkout={handleUpdateWorkout}
+                  onViewChange={setSelectedHeatmapView}
+                  view={selectedHeatmapView}
+                  workouts={workouts}
+                  todayDateKey={todayDateKey}
+                />
+              )}
+            </div>
+          ) : (
+            <section className="grid min-h-[420px] place-items-center rounded-lg border border-border bg-panel p-8 text-center">
+              <div className="max-w-md">
+                <h2 className="text-xl font-semibold text-text">{socialCopy.privateProfile}</h2>
+                <p className="mt-3 text-sm leading-6 text-muted">{socialCopy.privateProfileHelp}</p>
+              </div>
+            </section>
+          )}
         </div>
       </div>
       <WorkoutDialog

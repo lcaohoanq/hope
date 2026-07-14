@@ -60,16 +60,16 @@ export const WorkoutReminderEmail = ({
             <Text style={styles.kicker}>Workout reminder</Text>
             <Heading style={styles.heading}>Đừng để hôm nay trôi qua trống nhé.</Heading>
             <Text style={styles.copy}>
-              {greeting} hôm nay bạn chưa ghi nhận buổi tập nào. Một buổi ngắn cũng đủ để giữ
-              lời hứa với bản thân.
+              {greeting} hôm nay bạn chưa ghi nhận buổi tập nào. Một buổi ngắn cũng đủ để giữ lời
+              hứa với bản thân.
             </Text>
           </Section>
 
           <Section style={styles.panel}>
             <Text style={styles.panelTitle}>Gợi ý nhanh</Text>
             <Text style={styles.panelCopy}>
-              Đi bộ 10 phút, giãn cơ nhẹ, hoặc một vòng bodyweight đơn giản. Hoàn thành rồi
-              mở Hope để lưu lại nhịp hôm nay.
+              Đi bộ 10 phút, giãn cơ nhẹ, hoặc một vòng bodyweight đơn giản. Hoàn thành rồi mở Hope
+              để lưu lại nhịp hôm nay.
             </Text>
           </Section>
 
