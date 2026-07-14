@@ -33,6 +33,25 @@ test("rejects signed-out workout and settings mutations", async ({ request }) =>
   const feed = await request.get("/api/feed");
   expect(feed.status()).toBe(401);
 
+  const like = await request.post("/api/workouts/missing-workout/like");
+  expect(like.status()).toBe(401);
+
+  const unlike = await request.delete("/api/workouts/missing-workout/like");
+  expect(unlike.status()).toBe(401);
+
+  const comment = await request.post("/api/workouts/missing-workout/comments", {
+    data: { body: "Signed out" },
+  });
+  expect(comment.status()).toBe(401);
+
+  const editComment = await request.patch("/api/comments/missing-comment", {
+    data: { body: "Signed out" },
+  });
+  expect(editComment.status()).toBe(401);
+
+  const deleteComment = await request.delete("/api/comments/missing-comment");
+  expect(deleteComment.status()).toBe(401);
+
   const notifications = await request.get("/api/notifications");
   expect(notifications.status()).toBe(401);
 
