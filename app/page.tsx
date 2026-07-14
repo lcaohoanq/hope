@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
 import { FaArrowRight, FaChartLine, FaDumbbell, FaLeaf } from "react-icons/fa";
+import { FocusableSplineScene } from "@/components/home/FocusableSplineScene";
 import { getProfileByClerkId } from "@/lib/repositories/profiles";
 import { getCanonicalUserPath } from "@/lib/users";
 
@@ -130,18 +131,14 @@ export default async function Home() {
             </div>
           </div>
 
-          <div
-            aria-label="Interactive 3D movement scene"
-            className="relative h-[52dvh] min-h-[390px] overflow-hidden rounded-[1.5rem] border border-border bg-panel-muted shadow-panel sm:h-[58dvh] lg:h-[min(72dvh,760px)] lg:min-h-[560px]"
-            role="img"
-          >
+          <FocusableSplineScene className="h-[52dvh] min-h-[390px] sm:h-[58dvh] lg:h-[min(72dvh,760px)] lg:min-h-[560px]">
             <Suspense fallback={<SceneFallback />}>
               <Spline
                 className="absolute inset-0 h-full w-full [&_canvas]:!h-full [&_canvas]:!w-full [&_canvas]:touch-pan-y"
                 scene={SCENE_URL}
               />
             </Suspense>
-          </div>
+          </FocusableSplineScene>
         </section>
       </div>
 
