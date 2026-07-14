@@ -5,10 +5,13 @@ import { getProfileByPath } from "@/lib/repositories/profiles";
 const clerkRoutes = [
   /^\/$/,
   /^\/(?:feed|notifications|onboarding)\/?$/,
+  /^\/workouts\/[^/]+\/?$/,
   /^\/(?:login|sign-up)(?:\/|$)/,
   /^\/auth\/(?:continue|resolve)\/?$/,
   /^\/settings\/profile\/?$/,
   /^\/api\/(?:feed|notifications|workout-images|workouts)\/?$/,
+  /^\/api\/workouts\/[^/]+\/(?:comments|like)\/?$/,
+  /^\/api\/comments\/[^/]+\/?$/,
   /^\/api\/users\/(?:avatar|privacy|profile|settings)\/?$/,
   /^\/api\/follow-requests\/[^/]+\/?$/,
   /^\/api\/profiles\/[^/]+\/(?:connections|follow)\/?$/,

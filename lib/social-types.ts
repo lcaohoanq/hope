@@ -21,11 +21,29 @@ export type AppNotification = {
   id: string;
   type: NotificationType;
   actor?: PublicAppUser;
+  workoutId?: string;
+  commentId?: string;
   isRead: boolean;
   createdAt: string;
+};
+
+export type WorkoutComment = {
+  id: string;
+  workoutId: string;
+  author: PublicAppUser;
+  body: string;
+  createdAt: string;
+  updatedAt: string;
+  viewerCanEdit: boolean;
+  viewerCanDelete: boolean;
 };
 
 export type FeedItem = {
   workout: Workout;
   profile: PublicAppUser;
+  likeCount: number;
+  commentCount: number;
+  viewerHasLiked: boolean;
+  viewerCanInteract: boolean;
+  commentsPreview: WorkoutComment[];
 };
