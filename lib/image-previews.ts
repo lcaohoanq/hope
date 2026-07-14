@@ -55,6 +55,12 @@ const WORKOUT_UPLOAD_MIN_QUALITY = 0.56;
 const WORKOUT_UPLOAD_QUALITY_STEP = 0.06;
 const WORKOUT_UPLOAD_DIMENSION_SCALE = 0.82;
 const WORKOUT_UPLOAD_MIN_DIMENSION = 640;
+const WORKOUT_WEBP_MIME_TYPE = "image/webp";
+const WORKOUT_JPEG_MIME_TYPE = "image/jpeg";
+
+type OptimizedWorkoutImageMimeType = typeof WORKOUT_WEBP_MIME_TYPE | typeof WORKOUT_JPEG_MIME_TYPE;
+
+let workoutUploadMimeTypePromise: Promise<OptimizedWorkoutImageMimeType> | undefined;
 
 export async function prepareWorkoutImageUploads(images: File[]) {
   const optimizedImages: File[] = [];
@@ -79,22 +85,31 @@ async function prepareWorkoutImageUpload(image: File) {
       throw new Error("Unable to prepare this workout image.");
     }
 
+    const outputMimeType = await getWorkoutUploadMimeType();
     let dimensions = getResizedDimensions(bitmap.width, bitmap.height);
 
     while (true) {
       canvas.width = dimensions.width;
       canvas.height = dimensions.height;
+
+      if (outputMimeType === WORKOUT_JPEG_MIME_TYPE) {
+        context.fillStyle = "#fff";
+        context.fillRect(0, 0, dimensions.width, dimensions.height);
+      }
+
       context.drawImage(bitmap, 0, 0, dimensions.width, dimensions.height);
 
       let quality = WORKOUT_UPLOAD_INITIAL_QUALITY;
 
       while (true) {
-        const optimizedBlob = await createCanvasBlob(canvas, quality);
+        const optimizedBlob = await createCanvasBlob(canvas, outputMimeType, quality);
 
         if (optimizedBlob.size <= MAX_OPTIMIZED_WORKOUT_IMAGE_BYTES) {
-          return new File([optimizedBlob], getOptimizedWorkoutImageName(image.name), {
-            type: optimizedBlob.type,
-          });
+          return new File(
+            [optimizedBlob],
+            getOptimizedWorkoutImageName(image.name, outputMimeType),
+            { type: outputMimeType },
+          );
         }
 
         if (quality <= WORKOUT_UPLOAD_MIN_QUALITY) {
@@ -145,26 +160,58 @@ function scaleDimensions(width: number, height: number) {
   };
 }
 
-function createCanvasBlob(canvas: HTMLCanvasElement, quality: number) {
+function getWorkoutUploadMimeType() {
+  workoutUploadMimeTypePromise ??= detectWorkoutUploadMimeType();
+  return workoutUploadMimeTypePromise;
+}
+
+function detectWorkoutUploadMimeType(): Promise<OptimizedWorkoutImageMimeType> {
+  const canvas = document.createElement("canvas");
+  canvas.width = 1;
+  canvas.height = 1;
+
+  return new Promise((resolve) => {
+    try {
+      canvas.toBlob(
+        (blob) => {
+          resolve(
+            blob?.type === WORKOUT_WEBP_MIME_TYPE ? WORKOUT_WEBP_MIME_TYPE : WORKOUT_JPEG_MIME_TYPE,
+          );
+        },
+        WORKOUT_WEBP_MIME_TYPE,
+        WORKOUT_UPLOAD_INITIAL_QUALITY,
+      );
+    } catch {
+      resolve(WORKOUT_JPEG_MIME_TYPE);
+    }
+  });
+}
+
+function createCanvasBlob(
+  canvas: HTMLCanvasElement,
+  mimeType: OptimizedWorkoutImageMimeType,
+  quality: number,
+) {
   return new Promise<Blob>((resolve, reject) => {
     canvas.toBlob(
       (blob) => {
-        if (!blob) {
+        if (!blob || blob.type !== mimeType) {
           reject(new Error("Unable to prepare this workout image."));
           return;
         }
 
         resolve(blob);
       },
-      "image/webp",
+      mimeType,
       quality,
     );
   });
 }
 
-function getOptimizedWorkoutImageName(fileName: string) {
+function getOptimizedWorkoutImageName(fileName: string, mimeType: OptimizedWorkoutImageMimeType) {
   const safeName = fileName.replace(/\.[^.]+$/, "").replace(/[^a-z0-9-]+/gi, "-");
   const normalizedName = safeName.replace(/-+/g, "-").replace(/^-|-$/g, "");
+  const extension = mimeType === WORKOUT_WEBP_MIME_TYPE ? "webp" : "jpg";
 
-  return `${normalizedName || "workout-image"}.webp`;
+  return `${normalizedName || "workout-image"}.${extension}`;
 }

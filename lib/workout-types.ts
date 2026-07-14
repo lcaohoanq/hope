@@ -1,6 +1,6 @@
 export type WorkoutImage = {
   src: string;
-  format: "avif" | "webp";
+  format: "avif" | "webp" | "jpg";
   width: number;
   height: number;
   sizeBytes: number;

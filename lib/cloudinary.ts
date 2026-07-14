@@ -3,6 +3,7 @@ import { v2 as cloudinary } from "cloudinary";
 import {
   MAX_OPTIMIZED_WORKOUT_IMAGE_BYTES,
   MAX_WORKOUT_IMAGE_DIMENSION,
+  OPTIMIZED_WORKOUT_IMAGE_FORMATS,
   WorkoutImageValidationError,
 } from "@/lib/workout-images";
 
@@ -16,7 +17,7 @@ export type UploadedAsset = {
 };
 
 export type WorkoutImageUploadParams = {
-  allowed_formats: "webp";
+  allowed_formats: ["webp", "jpg"];
   overwrite: false;
   public_id: string;
   timestamp: number;
@@ -59,7 +60,7 @@ export function createWorkoutImageUploadTickets(profileId: string, count: number
   const uploads = Array.from({ length: count }, (): WorkoutImageUploadTicket => {
     const publicId = `${getWorkoutImagePublicIdPrefix(profileId)}${randomUUID()}`;
     const params: WorkoutImageUploadParams = {
-      allowed_formats: "webp",
+      allowed_formats: ["webp", "jpg"],
       overwrite: false,
       public_id: publicId,
       timestamp,
@@ -110,7 +111,7 @@ export async function getVerifiedWorkoutImageAssets(
     if (
       resource.resource_type !== "image" ||
       resource.type !== "upload" ||
-      resource.format !== "webp" ||
+      !OPTIMIZED_WORKOUT_IMAGE_FORMATS.has(resource.format) ||
       resource.bytes > MAX_OPTIMIZED_WORKOUT_IMAGE_BYTES ||
       resource.width > MAX_WORKOUT_IMAGE_DIMENSION ||
       resource.height > MAX_WORKOUT_IMAGE_DIMENSION ||
@@ -119,7 +120,7 @@ export async function getVerifiedWorkoutImageAssets(
       !resource.secure_url.startsWith("https://")
     ) {
       throw new WorkoutImageValidationError(
-        "Workout images must be WebP, no larger than 1600px or 1MB.",
+        "Workout images must be WebP or JPEG, no larger than 1600px or 1MB.",
       );
     }
 
