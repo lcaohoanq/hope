@@ -1,12 +1,11 @@
 "use client";
 
-import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import { ActivityTypeSelector } from "@/components/ActivityTypeSelector";
 import { appendCaptionPill, hasCaptionPill } from "@/lib/caption-utils";
 import type { AppCopy } from "@/lib/i18n";
 import { createImagePreviewUrls, revokeImagePreviewUrls } from "@/lib/image-previews";
 import type { WorkoutInput } from "@/lib/workout-types";
-import { calculateDurationMinutes } from "@/lib/workout-utils";
 
 type WorkoutFormProps = {
   copy: AppCopy;
@@ -15,32 +14,18 @@ type WorkoutFormProps = {
   onSubmitWorkout: (input: WorkoutInput) => Promise<void>;
 };
 
-type RequiredWorkoutField = "type" | "date" | "startTime" | "endTime";
+type RequiredWorkoutField = "type" | "date";
 
-const REQUIRED_WORKOUT_FIELDS = new Set<RequiredWorkoutField>([
-  "type",
-  "date",
-  "startTime",
-  "endTime",
-]);
+const REQUIRED_WORKOUT_FIELDS = new Set<RequiredWorkoutField>(["type", "date"]);
 
 const initialForm = (defaultDate: string): WorkoutInput => ({
   date: defaultDate,
   type: "",
-  startTime: getCurrentTimeInputValue(),
-  endTime: "",
   note: "",
   isPublic: true,
 });
 
 const MAX_SELECTED_IMAGES = 3;
-
-function getCurrentTimeInputValue(date = new Date()) {
-  const hours = String(date.getHours()).padStart(2, "0");
-  const minutes = String(date.getMinutes()).padStart(2, "0");
-
-  return `${hours}:${minutes}`;
-}
 
 function isRequiredWorkoutField(field: keyof WorkoutInput) {
   return REQUIRED_WORKOUT_FIELDS.has(field as RequiredWorkoutField);
@@ -74,20 +59,7 @@ export function WorkoutForm({
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const durationPreview = useMemo(() => {
-    if (!form.startTime || !form.endTime) {
-      return null;
-    }
-
-    return calculateDurationMinutes(form.startTime, form.endTime);
-  }, [form.startTime, form.endTime]);
-  const canSubmit =
-    Boolean(form.type.trim()) &&
-    Boolean(form.date) &&
-    Boolean(form.startTime) &&
-    Boolean(form.endTime) &&
-    durationPreview !== null &&
-    durationPreview > 0;
+  const canSubmit = Boolean(form.type.trim()) && Boolean(form.date);
 
   useEffect(() => {
     return () => {
@@ -148,20 +120,9 @@ export function WorkoutForm({
 
     const type = form.type.trim();
     const note = form.note.trim();
-    const durationMinutes = calculateDurationMinutes(form.startTime, form.endTime);
 
     if (!type) {
       setError(copy.errors.typeRequired);
-      return;
-    }
-
-    if (!form.startTime || !form.endTime) {
-      setError(copy.errors.timeRequired);
-      return;
-    }
-
-    if (durationMinutes <= 0) {
-      setError(copy.errors.startBeforeEnd);
       return;
     }
 
@@ -169,8 +130,6 @@ export function WorkoutForm({
       await onSubmitWorkout({
         date: form.date,
         type,
-        startTime: form.startTime,
-        endTime: form.endTime,
         note,
         isPublic: form.isPublic,
         images: selectedImages,
@@ -218,32 +177,6 @@ export function WorkoutForm({
             value={form.date}
           />
         </label>
-
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <label className="grid gap-2 text-sm font-medium text-text">
-            <FieldLabel required={isRequiredWorkoutField("startTime")}>
-              {copy.form.startTime}
-            </FieldLabel>
-            <input
-              className="h-11 rounded-md border border-border bg-panel-muted px-3 text-base font-normal text-text outline-none transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] focus:border-accent focus:bg-panel focus:ring-2 focus:ring-accent/15 disabled:cursor-not-allowed disabled:opacity-60"
-              onChange={(event) => updateField("startTime", event.target.value)}
-              type="time"
-              value={form.startTime}
-            />
-          </label>
-
-          <label className="grid gap-2 text-sm font-medium text-text">
-            <FieldLabel required={isRequiredWorkoutField("endTime")}>
-              {copy.form.endTime}
-            </FieldLabel>
-            <input
-              className="h-11 rounded-md border border-border bg-panel-muted px-3 text-base font-normal text-text outline-none transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] focus:border-accent focus:bg-panel focus:ring-2 focus:ring-accent/15 disabled:cursor-not-allowed disabled:opacity-60"
-              onChange={(event) => updateField("endTime", event.target.value)}
-              type="time"
-              value={form.endTime}
-            />
-          </label>
-        </div>
 
         <label className="flex items-center justify-between gap-4 rounded-md border border-border bg-panel-muted p-3 text-sm">
           <span>
@@ -330,14 +263,6 @@ export function WorkoutForm({
       </fieldset>
 
       <div className="mt-5 min-h-6">
-        {durationPreview !== null && durationPreview > 0 ? (
-          <p className="text-sm text-muted">
-            {copy.form.durationPreview}:{" "}
-            <span className="font-medium text-text">
-              {durationPreview} {copy.common.minutes}
-            </span>
-          </p>
-        ) : null}
         {error ? <p className="text-sm font-medium text-danger">{error}</p> : null}
         {success ? <p className="text-sm font-medium text-accent">{success}</p> : null}
       </div>

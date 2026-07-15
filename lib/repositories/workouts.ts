@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
-import { and, asc, count, desc, eq, inArray, lt, lte, or, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, inArray, lt, lte, or, sql } from "drizzle-orm";
 import type { UploadedAsset } from "@/lib/cloudinary";
+import { getActivityYearRange } from "@/lib/date-utils";
 import { getDatabase } from "@/lib/db";
 import {
   notifications,
@@ -186,6 +187,60 @@ export async function listWorkoutsByProfile(
       images.filter((image) => image.workoutId === row.id),
     ),
   );
+}
+
+export async function listWorkoutActivityByProfile({
+  profileId,
+  visibility = "all",
+  cursor,
+  limit = 6,
+  year,
+}: {
+  profileId: string;
+  visibility?: "all" | "public";
+  cursor?: string;
+  limit?: number;
+  year?: number;
+}) {
+  const [cursorTimestamp, cursorId] = cursor ? cursor.split("|") : [];
+  const cursorCreatedAt = cursorTimestamp ? new Date(cursorTimestamp) : undefined;
+  const cursorCondition =
+    cursorCreatedAt && !Number.isNaN(cursorCreatedAt.getTime()) && cursorId
+      ? or(
+          lt(workouts.createdAt, cursorCreatedAt),
+          and(eq(workouts.createdAt, cursorCreatedAt), lt(workouts.id, cursorId)),
+        )
+      : undefined;
+  const yearRange = year ? getActivityYearRange(year) : undefined;
+  const yearCondition = yearRange
+    ? and(gte(workouts.createdAt, yearRange.start), lt(workouts.createdAt, yearRange.end))
+    : undefined;
+  const rows = await getDatabase()
+    .select()
+    .from(workouts)
+    .where(
+      and(
+        eq(workouts.profileId, profileId),
+        visibility === "public" ? eq(workouts.isPublic, true) : undefined,
+        yearCondition,
+        cursorCondition,
+      ),
+    )
+    .orderBy(desc(workouts.createdAt), desc(workouts.id))
+    .limit(limit + 1);
+  const page = rows.slice(0, limit);
+  const images = await loadImages(page.map((row) => row.id));
+  const last = page.at(-1);
+
+  return {
+    workouts: page.map((row) =>
+      toWorkout(
+        row,
+        images.filter((image) => image.workoutId === row.id),
+      ),
+    ),
+    nextCursor: rows.length > limit && last ? `${last.createdAt.toISOString()}|${last.id}` : null,
+  };
 }
 
 export async function listFeedWorkouts(profileId: string, cursor?: string, limit = 20) {

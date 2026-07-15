@@ -9,7 +9,7 @@ test.describe.configure({ mode: "serial" });
 
 test("rejects signed-out workout and settings mutations", async ({ request }) => {
   const workout = await request.post("/api/workouts", {
-    data: { date: "2026-07-13", type: "Run", startTime: "08:00", endTime: "08:30", note: "" },
+    data: { date: "2026-07-13", type: "Run", note: "" },
   });
   expect(workout.status()).toBe(401);
 
@@ -81,6 +81,77 @@ test("keeps a migrated profile public and canonical", async ({ page }) => {
   await expect(page.getByRole("button", { name: /add a workout/i })).toHaveCount(0);
 });
 
+test("shows compact contribution metadata using the posted timestamp", async ({ page }) => {
+  await page.route("**/api/workouts/activity?**", async (route) => {
+    await route.fulfill({
+      body: JSON.stringify({
+        nextCursor: null,
+        workouts: [
+          {
+            id: "activity-public",
+            userId: "test",
+            date: "2026-07-13",
+            type: "Long caption workout",
+            startTime: "09:00",
+            endTime: "10:15",
+            durationMinutes: 75,
+            note: "A deliberately long caption that should stay separate from the posted time",
+            images: [
+              {
+                src: "/apple-touch-icon.png",
+                format: "webp",
+                width: 180,
+                height: 180,
+                sizeBytes: 1024,
+              },
+              {
+                src: "/apple-touch-icon.png",
+                format: "webp",
+                width: 180,
+                height: 180,
+                sizeBytes: 1024,
+              },
+            ],
+            createdAt: "2026-07-14T14:12:00.000Z",
+            isPublic: true,
+          },
+          {
+            id: "activity-private",
+            userId: "test",
+            date: "2026-07-12",
+            type: "Private workout",
+            startTime: "08:00",
+            endTime: "08:30",
+            durationMinutes: 30,
+            createdAt: "2026-07-13T02:00:00.000Z",
+            isPublic: false,
+          },
+        ],
+      }),
+      contentType: "application/json",
+      status: 200,
+    });
+  });
+
+  await page.goto("/test");
+  const activity = page.getByRole("heading", { name: "Contribution activity" }).locator("..");
+  const publicWorkout = activity.getByRole("link", { name: /Long caption workout/i });
+
+  await expect(publicWorkout).toHaveAttribute("href", "/workouts/activity-public");
+  await expect(activity.getByText(/75 min|75 phút/i)).toBeVisible();
+  await expect(activity.getByText(/2 images|2 ảnh/i)).toBeVisible();
+  await expect(activity.locator("time:visible").filter({ hasText: "21:12" })).toBeVisible();
+  await expect(activity.getByText("09:00 - 10:15")).toHaveCount(0);
+  await expect(activity.getByText(/^(Private|Riêng tư)$/i)).toBeVisible();
+  await expect(activity.getByRole("link", { name: /Private workout/i })).toHaveCount(0);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  const hasHorizontalOverflow = await activity.evaluate(
+    (element) => element.scrollWidth > element.clientWidth,
+  );
+  expect(hasHorizontalOverflow).toBe(false);
+});
+
 test("shows owner controls to the linked Clerk account", async ({ page }) => {
   test.skip(
     !publicUsername || !ownerEmail,
@@ -102,6 +173,15 @@ test("shows owner controls to the linked Clerk account", async ({ page }) => {
   expect(foreignImageCleanup.status()).toBe(400);
 
   await expect(page.getByRole("button", { name: /add a workout/i })).toBeVisible();
+  await page.getByRole("button", { name: /add a workout/i }).click();
+  const workoutDialog = page.getByRole("dialog", {
+    name: /log a workout|ghi lại buổi tập/i,
+  });
+  await expect(workoutDialog).toBeVisible();
+  await expect(workoutDialog.locator('input[type="time"]')).toHaveCount(0);
+  await workoutDialog
+    .getByRole("button", { name: /close workout form|đóng biểu mẫu tập luyện/i })
+    .click();
   await expect(page.getByRole("link", { name: /edit profile|chỉnh sửa hồ sơ/i })).toHaveAttribute(
     "href",
     "/settings/profile",

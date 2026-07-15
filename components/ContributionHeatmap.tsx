@@ -163,7 +163,7 @@ export function ContributionHeatmap({
             return dateSort;
           }
 
-          return a.startTime.localeCompare(b.startTime);
+          return a.createdAt.localeCompare(b.createdAt);
         });
 
       return {

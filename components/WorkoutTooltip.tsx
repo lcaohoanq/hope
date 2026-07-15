@@ -33,10 +33,11 @@ export function WorkoutTooltip({
           {workouts.map((workout) => (
             <div key={workout.id} className="space-y-0.5">
               <p className="font-medium text-text">{workout.type}</p>
-              <p>
-                {workout.startTime} - {workout.endTime}, {workout.durationMinutes}{" "}
-                {copy.common.minutes}
-              </p>
+              {workout.durationMinutes > 0 ? (
+                <p>
+                  {workout.durationMinutes} {copy.common.minutes}
+                </p>
+              ) : null}
               {workout.note ? <p className="text-muted">{workout.note}</p> : null}
               {workout.images && workout.images.length > 0 ? (
                 <div className="grid grid-cols-3 gap-1.5 pt-1">
