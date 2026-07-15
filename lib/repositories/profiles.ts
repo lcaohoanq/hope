@@ -122,6 +122,7 @@ export async function createProfile(input: {
       bio: { en: "", vi: "" },
       preferredLanguage: "en",
       settings: getDefaultUserSettings(),
+      pronouns: { en: "Don't specify", vi: "Không xác định" },
       reminderEnabled: false,
     })
     .onConflictDoNothing({ target: profiles.clerkUserId })
