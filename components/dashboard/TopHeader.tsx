@@ -122,7 +122,7 @@ export function TopHeader({
             {showNotifications ? (
               <Link
                 aria-label={socialCopy.feed}
-                className="inline-flex h-10 items-center gap-2 rounded-md border border-transparent px-3 text-sm font-semibold text-muted transition hover:border-border hover:bg-panel-muted hover:text-text focus:outline-none focus-visible:ring-2 focus-visible:ring-accent active:scale-[0.98]"
+                className="inline-flex h-10 items-center gap-2 rounded-md border border-transparent px-3 text-sm font-semibold text-muted transition hover:bg-panel-muted hover:text-text focus:outline-none focus-visible:ring-2 focus-visible:ring-accent active:scale-[0.98]"
                 href="/feed"
               >
                 <FaUsers aria-hidden="true" className="h-3.5 w-3.5" />
@@ -135,7 +135,7 @@ export function TopHeader({
                 aria-label={copy.common.profile}
                 aria-expanded={isProfileMenuOpen}
                 aria-haspopup="menu"
-                className="inline-flex h-10 items-center gap-2 rounded-md border border-transparent px-2 text-sm font-semibold text-text transition hover:border-border hover:bg-panel-muted active:scale-[0.98]"
+                className="inline-flex h-10 items-center gap-2 rounded-md border border-transparent px-2 text-sm font-semibold text-text transition hover:bg-panel-muted active:scale-[0.98]"
                 onClick={() => setIsProfileMenuOpen((isOpen) => !isOpen)}
                 type="button"
               >

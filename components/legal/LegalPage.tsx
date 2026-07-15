@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import AppLogo from "../shared/AppLogo";
 
 export type LegalSection = {
   id: string;
@@ -52,9 +53,7 @@ export function LegalPage({
             className="inline-flex items-center gap-2 text-sm font-semibold tracking-[-0.01em] text-text transition hover:text-accent"
             href="/"
           >
-            <span className="grid h-8 w-8 place-items-center rounded-md border border-border bg-panel/80 text-accent shadow-[0_10px_30px_rgba(17,17,17,0.05)]">
-              H
-            </span>
+            <AppLogo />
             Hope
           </Link>
 
