@@ -1,0 +1,46 @@
+{
+  "workouts": [
+    {
+      "id": "demo-2026-07-01-strength",
+      "userId": "demo-runner",
+      "date": "2026-07-01",
+      "type": "Strength training",
+      "startTime": "07:15",
+      "endTime": "08:00",
+      "durationMinutes": 45,
+      "note": "Full-body session with light progressive overload.",
+      "images": [],
+      "createdAt": "2026-07-01T00:15:00.000Z",
+      "isPublic": true
+    },
+    {
+      "id": "demo-2026-07-03-run",
+      "userId": "demo-runner",
+      "date": "2026-07-03",
+      "type": "Easy run",
+      "startTime": "06:30",
+      "endTime": "07:05",
+      "durationMinutes": 35,
+      "note": "Comfortable pace, focused on showing up.",
+      "images": [],
+      "createdAt": "2026-07-03T00:30:00.000Z",
+      "isPublic": true
+    },
+    {
+      "id": "demo-2026-07-05-ride",
+      "userId": "demo-cyclist",
+      "date": "2026-07-05",
+      "type": "Morning ride",
+      "startTime": "05:45",
+      "endTime": "06:50",
+      "durationMinutes": 65,
+      "note": "Zone 2 ride with a short cooldown.",
+      "images": [],
+      "createdAt": "2026-07-05T00:45:00.000Z",
+      "isPublic": true
+    }
+  ],
+  "settings": {
+    "timezone": "Asia/Ho_Chi_Minh"
+  }
+}

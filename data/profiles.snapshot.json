@@ -1,0 +1,50 @@
+[
+  {
+    "id": "demo-runner",
+    "username": "demo-runner",
+    "plan": "standard",
+    "displayName": "Demo Runner",
+    "birthYear": 1998,
+    "avatarSeed": "demo-runner",
+    "bio": {
+      "en": "Keeping a gentle training rhythm one logged workout at a time.",
+      "vi": "Giu nhip tap deu dan qua tung buoi tap duoc ghi lai."
+    },
+    "location": {
+      "label": { "en": "Demo City", "vi": "Thanh pho demo" },
+      "coordinates": { "latitude": 0, "longitude": 0 },
+      "zoom": 2
+    },
+    "pronouns": { "en": "they/them", "vi": "ho" },
+    "preferredLanguage": "en",
+    "website": "https://example.com/demo-runner",
+    "socialLinks": {
+      "instagram": "https://instagram.com/example"
+    },
+    "settings": {
+      "theme": "light",
+      "heatmap": { "defaultView": { "mode": "year" } },
+      "workouts": { "allowPastWorkoutEdits": false }
+    },
+    "reminderEnabled": false
+  },
+  {
+    "id": "demo-cyclist",
+    "username": "demo-cyclist",
+    "plan": "standard",
+    "displayName": "Demo Cyclist",
+    "birthYear": 1996,
+    "avatarSeed": "demo-cyclist",
+    "bio": {
+      "en": "Small rides, clear notes, steady progress.",
+      "vi": "Nhung chuyen dap xe nho, ghi chu ro rang, tien bo deu dan."
+    },
+    "preferredLanguage": "vi",
+    "settings": {
+      "theme": "light",
+      "heatmap": { "defaultView": { "mode": "year" } },
+      "workouts": { "allowPastWorkoutEdits": true }
+    },
+    "reminderEnabled": false
+  }
+]
