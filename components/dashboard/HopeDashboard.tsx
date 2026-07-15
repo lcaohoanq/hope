@@ -12,6 +12,7 @@ import {
 } from "@/components/dashboard/dashboard-utils";
 import { TopHeader } from "@/components/dashboard/TopHeader";
 import { UserProfileSidebar } from "@/components/dashboard/UserProfileSidebar";
+import { WorkoutActivityTimeline } from "@/components/dashboard/WorkoutActivityTimeline";
 import { WorkoutDialog } from "@/components/dashboard/WorkoutDialog";
 import { WorkoutLoadingState } from "@/components/dashboard/WorkoutLoadingState";
 import {
@@ -81,6 +82,7 @@ export function HopeDashboard({
   const [avatarCropImageName, setAvatarCropImageName] = useState("");
   const [workoutLoadError, setWorkoutLoadError] = useState("");
   const [isWorkoutDialogOpen, setIsWorkoutDialogOpen] = useState(false);
+  const [activityRefreshKey, setActivityRefreshKey] = useState(0);
   const [selectedHeatmapView, setSelectedHeatmapView] = useState<HeatmapView>(() =>
     resolveDefaultHeatmapView(user, currentYear),
   );
@@ -176,10 +178,11 @@ export function HopeDashboard({
             return dateSort;
           }
 
-          return a.startTime.localeCompare(b.startTime);
+          return a.createdAt.localeCompare(b.createdAt);
         }),
       );
       await loadWorkouts();
+      setActivityRefreshKey((current) => current + 1);
       setIsWorkoutDialogOpen(false);
     } catch (error) {
       if (!workoutSaved) {
@@ -222,10 +225,11 @@ export function HopeDashboard({
               return dateSort;
             }
 
-            return a.startTime.localeCompare(b.startTime);
+            return a.createdAt.localeCompare(b.createdAt);
           }),
       );
       await loadWorkouts();
+      setActivityRefreshKey((current) => current + 1);
 
       return payload.workout;
     } catch (error) {
@@ -458,18 +462,27 @@ export function HopeDashboard({
                   </div>
                 </section>
               ) : (
-                <ContributionHeatmap
-                  allowPastWorkoutEdits={user.settings.workouts.allowPastWorkoutEdits}
-                  birthYear={birthYear}
-                  canEditWorkouts={isEditable}
-                  copy={copy}
-                  language={language}
-                  onUpdateWorkout={handleUpdateWorkout}
-                  onViewChange={setSelectedHeatmapView}
-                  view={selectedHeatmapView}
-                  workouts={workouts}
-                  todayDateKey={todayDateKey}
-                />
+                <>
+                  <ContributionHeatmap
+                    allowPastWorkoutEdits={user.settings.workouts.allowPastWorkoutEdits}
+                    birthYear={birthYear}
+                    canEditWorkouts={isEditable}
+                    copy={copy}
+                    language={language}
+                    onUpdateWorkout={handleUpdateWorkout}
+                    onViewChange={setSelectedHeatmapView}
+                    view={selectedHeatmapView}
+                    workouts={workouts}
+                    todayDateKey={todayDateKey}
+                  />
+                  <WorkoutActivityTimeline
+                    copy={copy}
+                    language={language}
+                    refreshKey={activityRefreshKey}
+                    userId={user.id}
+                    view={selectedHeatmapView}
+                  />
+                </>
               )}
             </div>
           ) : (

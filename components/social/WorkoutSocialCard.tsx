@@ -246,10 +246,9 @@ export function WorkoutSocialCard({
             ) : (
               <h2 className="font-semibold text-text">{item.workout.type}</h2>
             )}
-            <p className="mt-1 text-sm text-muted">
-              {item.workout.durationMinutes} min <span aria-hidden="true">·</span>{" "}
-              {item.workout.startTime} - {item.workout.endTime}
-            </p>
+            {item.workout.durationMinutes > 0 ? (
+              <p className="mt-1 text-sm text-muted">{item.workout.durationMinutes} min</p>
+            ) : null}
           </div>
         </div>
         {item.workout.note ? (

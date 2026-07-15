@@ -1,4 +1,9 @@
-import { getDaysInRange, getLastNDays, getTodayInTimezone, minutesBetween } from "@/lib/date-utils";
+import {
+  getCurrentTimeInTimezone,
+  getDaysInRange,
+  getLastNDays,
+  getTodayInTimezone,
+} from "@/lib/date-utils";
 import type {
   CreateWorkoutRequest,
   HeatmapDay,
@@ -10,17 +15,6 @@ import type {
 
 export const TRACKING_START_DATE = "2026-01-01";
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
-const TIME_PATTERN = /^\d{2}:\d{2}$/;
-
-function isValidTime(value: string) {
-  if (!TIME_PATTERN.test(value)) {
-    return false;
-  }
-
-  const [hour, minute] = value.split(":").map(Number);
-
-  return hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59;
-}
 
 export function groupWorkoutsByDate(workouts: Workout[]) {
   const grouped = new Map<string, Workout[]>();
@@ -130,10 +124,6 @@ export function createHeatmapYears({
   });
 }
 
-export function calculateDurationMinutes(startTime: string, endTime: string) {
-  return minutesBetween(startTime, endTime);
-}
-
 export function validateWorkoutData(value: unknown): WorkoutData {
   if (!value || typeof value !== "object") {
     return {
@@ -160,11 +150,31 @@ export function validateWorkoutData(value: unknown): WorkoutData {
 export function validateCreateWorkoutRequest(
   body: CreateWorkoutRequest,
   todayDateKey = getTodayInTimezone(),
+  currentTime = getCurrentTimeInTimezone(),
+) {
+  const validation = validateWorkoutRequestDetails(body, todayDateKey);
+
+  if (!validation.success) {
+    return validation;
+  }
+
+  return {
+    success: true as const,
+    workoutInput: {
+      ...validation.workoutInput,
+      startTime: currentTime,
+      endTime: currentTime,
+      durationMinutes: 0,
+    },
+  };
+}
+
+function validateWorkoutRequestDetails(
+  body: CreateWorkoutRequest,
+  todayDateKey = getTodayInTimezone(),
 ) {
   const type = typeof body.type === "string" ? body.type.trim() : "";
   const date = typeof body.date === "string" && body.date ? body.date : todayDateKey;
-  const startTime = typeof body.startTime === "string" ? body.startTime : "";
-  const endTime = typeof body.endTime === "string" ? body.endTime : "";
   const note = typeof body.note === "string" ? body.note.trim() : "";
   const isPublic = typeof body.isPublic === "undefined" ? true : body.isPublic;
 
@@ -203,31 +213,12 @@ export function validateCreateWorkoutRequest(
     };
   }
 
-  if (!isValidTime(startTime) || !isValidTime(endTime)) {
-    return {
-      success: false as const,
-      error: "Start time and end time are required.",
-    };
-  }
-
-  const durationMinutes = calculateDurationMinutes(startTime, endTime);
-
-  if (durationMinutes <= 0) {
-    return {
-      success: false as const,
-      error: "Start time must be earlier than end time.",
-    };
-  }
-
   return {
     success: true as const,
     workoutInput: {
       date,
       type,
-      startTime,
-      endTime,
       note,
-      durationMinutes,
       isPublic,
     },
   };
@@ -247,7 +238,7 @@ export function validateUpdateWorkoutRequest(
     };
   }
 
-  const validation = validateCreateWorkoutRequest(body, todayDateKey);
+  const validation = validateWorkoutRequestDetails(body, todayDateKey);
 
   if (!validation.success) {
     return validation;
