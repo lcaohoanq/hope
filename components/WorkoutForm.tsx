@@ -1,6 +1,7 @@
 "use client";
 
-import { type ReactNode, useEffect, useRef, useState } from "react";
+import { type DragEvent, type ReactNode, useEffect, useRef, useState } from "react";
+import { FaImages, FaTimes } from "react-icons/fa";
 import { ActivityTypeSelector } from "@/components/ActivityTypeSelector";
 import { appendCaptionPill, hasCaptionPill } from "@/lib/caption-utils";
 import type { AppCopy } from "@/lib/i18n";
@@ -26,6 +27,10 @@ const initialForm = (defaultDate: string): WorkoutInput => ({
 });
 
 const MAX_SELECTED_IMAGES = 3;
+
+function getImageFileKey(file: File) {
+  return `${file.name}:${file.size}:${file.lastModified}`;
+}
 
 function isRequiredWorkoutField(field: keyof WorkoutInput) {
   return REQUIRED_WORKOUT_FIELDS.has(field as RequiredWorkoutField);
@@ -54,8 +59,11 @@ export function WorkoutForm({
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [imageInputKey, setImageInputKey] = useState(0);
+  const [isDraggingImages, setIsDraggingImages] = useState(false);
+  const [isPreparingImages, setIsPreparingImages] = useState(false);
   const previewUrlsRef = useRef<string[]>([]);
   const imageSelectionIdRef = useRef(0);
+  const imageInputRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -63,6 +71,7 @@ export function WorkoutForm({
 
   useEffect(() => {
     return () => {
+      imageSelectionIdRef.current += 1;
       revokeImagePreviewUrls(previewUrlsRef.current);
     };
   }, []);
@@ -73,19 +82,30 @@ export function WorkoutForm({
     setSuccess("");
   }
 
-  function updateImages(files: FileList | null) {
-    const nextImages = files ? Array.from(files) : [];
+  function addImages(files: FileList | File[]) {
+    const selectedKeys = new Set(selectedImages.map(getImageFileKey));
+    const incomingImages = Array.from(files).filter((file) => {
+      const fileKey = getImageFileKey(file);
 
-    if (nextImages.length > MAX_SELECTED_IMAGES) {
-      setImageSelection(nextImages.slice(0, MAX_SELECTED_IMAGES));
-      setError(copy.errors.imageLimit(MAX_SELECTED_IMAGES));
-      setSuccess("");
-      return;
-    }
+      if (selectedKeys.has(fileKey)) {
+        return false;
+      }
 
-    setImageSelection(nextImages);
-    setError("");
+      selectedKeys.add(fileKey);
+      return true;
+    });
+    const remainingSlots = MAX_SELECTED_IMAGES - selectedImages.length;
+    const nextImages = [...selectedImages, ...incomingImages.slice(0, Math.max(remainingSlots, 0))];
+
+    setError(
+      incomingImages.length > remainingSlots ? copy.errors.imageLimit(MAX_SELECTED_IMAGES) : "",
+    );
     setSuccess("");
+    setImageInputKey((current) => current + 1);
+
+    if (nextImages.length !== selectedImages.length) {
+      void setImageSelection(nextImages);
+    }
   }
 
   async function setImageSelection(images: File[]) {
@@ -95,6 +115,13 @@ export function WorkoutForm({
     previewUrlsRef.current = [];
     setSelectedImages(images);
     setPreviewUrls([]);
+
+    if (images.length === 0) {
+      setIsPreparingImages(false);
+      return;
+    }
+
+    setIsPreparingImages(true);
 
     try {
       const nextPreviewUrls = await createImagePreviewUrls(images);
@@ -112,7 +139,49 @@ export function WorkoutForm({
       }
 
       setError(copy.errors.imagePreviewFailed);
+    } finally {
+      if (selectionId === imageSelectionIdRef.current) {
+        setIsPreparingImages(false);
+      }
     }
+  }
+
+  function removeImage(index: number) {
+    void setImageSelection(selectedImages.filter((_, imageIndex) => imageIndex !== index));
+    setImageInputKey((current) => current + 1);
+    setError("");
+    setSuccess("");
+  }
+
+  function handleImageDragOver(event: DragEvent<HTMLDivElement>) {
+    event.preventDefault();
+
+    if (isSubmitting || selectedImages.length >= MAX_SELECTED_IMAGES) {
+      event.dataTransfer.dropEffect = "none";
+      return;
+    }
+
+    event.dataTransfer.dropEffect = "copy";
+    setIsDraggingImages(true);
+  }
+
+  function handleImageDragLeave(event: DragEvent<HTMLDivElement>) {
+    if (event.currentTarget.contains(event.relatedTarget as Node | null)) {
+      return;
+    }
+
+    setIsDraggingImages(false);
+  }
+
+  function handleImageDrop(event: DragEvent<HTMLDivElement>) {
+    event.preventDefault();
+    setIsDraggingImages(false);
+
+    if (isSubmitting || selectedImages.length >= MAX_SELECTED_IMAGES) {
+      return;
+    }
+
+    addImages(event.dataTransfer.files);
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -136,7 +205,7 @@ export function WorkoutForm({
       });
 
       setForm(initialForm(defaultDate));
-      setImageSelection([]);
+      void setImageSelection([]);
       setImageInputKey((current) => current + 1);
       setSuccess(copy.form.success);
     } catch (submitError) {
@@ -231,35 +300,105 @@ export function WorkoutForm({
           </div>
         </div>
 
-        <label className="grid gap-2 text-sm font-medium text-text">
-          {copy.form.images}
+        <div className="grid gap-2">
+          <p className="text-sm font-medium text-text">{copy.form.images}</p>
           <input
             accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
-            className="block w-full rounded-md border border-border bg-panel-muted px-3 py-2 text-sm font-normal text-muted file:mr-3 file:rounded-md file:border-0 file:bg-text file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white focus:border-accent focus:bg-panel focus:outline-none focus:ring-2 focus:ring-accent/15 disabled:cursor-not-allowed disabled:opacity-60"
+            aria-label={copy.form.addImages}
+            className="sr-only"
+            disabled={isSubmitting || selectedImages.length >= MAX_SELECTED_IMAGES}
             key={imageInputKey}
             multiple
-            onChange={(event) => updateImages(event.target.files)}
+            onChange={(event) => {
+              if (event.target.files) {
+                addImages(event.target.files);
+              }
+            }}
+            ref={imageInputRef}
             type="file"
           />
-        </label>
+          <section
+            aria-label={copy.form.images}
+            className={`flex h-20 min-w-0 items-center gap-2 overflow-x-auto rounded-md border px-2 transition ${
+              isDraggingImages
+                ? "border-accent bg-accent/10 ring-2 ring-accent/15"
+                : "border-border bg-panel-muted"
+            }`}
+            data-testid="workout-image-strip"
+            onDragEnter={handleImageDragOver}
+            onDragLeave={handleImageDragLeave}
+            onDragOver={handleImageDragOver}
+            onDrop={handleImageDrop}
+          >
+            <button
+              className="flex h-16 w-24 shrink-0 flex-col items-center justify-center gap-1 rounded-md bg-panel px-2 text-center text-xs font-semibold text-text transition hover:bg-border/50 active:scale-[0.98] disabled:cursor-not-allowed disabled:text-muted disabled:hover:bg-panel"
+              disabled={isSubmitting || selectedImages.length >= MAX_SELECTED_IMAGES}
+              onClick={() => imageInputRef.current?.click()}
+              title={
+                selectedImages.length >= MAX_SELECTED_IMAGES
+                  ? copy.form.imageLimitReached(MAX_SELECTED_IMAGES)
+                  : copy.form.addImages
+              }
+              type="button"
+            >
+              <FaImages aria-hidden="true" className="h-4 w-4" />
+              <span className="whitespace-nowrap">
+                {selectedImages.length >= MAX_SELECTED_IMAGES
+                  ? copy.form.imageLimitReached(MAX_SELECTED_IMAGES)
+                  : copy.form.addImages}
+              </span>
+              <span className="font-normal text-muted">
+                {selectedImages.length}/{MAX_SELECTED_IMAGES}
+              </span>
+            </button>
 
-        {previewUrls.length > 0 ? (
-          <div className="grid grid-cols-3 gap-2">
-            {previewUrls.map((url, index) => (
-              <div
-                className="aspect-square overflow-hidden rounded-md border border-border bg-panel-muted"
-                key={url}
-              >
-                {/* biome-ignore lint/performance/noImgElement: Local object URL previews cannot use next/image. */}
-                <img
-                  alt={copy.form.selectedPreviewAlt(index + 1)}
-                  className="h-full w-full object-cover"
-                  src={url}
-                />
+            {isPreparingImages
+              ? selectedImages.map((file) => (
+                  <div
+                    aria-label={copy.form.preparingImages}
+                    className="h-16 w-16 shrink-0 animate-pulse rounded-md bg-border/70"
+                    key={getImageFileKey(file)}
+                    role="status"
+                  />
+                ))
+              : previewUrls.map((url, index) => (
+                  <div
+                    className="group relative h-16 w-16 shrink-0 overflow-hidden rounded-md bg-panel"
+                    data-testid="workout-image-preview"
+                    key={url}
+                  >
+                    {/* biome-ignore lint/performance/noImgElement: Local object URL previews cannot use next/image. */}
+                    <img
+                      alt={copy.form.selectedPreviewAlt(index + 1)}
+                      className="h-full w-full object-cover"
+                      src={url}
+                    />
+                    <button
+                      aria-label={copy.form.removeImage(index + 1)}
+                      className="absolute right-1 top-1 inline-flex h-7 w-7 items-center justify-center rounded-md bg-text/80 text-white transition hover:bg-danger focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white disabled:cursor-not-allowed disabled:bg-muted sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100"
+                      data-testid="workout-image-remove"
+                      disabled={isSubmitting}
+                      onClick={() => removeImage(index)}
+                      title={copy.form.removeImage(index + 1)}
+                      type="button"
+                    >
+                      <FaTimes aria-hidden="true" className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+
+            {selectedImages.length === 0 && !isPreparingImages ? (
+              <div className="min-w-40 flex-1 px-1">
+                <p className="text-sm font-medium text-text">{copy.form.dropImages}</p>
+                <p className="mt-1 text-xs text-muted">{copy.form.imageFormats}</p>
               </div>
-            ))}
-          </div>
-        ) : null}
+            ) : null}
+
+            <span aria-live="polite" className="sr-only">
+              {copy.form.selectedImageCount(selectedImages.length, MAX_SELECTED_IMAGES)}
+            </span>
+          </section>
+        </div>
       </fieldset>
 
       <div className="mt-5 min-h-6">
