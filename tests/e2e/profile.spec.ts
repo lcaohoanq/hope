@@ -5,6 +5,10 @@ import { expect, test } from "@playwright/test";
 const publicUsername = process.env.E2E_PUBLIC_PROFILE_USERNAME;
 const ownerEmail = process.env.E2E_CLERK_USER_EMAIL;
 
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 test.describe.configure({ mode: "serial" });
 
 test("rejects signed-out workout and settings mutations", async ({ request }) => {
@@ -54,6 +58,9 @@ test("rejects signed-out workout and settings mutations", async ({ request }) =>
 
   const notifications = await request.get("/api/notifications");
   expect(notifications.status()).toBe(401);
+
+  const userSearch = await request.get("/api/users/search?q=test");
+  expect(userSearch.status()).toBe(401);
 
   const profile = await request.patch("/api/users/profile", {
     data: {
@@ -218,6 +225,45 @@ test("shows owner controls to the linked Clerk account", async ({ page }) => {
     "href",
     "/settings/profile",
   );
+});
+
+test("searches users from dashboard and social headers", async ({ page }) => {
+  const username = publicUsername;
+  const email = ownerEmail;
+  test.skip(!username || !email, "Set E2E public profile and Clerk test user variables.");
+  if (!username || !email) return;
+
+  await page.goto("/");
+  await clerk.signIn({ page, emailAddress: email });
+  await page.goto("/auth/continue");
+  await expect(page).toHaveURL(`/${username}`);
+
+  const searchResponse = await page
+    .context()
+    .request.get(`/api/users/search?q=${encodeURIComponent(username)}`);
+  expect(searchResponse.ok()).toBe(true);
+  const searchPayload = (await searchResponse.json()) as {
+    success: boolean;
+    users?: Array<{ username: string }>;
+  };
+  expect(searchPayload.success).toBe(true);
+  expect(searchPayload.users?.some((user) => user.username === username)).toBe(true);
+
+  const resultName = new RegExp(`@${escapeRegExp(username)}`, "i");
+  await page.getByRole("searchbox", { name: /search users|tìm người dùng/i }).fill(username);
+  await page.getByRole("option", { name: resultName }).click();
+  await expect(page).toHaveURL(`/${username}`);
+
+  await page.goto("/feed");
+  await expect(page.getByRole("heading", { name: /feed|bảng tin/i })).toBeVisible();
+  await page.getByRole("searchbox", { name: /search users|tìm người dùng/i }).fill(username);
+  await page.getByRole("option", { name: resultName }).click();
+  await expect(page).toHaveURL(`/${username}`);
+
+  await page
+    .getByRole("searchbox", { name: /search users|tìm người dùng/i })
+    .fill("zz-no-user-e2e");
+  await expect(page.getByText(/no users found|không tìm thấy người dùng/i)).toBeVisible();
 });
 
 test("lets the owner reposition and crop an avatar before upload", async ({ page }) => {

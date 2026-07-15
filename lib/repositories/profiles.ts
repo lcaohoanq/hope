@@ -1,4 +1,4 @@
-import { and, eq, isNotNull, isNull } from "drizzle-orm";
+import { and, asc, eq, ilike, isNotNull, isNull, or, sql } from "drizzle-orm";
 import { getDatabase } from "@/lib/db";
 import { type ProfileRow, profiles } from "@/lib/db/schema";
 import type { ValidatedProfileUpdate } from "@/lib/profile-update";
@@ -59,6 +59,30 @@ export async function getProfileByPath(pathSegment: string) {
 
 export async function listPublicProfiles() {
   const rows = await getDatabase().select().from(profiles).orderBy(profiles.username);
+  return rows.map(toAppUser);
+}
+
+export async function searchProfiles(query: string, limit = 8) {
+  const normalizedQuery = normalizeUsername(query);
+  if (normalizedQuery.length < 2) return [];
+
+  const searchPattern = `%${normalizedQuery}%`;
+  const prefixPattern = `${normalizedQuery}%`;
+  const rows = await getDatabase()
+    .select()
+    .from(profiles)
+    .where(or(ilike(profiles.username, searchPattern), ilike(profiles.displayName, searchPattern)))
+    .orderBy(
+      sql`case
+        when ${profiles.username} = ${normalizedQuery} then 0
+        when ${profiles.username} ilike ${prefixPattern} then 1
+        when ${profiles.displayName} ilike ${prefixPattern} then 2
+        else 3
+      end`,
+      asc(profiles.username),
+    )
+    .limit(limit);
+
   return rows.map(toAppUser);
 }
 
