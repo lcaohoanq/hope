@@ -31,8 +31,6 @@ export type CreateWorkoutRequest = {
   userId?: unknown;
   date?: unknown;
   type?: unknown;
-  startTime?: unknown;
-  endTime?: unknown;
   note?: unknown;
   isPublic?: unknown;
   imagePublicIds?: unknown;
@@ -46,8 +44,6 @@ export type UpdateWorkoutRequest = CreateWorkoutRequest & {
 export type WorkoutInput = {
   date: string;
   type: string;
-  startTime: string;
-  endTime: string;
   note: string;
   isPublic: boolean;
   images?: File[];

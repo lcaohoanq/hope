@@ -17,7 +17,6 @@ import { formatDisplayDate } from "@/lib/date-utils";
 import type { AppCopy, Language } from "@/lib/i18n";
 import { createImagePreviewUrls, revokeImagePreviewUrls } from "@/lib/image-previews";
 import type { Workout, WorkoutUpdateInput } from "@/lib/workout-types";
-import { calculateDurationMinutes } from "@/lib/workout-utils";
 
 type WorkoutDayDetailModalProps = {
   allowPastWorkoutEdits: boolean;
@@ -39,8 +38,6 @@ type WorkoutDayDetailModalProps = {
 type EditWorkoutForm = {
   date: string;
   type: string;
-  startTime: string;
-  endTime: string;
   note: string;
   isPublic: boolean;
 };
@@ -113,8 +110,6 @@ export function WorkoutDayDetailModal({
           canEditWorkoutDate(workout.date, todayDateKey, allowPastWorkoutEdits),
         );
   const editingWorkout = workouts.find((workout) => workout.id === editingWorkoutId);
-  const headerWorkout = editingWorkout ?? selectedImage?.workout ?? workouts[0];
-  const headerTimeRange = headerWorkout ? formatWorkoutTimeRange(headerWorkout) : "";
 
   const updateSelectedImage = useCallback(
     (direction: -1 | 1) => {
@@ -233,8 +228,6 @@ export function WorkoutDayDetailModal({
     setEditForm({
       date: workout.date,
       type: workout.type,
-      startTime: workout.startTime,
-      endTime: workout.endTime,
       note: workout.note ?? "",
       isPublic: workout.isPublic,
     });
@@ -305,20 +298,9 @@ export function WorkoutDayDetailModal({
 
     const type = editForm.type.trim();
     const note = editForm.note.trim();
-    const durationMinutes = calculateDurationMinutes(editForm.startTime, editForm.endTime);
 
     if (!type) {
       setEditError(copy.errors.typeRequired);
-      return;
-    }
-
-    if (!editForm.startTime || !editForm.endTime) {
-      setEditError(copy.errors.timeRequired);
-      return;
-    }
-
-    if (durationMinutes <= 0) {
-      setEditError(copy.errors.startBeforeEnd);
       return;
     }
 
@@ -331,8 +313,6 @@ export function WorkoutDayDetailModal({
         id: workout.id,
         date: editForm.date,
         type,
-        startTime: editForm.startTime,
-        endTime: editForm.endTime,
         note,
         isPublic: editForm.isPublic,
         imageSrcs: editImageSrcs,
@@ -413,13 +393,10 @@ export function WorkoutDayDetailModal({
         }}
       >
         <div className="flex shrink-0 items-center justify-between gap-4 border-b border-border px-4 py-3 sm:px-5">
-          <div className="flex min-w-0 flex-1 flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
+          <div className="min-w-0 flex-1">
             <h3 className="text-2xl font-semibold tracking-[-0.03em] text-text">
               {formatDisplayDate(date, language)}
             </h3>
-            {headerTimeRange ? (
-              <p className="shrink-0 text-sm font-semibold text-muted">{headerTimeRange}</p>
-            ) : null}
           </div>
           <div className="flex items-center gap-2">
             {editingWorkout ? (
@@ -624,9 +601,6 @@ function EditWorkoutPanel({
 }) {
   const existingImageCount = existingImages?.length ?? 0;
   const remainingImageSlots = Math.max(0, MAX_WORKOUT_IMAGES - existingImageCount);
-  const durationMinutes = calculateDurationMinutes(editForm.startTime, editForm.endTime);
-  const durationPreview =
-    durationMinutes > 0 ? `${durationMinutes} ${copy.common.minutes}` : copy.errors.startBeforeEnd;
   const editGalleryImages = useMemo<EditGalleryImage[]>(
     () => [
       ...((existingImages ?? []).map((image) => ({
@@ -682,9 +656,6 @@ function EditWorkoutPanel({
       <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border pb-4">
         <div>
           <p className="text-base font-semibold text-text">{copy.form.editWorkout}</p>
-          <p className="mt-1 text-sm text-muted">
-            {copy.form.durationPreview}: {durationPreview}
-          </p>
         </div>
         <div className="flex shrink-0 flex-wrap gap-2">
           <button
@@ -802,27 +773,6 @@ function EditWorkoutPanel({
                 onChange={(event) => onUpdateField("date", event.target.value)}
                 type="date"
                 value={editForm.date}
-              />
-            </label>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-2">
-            <label className="grid gap-1.5 text-sm font-medium text-text">
-              {copy.form.start}
-              <input
-                className="h-10 rounded-md border border-border bg-panel px-3 text-sm font-normal text-text outline-none focus:border-accent focus:ring-2 focus:ring-accent/15"
-                onChange={(event) => onUpdateField("startTime", event.target.value)}
-                type="time"
-                value={editForm.startTime}
-              />
-            </label>
-            <label className="grid gap-1.5 text-sm font-medium text-text">
-              {copy.form.end}
-              <input
-                className="h-10 rounded-md border border-border bg-panel px-3 text-sm font-normal text-text outline-none focus:border-accent focus:ring-2 focus:ring-accent/15"
-                onChange={(event) => onUpdateField("endTime", event.target.value)}
-                type="time"
-                value={editForm.endTime}
               />
             </label>
           </div>
@@ -1086,20 +1036,4 @@ function canEditWorkoutDate(
   allowPastWorkoutEdits: boolean,
 ) {
   return allowPastWorkoutEdits || workoutDate >= todayDateKey;
-}
-
-function formatWorkoutTimeRange(workout: Workout) {
-  if (!workout.startTime && !workout.endTime) {
-    return "";
-  }
-
-  if (!workout.endTime) {
-    return workout.startTime;
-  }
-
-  if (!workout.startTime) {
-    return workout.endTime;
-  }
-
-  return `${workout.startTime} - ${workout.endTime}`;
 }

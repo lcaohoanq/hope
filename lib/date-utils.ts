@@ -1,14 +1,27 @@
 import type { Language } from "@/lib/i18n";
 
-const TIMEZONE = "Asia/Ho_Chi_Minh";
+export const APP_TIMEZONE = "Asia/Ho_Chi_Minh";
+const APP_TIMEZONE_OFFSET = "+07:00";
 
-export function getTodayInTimezone(timezone = TIMEZONE) {
+export function getTodayInTimezone(timezone = APP_TIMEZONE) {
   return new Intl.DateTimeFormat("en-CA", {
     timeZone: timezone,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
   }).format(new Date());
+}
+
+export function getCurrentTimeInTimezone(timezone = APP_TIMEZONE) {
+  const parts = new Intl.DateTimeFormat("en", {
+    timeZone: timezone,
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(new Date());
+  const hour = parts.find((part) => part.type === "hour")?.value ?? "00";
+  const minute = parts.find((part) => part.type === "minute")?.value ?? "00";
+  return `${hour}:${minute}`;
 }
 
 export function addDays(date: Date, amount: number) {
@@ -37,10 +50,46 @@ export function formatDisplayDate(dateKey: string, language: Language = "en") {
   }).format(parseDateKey(dateKey));
 }
 
-export function minutesBetween(startTime: string, endTime: string) {
-  const [startHour, startMinute] = startTime.split(":").map(Number);
-  const [endHour, endMinute] = endTime.split(":").map(Number);
-  return endHour * 60 + endMinute - (startHour * 60 + startMinute);
+export function formatActivityTimestamp(timestamp: string, language: Language = "en") {
+  const locale = language === "vi" ? "vi-VN" : "en";
+  const date = new Intl.DateTimeFormat(locale, {
+    timeZone: APP_TIMEZONE,
+    month: "short",
+    day: "numeric",
+  }).format(new Date(timestamp));
+  const time = new Intl.DateTimeFormat(locale, {
+    timeZone: APP_TIMEZONE,
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).format(new Date(timestamp));
+  return `${date}, ${time}`;
+}
+
+export function formatActivityMonth(timestamp: string, language: Language = "en") {
+  return new Intl.DateTimeFormat(language === "vi" ? "vi-VN" : "en", {
+    timeZone: APP_TIMEZONE,
+    month: "long",
+    year: "numeric",
+  }).format(new Date(timestamp));
+}
+
+export function getActivityMonthKey(timestamp: string) {
+  const parts = new Intl.DateTimeFormat("en", {
+    timeZone: APP_TIMEZONE,
+    year: "numeric",
+    month: "2-digit",
+  }).formatToParts(new Date(timestamp));
+  const year = parts.find((part) => part.type === "year")?.value;
+  const month = parts.find((part) => part.type === "month")?.value;
+  return `${year}-${month}`;
+}
+
+export function getActivityYearRange(year: number) {
+  return {
+    start: new Date(`${year}-01-01T00:00:00${APP_TIMEZONE_OFFSET}`),
+    end: new Date(`${year + 1}-01-01T00:00:00${APP_TIMEZONE_OFFSET}`),
+  };
 }
 
 export function getLastNDays(endDateKey: string, count: number) {
