@@ -6,10 +6,12 @@ dist/
 .tmp/
 tmp/
 .codebase-memory/
+.agents/
 
 .env
 .env*.local
 .migration-users.json
+public/uploads/
 
 *.tsbuildinfo
 npm-debug.log*
@@ -19,6 +21,9 @@ pnpm-debug.log*
 
 *.md
 !README.md
+!CONTRIBUTING.md
+!OPEN_SOURCE_RELEASE.md
+!SECURITY.md
 !.agents/skills/next-cache-components-adoption/**/*.md
 !.agents/skills/next-cache-components-optimizer/**/*.md
 !.agents/skills/next-dev-loop/**/*.md

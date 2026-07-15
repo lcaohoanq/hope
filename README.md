@@ -8,7 +8,7 @@ Hope is a public workout consistency tracker built with Next.js 16, Clerk, Supab
 - Supabase is Postgres only. Server code uses Drizzle with `postgres.js`; Supabase Auth and browser database clients are intentionally not used.
 - Public profile and workout reads come from Postgres. Clerk sessions are resolved to a profile for every mutation.
 - Appwrite converts workout images to AVIF and Sharp converts avatars to WebP. The processed buffers are uploaded to Cloudinary.
-- `data/workouts.json` and `public/uploads` are a read-only rollback archive for the migration release.
+- `data/profiles.snapshot.json` and `data/workouts.json` contain sanitized demo seed data. Real migration manifests and uploaded media must stay out of git.
 
 ## Local setup
 
@@ -24,14 +24,30 @@ Required server configuration:
 ```env
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
 CLERK_SECRET_KEY=
+NEXT_PUBLIC_APP_URL=http://localhost:3000
 DATABASE_URL=
 DIRECT_URL=
 CLOUDINARY_CLOUD_NAME=
 CLOUDINARY_API_KEY=
 CLOUDINARY_API_SECRET=
+RESEND_API_KEY=
+RESEND_FROM=Hope <onboarding@resend.dev>
+TIMEZONE=Asia/Ho_Chi_Minh
 ```
 
 Use Supabase's transaction pooler URL for `DATABASE_URL` and a direct/session URL for `DIRECT_URL`. Do not expose either URL to the browser. Keep `CLOUDINARY_API_SECRET` server-only; authenticated workout uploads receive short-lived signed parameters from the app.
+
+Optional GitHub-backed JSON settings are supported by `lib/github-json.ts` for legacy workflows:
+
+```env
+GITHUB_TOKEN=
+GITHUB_OWNER=
+GITHUB_REPO=
+GITHUB_BRANCH=main
+WORKOUT_DATA_PATH=data/workouts.json
+```
+
+Keep these values server-only and grant the token the minimum repository permissions needed.
 
 ## Authentication flow
 
@@ -69,7 +85,7 @@ pnpm migrate:legacy -- --dry-run
 pnpm migrate:legacy
 ```
 
-The live run uploads deterministic legacy assets, upserts profiles/workouts/ordered images transactionally, links matching Clerk users or creates invitations, and verifies destination counts. Original passwords are never read or migrated.
+The public repository ships only sanitized demo data. If you are migrating private legacy data, keep `.migration-users.json` and any uploaded media outside git. The live run uploads deterministic legacy assets, upserts profiles/workouts/ordered images transactionally, links matching Clerk users or creates invitations, and verifies destination counts. Original passwords are never read or migrated.
 
 ## Media write guarantees
 
@@ -84,6 +100,13 @@ REMINDER_DRY_RUN=1 pnpm reminder
 ```
 
 The workflow needs `DATABASE_URL`, `CLERK_SECRET_KEY`, `RESEND_API_KEY`, and optionally `RESEND_FROM` as GitHub Actions secrets.
+
+## Open source hygiene
+
+- Do not commit filled `.env` files, `.migration-users.json`, or `public/uploads`.
+- Keep personal workout exports, real profile snapshots, and uploaded media private.
+- Run a secret scan before publishing changes.
+- See `SECURITY.md` for vulnerability reporting and secret handling notes.
 
 ## Verification
 

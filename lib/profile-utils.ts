@@ -5,9 +5,9 @@ const DICEBEAR_NOTIONISTS_BASE_URL = "https://api.dicebear.com/10.x/notionists/s
 export const USER_PROFILE_STORAGE_KEY = "hope-profile";
 const USER_PROFILE_CHANGE_EVENT = "hope-profile-change";
 const DEFAULT_PROFILE: UserProfile = {
-  displayName: "Hoang",
-  birthYear: 2004,
-  avatarSeed: "hoang",
+  displayName: "Demo User",
+  birthYear: 2000,
+  avatarSeed: "demo-user",
 };
 let cachedProfileStorageValue: string | null = null;
 let cachedProfile: UserProfile | null = null;
