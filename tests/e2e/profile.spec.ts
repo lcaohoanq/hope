@@ -179,6 +179,38 @@ test("shows owner controls to the linked Clerk account", async ({ page }) => {
   });
   await expect(workoutDialog).toBeVisible();
   await expect(workoutDialog.locator('input[type="time"]')).toHaveCount(0);
+
+  const imageStrip = workoutDialog.getByTestId("workout-image-strip");
+  const imageInput = workoutDialog.locator('input[type="file"][multiple]');
+  const initialStripHeight = await imageStrip.evaluate(
+    (element) => element.getBoundingClientRect().height,
+  );
+  const firstImage = path.join(process.cwd(), "public/icon-192.png");
+  const secondImage = path.join(process.cwd(), "public/icon-512.png");
+  const thirdImage = path.join(process.cwd(), "public/apple-touch-icon.png");
+
+  await imageInput.setInputFiles([firstImage, secondImage]);
+  await expect(workoutDialog.getByTestId("workout-image-preview")).toHaveCount(2);
+
+  await imageInput.setInputFiles(firstImage);
+  await expect(workoutDialog.getByTestId("workout-image-preview")).toHaveCount(2);
+
+  await imageInput.setInputFiles(thirdImage);
+  await expect(workoutDialog.getByTestId("workout-image-preview")).toHaveCount(3);
+  await expect(
+    workoutDialog.getByRole("button", { name: /3 images added|đã đủ 3 ảnh/i }),
+  ).toBeDisabled();
+
+  await workoutDialog.getByTestId("workout-image-remove").first().click();
+  await expect(workoutDialog.getByTestId("workout-image-preview")).toHaveCount(2);
+  expect(await imageStrip.evaluate((element) => element.getBoundingClientRect().height)).toBe(
+    initialStripHeight,
+  );
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
+    true,
+  );
   await workoutDialog
     .getByRole("button", { name: /close workout form|đóng biểu mẫu tập luyện/i })
     .click();
