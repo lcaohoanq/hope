@@ -22,7 +22,7 @@ pnpm-debug.log*
 *.md
 !README.md
 !CONTRIBUTING.md
-!OPEN_SOURCE_RELEASE.md
+OPEN_SOURCE_RELEASE.md
 !SECURITY.md
 !.agents/skills/next-cache-components-adoption/**/*.md
 !.agents/skills/next-cache-components-optimizer/**/*.md
