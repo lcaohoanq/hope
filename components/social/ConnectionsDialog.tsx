@@ -96,19 +96,33 @@ export function ConnectionsDialog({
     ) : null;
 
   useEffect(() => {
-    if (!type || !canView) return;
+    if (!type || !canView) {
+      setLoading(false);
+      return;
+    }
+    const controller = new AbortController();
     const timer = window.setTimeout(() => {
       setLoading(true);
       apiClient
         .get<{ items?: ConnectionItem[] }>(`/profiles/${profileId}/connections`, {
           headers: { "Cache-Control": "no-cache" },
           params: { type },
+          signal: controller.signal,
         })
-        .then(({ data }) => setItems(data.items ?? []))
-        .catch(() => setItems([]))
-        .finally(() => setLoading(false));
+        .then(({ data }) => {
+          if (!controller.signal.aborted) setItems(data.items ?? []);
+        })
+        .catch(() => {
+          if (!controller.signal.aborted) setItems([]);
+        })
+        .finally(() => {
+          if (!controller.signal.aborted) setLoading(false);
+        });
     }, 0);
-    return () => window.clearTimeout(timer);
+    return () => {
+      controller.abort();
+      window.clearTimeout(timer);
+    };
   }, [canView, profileId, type]);
 
   return (

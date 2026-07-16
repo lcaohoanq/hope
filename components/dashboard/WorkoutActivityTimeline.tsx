@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FaCheck, FaLock } from "react-icons/fa";
 import {
   formatActivityMonth,
@@ -39,11 +39,17 @@ export function WorkoutActivityTimeline({
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState("");
+  const requestRef = useRef<{ controller: AbortController; id: number } | null>(null);
   const groups = useMemo(() => groupWorkoutsByMonth(workouts, language), [language, workouts]);
   const year = view.mode === "year" ? view.year : undefined;
 
   const loadActivity = useCallback(
     async ({ cursor, append = false }: { cursor?: string; append?: boolean } = {}) => {
+      requestRef.current?.controller.abort();
+      const controller = new AbortController();
+      const requestId = (requestRef.current?.id ?? 0) + 1;
+      requestRef.current = { controller, id: requestId };
+
       if (append) {
         setIsLoadingMore(true);
       } else {
@@ -59,17 +65,22 @@ export function WorkoutActivityTimeline({
         }>("/workouts/activity", {
           headers: { "Cache-Control": "no-cache" },
           params: { cursor, limit: 6, userId, year },
+          signal: controller.signal,
         });
 
+        if (requestRef.current?.id !== requestId) return;
         setWorkouts((current) =>
           append ? [...current, ...(payload.workouts ?? [])] : (payload.workouts ?? []),
         );
         setNextCursor(payload.nextCursor ?? null);
       } catch (caught) {
+        if (controller.signal.aborted || requestRef.current?.id !== requestId) return;
         setError(getApiErrorMessage(caught, copy.activityTimeline.loadError));
       } finally {
-        setIsLoading(false);
-        setIsLoadingMore(false);
+        if (requestRef.current?.id === requestId) {
+          setIsLoading(false);
+          setIsLoadingMore(false);
+        }
       }
     },
     [copy.activityTimeline.loadError, userId, year],
