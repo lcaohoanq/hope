@@ -1,0 +1,20 @@
+// IDE / `pnpm typecheck` only — not used by docusaurus start/build.
+// Standalone (no @docusaurus/tsconfig) to avoid deprecated `baseUrl`.
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "esModuleInterop": true,
+    "jsx": "preserve",
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM"],
+    "moduleResolution": "bundler",
+    "module": "esnext",
+    "noEmit": true,
+    "paths": {
+      "@site/*": ["./*"]
+    },
+    "skipLibCheck": true,
+    "strict": true
+  },
+  "exclude": [".docusaurus", "build"]
+}

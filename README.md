@@ -20,11 +20,28 @@ Hope is a public workout consistency tracker built with Next.js 16, Clerk, Supab
 - Appwrite converts workout images to AVIF and Sharp converts avatars to WebP. The processed buffers are uploaded to Cloudinary.
 - `data/profiles.snapshot.json` and `data/workouts.json` contain sanitized demo seed data. Real migration manifests and uploaded media must stay out of git.
 
+## Documentation site
+
+Local:
+
+```bash
+pnpm docs:dev     # http://localhost:3001/hope/
+pnpm docs:build   # static build → apps/docs/build
+```
+
+> Do not use bare `pnpm docs` — that is an npm/pnpm built-in that opens the package page in your browser, not this site.
+
+Hosted on GitHub Pages at [https://lcaohoanq.github.io/hope/](https://lcaohoanq.github.io/hope/) (Docusaurus + TypeDoc). Deploy runs via [`.github/workflows/docs.yml`](.github/workflows/docs.yml) on pushes to `develop`.
+
+One-time repo setup: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
+
 ## Local setup
 
 ```bash
 pnpm install
 cp .env.example .env
+# or interactive self-host wizard:
+pnpm setup
 pnpm db:migrate
 pnpm dev
 ```

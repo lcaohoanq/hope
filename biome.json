@@ -16,7 +16,8 @@
       "!!**/node_modules",
       "!!**/out",
       "!!**/playwright-report",
-      "!!**/test-results"
+      "!!**/test-results",
+      "!!**/apps/docs/static"
     ]
   },
   "formatter": {
