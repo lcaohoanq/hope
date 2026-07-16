@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { apiClient, getApiErrorMessage } from "@/lib/http";
 import { getSocialCopy } from "@/lib/social-copy";
 import type { PublicAppUser } from "@/lib/users";
 
@@ -18,16 +19,11 @@ export function PrivacySettingsCard({ user }: { user: PublicAppUser }) {
     setMessage("");
     setError("");
     try {
-      const response = await fetch("/api/users/privacy", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isPrivate: next }),
-      });
-      if (!response.ok) throw new Error(copy.privacyFailed);
+      await apiClient.patch("/users/privacy", { isPrivate: next });
       setMessage(copy.privacySaved);
     } catch (caught) {
       setIsPrivate(previous);
-      setError(caught instanceof Error ? caught.message : copy.privacyFailed);
+      setError(getApiErrorMessage(caught, copy.privacyFailed));
     } finally {
       setSaving(false);
     }

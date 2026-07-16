@@ -4,6 +4,7 @@ import Link from "next/link";
 import { type FormEvent, useState } from "react";
 import { FaHeart, FaPaperPlane, FaPen, FaRegComment, FaRegHeart, FaTrash } from "react-icons/fa";
 import { AvatarImage } from "@/components/dashboard/AvatarImage";
+import { apiClient, getApiErrorMessage } from "@/lib/http";
 import type { Language } from "@/lib/i18n";
 import { getAvatarUrl } from "@/lib/profile-utils";
 import { getSocialCopy } from "@/lib/social-copy";
@@ -19,17 +20,6 @@ type WorkoutSocialCardProps = {
   initialComments?: WorkoutComment[];
   initialCommentsCursor?: string | null;
 };
-
-type ApiError = { error?: string };
-
-async function readError(response: Response, fallback: string) {
-  try {
-    const payload = (await response.json()) as ApiError;
-    return payload.error ?? fallback;
-  } catch {
-    return fallback;
-  }
-}
 
 export function WorkoutSocialCard({
   item,
@@ -62,20 +52,19 @@ export function WorkoutSocialCard({
     setLikePending(true);
     setError("");
     try {
-      const response = await fetch(`/api/workouts/${item.workout.id}/like`, {
-        method: nextLiked ? "POST" : "DELETE",
-      });
-      if (!response.ok) throw new Error(await readError(response, copy.interactionFailed));
-      const payload = (await response.json()) as {
+      const { data: payload } = await apiClient.request<{
         likeCount: number;
         viewerHasLiked: boolean;
-      };
+      }>({
+        url: `/workouts/${item.workout.id}/like`,
+        method: nextLiked ? "POST" : "DELETE",
+      });
       setLiked(payload.viewerHasLiked);
       setLikeCount(payload.likeCount);
     } catch (caught) {
       setLiked(previousLiked);
       setLikeCount(previousCount);
-      setError(caught instanceof Error ? caught.message : copy.interactionFailed);
+      setError(getApiErrorMessage(caught, copy.interactionFailed));
     } finally {
       setLikePending(false);
     }
@@ -109,13 +98,10 @@ export function WorkoutSocialCard({
     setCommentPending(true);
     setError("");
     try {
-      const response = await fetch(`/api/workouts/${item.workout.id}/comments`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ body }),
-      });
-      if (!response.ok) throw new Error(await readError(response, copy.interactionFailed));
-      const payload = (await response.json()) as { comment: WorkoutComment };
+      const { data: payload } = await apiClient.post<{ comment: WorkoutComment }>(
+        `/workouts/${item.workout.id}/comments`,
+        { body },
+      );
       setComments((current) =>
         current.map((comment) => (comment.id === temporaryId ? payload.comment : comment)),
       );
@@ -123,7 +109,7 @@ export function WorkoutSocialCard({
       setComments(previousComments);
       setCommentCount((value) => Math.max(0, value - 1));
       setCommentBody(body);
-      setError(caught instanceof Error ? caught.message : copy.interactionFailed);
+      setError(getApiErrorMessage(caught, copy.interactionFailed));
     } finally {
       setCommentPending(false);
     }
@@ -139,21 +125,20 @@ export function WorkoutSocialCard({
       ),
     );
     setError("");
-    const response = await fetch(`/api/comments/${commentId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ body }),
-    });
-    if (!response.ok) {
+    try {
+      const { data: payload } = await apiClient.patch<{ comment: WorkoutComment }>(
+        `/comments/${commentId}`,
+        { body },
+      );
+      setComments((current) =>
+        current.map((comment) => (comment.id === commentId ? payload.comment : comment)),
+      );
+    } catch (caught) {
       setComments(previous);
-      const message = await readError(response, copy.interactionFailed);
+      const message = getApiErrorMessage(caught, copy.interactionFailed);
       setError(message);
       throw new Error(message);
     }
-    const payload = (await response.json()) as { comment: WorkoutComment };
-    setComments((current) =>
-      current.map((comment) => (comment.id === commentId ? payload.comment : comment)),
-    );
   }
 
   async function deleteComment(commentId: string) {
@@ -161,11 +146,12 @@ export function WorkoutSocialCard({
     setComments((current) => current.filter((comment) => comment.id !== commentId));
     setCommentCount((value) => Math.max(0, value - 1));
     setError("");
-    const response = await fetch(`/api/comments/${commentId}`, { method: "DELETE" });
-    if (!response.ok) {
+    try {
+      await apiClient.delete(`/comments/${commentId}`);
+    } catch (caught) {
       setComments(previous);
       setCommentCount((value) => value + 1);
-      setError(await readError(response, copy.interactionFailed));
+      setError(getApiErrorMessage(caught, copy.interactionFailed));
     }
   }
 
@@ -174,19 +160,17 @@ export function WorkoutSocialCard({
     setCommentsLoading(true);
     setError("");
     try {
-      const response = await fetch(
-        `/api/workouts/${item.workout.id}/comments?cursor=${encodeURIComponent(commentsCursor)}`,
-        { cache: "no-store" },
-      );
-      if (!response.ok) throw new Error(await readError(response, copy.interactionFailed));
-      const payload = (await response.json()) as {
+      const { data: payload } = await apiClient.get<{
         items: WorkoutComment[];
         nextCursor: string | null;
-      };
+      }>(`/workouts/${item.workout.id}/comments`, {
+        headers: { "Cache-Control": "no-cache" },
+        params: { cursor: commentsCursor },
+      });
       setComments((current) => [...payload.items, ...current]);
       setCommentsCursor(payload.nextCursor);
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : copy.interactionFailed);
+      setError(getApiErrorMessage(caught, copy.interactionFailed));
     } finally {
       setCommentsLoading(false);
     }

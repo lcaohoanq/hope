@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { FaArrowLeft } from "react-icons/fa";
-import { readApiJson } from "@/components/dashboard/workout-api";
+import { apiClient, getApiErrorData, getApiErrorMessage } from "@/lib/http";
 import { translations } from "@/lib/i18n";
 import { getProfileUpdateFieldErrors, profileUpdateSchema } from "@/lib/profile-update";
 import { getCanonicalUserPath, type PublicAppUser } from "@/lib/users";
@@ -109,17 +109,12 @@ export function ProfileSettingsForm({ user }: ProfileSettingsFormProps) {
     setFieldErrors({});
 
     try {
-      const response = await fetch("/api/users/profile", {
-        body: JSON.stringify(result.data),
-        headers: { "Content-Type": "application/json" },
-        method: "PATCH",
-      });
-      const payload = await readApiJson<UpdateProfileResponse>(
-        response,
-        copy.profileSettings.saveFailed,
+      const { data: payload } = await apiClient.patch<UpdateProfileResponse>(
+        "/users/profile",
+        result.data,
       );
 
-      if (!response.ok || !payload.success) {
+      if (!payload.success) {
         if ("fieldErrors" in payload && payload.fieldErrors) {
           setFieldErrors(payload.fieldErrors);
         }
@@ -129,7 +124,13 @@ export function ProfileSettingsForm({ user }: ProfileSettingsFormProps) {
 
       window.location.assign(getCanonicalUserPath(payload.profile));
     } catch (error) {
-      setSubmitError(error instanceof Error ? error.message : copy.profileSettings.saveFailed);
+      const errorPayload = getApiErrorData<UpdateProfileResponse>(error);
+
+      if (errorPayload && !errorPayload.success && errorPayload.fieldErrors) {
+        setFieldErrors(errorPayload.fieldErrors);
+      }
+
+      setSubmitError(getApiErrorMessage(error, copy.profileSettings.saveFailed));
       setIsSaving(false);
     }
   }

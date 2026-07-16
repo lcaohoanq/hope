@@ -17,9 +17,8 @@ import { WorkoutDialog } from "@/components/dashboard/WorkoutDialog";
 import { WorkoutLoadingState } from "@/components/dashboard/WorkoutLoadingState";
 import {
   type CreateWorkoutResponse,
-  createWorkoutRequestInit,
   fetchWorkoutDataWithRetry,
-  readApiJson,
+  prepareWorkoutRequestData,
   type UpdateSettingsResponse,
   type UpdateWorkoutResponse,
   type UploadAvatarResponse,
@@ -28,6 +27,7 @@ import { StatsCards } from "@/components/StatsCards";
 import { Loading } from "@/components/shared/Loading";
 import { validateAvatarFile } from "@/lib/avatar-image";
 import { getTodayInTimezone } from "@/lib/date-utils";
+import { apiClient, getApiErrorMessage } from "@/lib/http";
 import { type Language, translations } from "@/lib/i18n";
 import { getAvatarUrl } from "@/lib/profile-utils";
 import { getSocialCopy } from "@/lib/social-copy";
@@ -157,15 +157,14 @@ export function HopeDashboard({
     let workoutSaved = false;
 
     try {
-      const preparedRequest = await createWorkoutRequestInit(input);
+      const preparedRequest = await prepareWorkoutRequestData(input);
       uploadedImagePublicIds = preparedRequest.uploadedImagePublicIds;
-      const response = await fetch("/api/workouts", {
-        method: "POST",
-        ...preparedRequest.requestInit,
-      });
-      const payload = await readApiJson<CreateWorkoutResponse>(response, copy.errors.saveWorkout);
+      const { data: payload } = await apiClient.post<CreateWorkoutResponse>(
+        "/workouts",
+        preparedRequest.data,
+      );
 
-      if (!response.ok || !payload.success) {
+      if (!payload.success) {
         throw new Error("error" in payload ? payload.error : copy.errors.saveWorkout);
       }
 
@@ -189,7 +188,7 @@ export function HopeDashboard({
         await cleanupWorkoutImageUploads(uploadedImagePublicIds);
       }
 
-      throw error;
+      throw new Error(getApiErrorMessage(error, copy.errors.saveWorkout));
     } finally {
       setIsSubmittingWorkout(false);
       setIsUploadingWorkoutImages(false);
@@ -202,15 +201,14 @@ export function HopeDashboard({
     let workoutSaved = false;
 
     try {
-      const preparedRequest = await createWorkoutRequestInit(input);
+      const preparedRequest = await prepareWorkoutRequestData(input);
       uploadedImagePublicIds = preparedRequest.uploadedImagePublicIds;
-      const response = await fetch("/api/workouts", {
-        method: "PATCH",
-        ...preparedRequest.requestInit,
-      });
-      const payload = await readApiJson<UpdateWorkoutResponse>(response, copy.errors.updateWorkout);
+      const { data: payload } = await apiClient.patch<UpdateWorkoutResponse>(
+        "/workouts",
+        preparedRequest.data,
+      );
 
-      if (!response.ok || !payload.success) {
+      if (!payload.success) {
         throw new Error("error" in payload ? payload.error : copy.errors.updateWorkout);
       }
 
@@ -237,7 +235,7 @@ export function HopeDashboard({
         await cleanupWorkoutImageUploads(uploadedImagePublicIds);
       }
 
-      throw error;
+      throw new Error(getApiErrorMessage(error, copy.errors.updateWorkout));
     } finally {
       setIsUploadingWorkoutImages(false);
     }
@@ -279,16 +277,12 @@ export function HopeDashboard({
     setAvatarUploadError("");
 
     try {
-      const response = await fetch("/api/users/avatar", {
-        method: "POST",
-        body: formData,
-      });
-      const payload = await readApiJson<UploadAvatarResponse>(
-        response,
-        copy.dashboard.avatarUploadFailed,
+      const { data: payload } = await apiClient.post<UploadAvatarResponse>(
+        "/users/avatar",
+        formData,
       );
 
-      if (!response.ok || !payload.success) {
+      if (!payload.success) {
         throw new Error("error" in payload ? payload.error : copy.dashboard.avatarUploadFailed);
       }
 
@@ -300,9 +294,7 @@ export function HopeDashboard({
     } catch (error) {
       URL.revokeObjectURL(previewUrl);
       setPendingAvatarPreviewUrl("");
-      setAvatarUploadError(
-        error instanceof Error ? error.message : copy.dashboard.avatarUploadFailed,
-      );
+      setAvatarUploadError(getApiErrorMessage(error, copy.dashboard.avatarUploadFailed));
       return false;
     } finally {
       setIsUploadingAvatar(false);
@@ -329,21 +321,11 @@ export function HopeDashboard({
     setIsSavingTheme(true);
 
     try {
-      const response = await fetch("/api/users/settings", {
-        body: JSON.stringify({
-          theme: nextTheme,
-        }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-        method: "PATCH",
+      const { data: payload } = await apiClient.patch<UpdateSettingsResponse>("/users/settings", {
+        theme: nextTheme,
       });
-      const payload = await readApiJson<UpdateSettingsResponse>(
-        response,
-        copy.header.themeUpdateFailed,
-      );
 
-      if (!response.ok || !payload.success) {
+      if (!payload.success) {
         throw new Error("error" in payload ? payload.error : copy.header.themeUpdateFailed);
       }
 
@@ -355,7 +337,7 @@ export function HopeDashboard({
         window.localStorage.setItem(themeStorageKey, previousTheme);
       }
       setThemeMessage("");
-      setThemeError(error instanceof Error ? error.message : copy.header.themeUpdateFailed);
+      setThemeError(getApiErrorMessage(error, copy.header.themeUpdateFailed));
     } finally {
       setIsSavingTheme(false);
     }

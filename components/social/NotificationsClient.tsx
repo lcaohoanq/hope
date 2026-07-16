@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+import { apiClient, getApiErrorMessage } from "@/lib/http";
 import type { Language } from "@/lib/i18n";
 import { getSocialCopy } from "@/lib/social-copy";
 import type { AppNotification } from "@/lib/social-types";
@@ -17,20 +18,22 @@ export function NotificationsClient({ language }: { language: Language }) {
   const copy = getSocialCopy(language);
   const [items, setItems] = useState<AppNotification[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
+  const [error, setError] = useState("");
   const load = useCallback(async (next?: string) => {
-    const response = await fetch(
-      `/api/notifications${next ? `?cursor=${encodeURIComponent(next)}` : ""}`,
-      { cache: "no-store" },
-    );
-    const payload = (await response.json()) as {
-      items?: AppNotification[];
-      nextCursor?: string | null;
-    };
-    if (response.ok) {
+    try {
+      const { data: payload } = await apiClient.get<{
+        items?: AppNotification[];
+        nextCursor?: string | null;
+      }>("/notifications", {
+        headers: { "Cache-Control": "no-cache" },
+        params: { cursor: next },
+      });
       setItems((current) =>
         next ? [...current, ...(payload.items ?? [])] : (payload.items ?? []),
       );
       setCursor(payload.nextCursor ?? null);
+    } catch {
+      // Keep the current notification list when a background refresh fails.
     }
   }, []);
   useEffect(() => {
@@ -40,20 +43,22 @@ export function NotificationsClient({ language }: { language: Language }) {
     return () => window.clearTimeout(timer);
   }, [load]);
   async function markAll() {
-    await fetch("/api/notifications", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: "{}",
-    });
-    await load();
+    setError("");
+    try {
+      await apiClient.patch("/notifications", {});
+      await load();
+    } catch (caught) {
+      setError(getApiErrorMessage(caught, "Unable to update notifications."));
+    }
   }
   async function respond(actorId: string, action: "accept" | "decline") {
-    await fetch(`/api/follow-requests/${actorId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action }),
-    });
-    await load();
+    setError("");
+    try {
+      await apiClient.patch(`/follow-requests/${actorId}`, { action });
+      await load();
+    } catch (caught) {
+      setError(getApiErrorMessage(caught, "Unable to update follow request."));
+    }
   }
   return (
     <section className="overflow-hidden rounded-lg border border-border bg-panel">
@@ -66,6 +71,14 @@ export function NotificationsClient({ language }: { language: Language }) {
           {copy.markAllRead}
         </button>
       </div>
+      {error ? (
+        <p
+          aria-live="polite"
+          className="border-b border-border p-4 text-sm font-medium text-danger"
+        >
+          {error}
+        </p>
+      ) : null}
       {items.length === 0 ? (
         <p className="p-10 text-center text-muted">{copy.noNotifications}</p>
       ) : (

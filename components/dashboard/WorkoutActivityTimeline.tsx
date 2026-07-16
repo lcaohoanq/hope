@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FaCheck, FaLock } from "react-icons/fa";
 import {
   formatActivityMonth,
   formatActivityTimestamp,
   getActivityMonthKey,
 } from "@/lib/date-utils";
+import { apiClient, getApiErrorMessage } from "@/lib/http";
 import type { AppCopy, Language } from "@/lib/i18n";
 import type { HeatmapView } from "@/lib/users";
 import type { Workout } from "@/lib/workout-types";
@@ -38,11 +39,17 @@ export function WorkoutActivityTimeline({
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState("");
+  const requestRef = useRef<{ controller: AbortController; id: number } | null>(null);
   const groups = useMemo(() => groupWorkoutsByMonth(workouts, language), [language, workouts]);
   const year = view.mode === "year" ? view.year : undefined;
 
   const loadActivity = useCallback(
     async ({ cursor, append = false }: { cursor?: string; append?: boolean } = {}) => {
+      requestRef.current?.controller.abort();
+      const controller = new AbortController();
+      const requestId = (requestRef.current?.id ?? 0) + 1;
+      requestRef.current = { controller, id: requestId };
+
       if (append) {
         setIsLoadingMore(true);
       } else {
@@ -51,41 +58,29 @@ export function WorkoutActivityTimeline({
       setError("");
 
       try {
-        const searchParams = new URLSearchParams({
-          userId,
-          limit: "6",
-        });
-
-        if (cursor) {
-          searchParams.set("cursor", cursor);
-        }
-
-        if (year) {
-          searchParams.set("year", String(year));
-        }
-
-        const response = await fetch(`/api/workouts/activity?${searchParams.toString()}`, {
-          cache: "no-store",
-        });
-        const payload = (await response.json()) as {
+        const { data: payload } = await apiClient.get<{
           workouts?: Workout[];
           nextCursor?: string | null;
           error?: string;
-        };
+        }>("/workouts/activity", {
+          headers: { "Cache-Control": "no-cache" },
+          params: { cursor, limit: 6, userId, year },
+          signal: controller.signal,
+        });
 
-        if (!response.ok) {
-          throw new Error(payload.error ?? copy.activityTimeline.loadError);
-        }
-
+        if (requestRef.current?.id !== requestId) return;
         setWorkouts((current) =>
           append ? [...current, ...(payload.workouts ?? [])] : (payload.workouts ?? []),
         );
         setNextCursor(payload.nextCursor ?? null);
       } catch (caught) {
-        setError(caught instanceof Error ? caught.message : copy.activityTimeline.loadError);
+        if (controller.signal.aborted || requestRef.current?.id !== requestId) return;
+        setError(getApiErrorMessage(caught, copy.activityTimeline.loadError));
       } finally {
-        setIsLoading(false);
-        setIsLoadingMore(false);
+        if (requestRef.current?.id === requestId) {
+          setIsLoading(false);
+          setIsLoadingMore(false);
+        }
       }
     },
     [copy.activityTimeline.loadError, userId, year],

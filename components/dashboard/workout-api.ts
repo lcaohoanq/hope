@@ -1,3 +1,4 @@
+import { apiClient, getApiErrorMessage } from "@/lib/http";
 import type { UserSettings } from "@/lib/users";
 import { uploadWorkoutImagesDirectly } from "@/lib/workout-image-upload";
 import type { Workout, WorkoutData, WorkoutInput, WorkoutUpdateInput } from "@/lib/workout-types";
@@ -43,12 +44,12 @@ export async function fetchWorkoutDataWithRetry(userId: string, fallbackMessage:
 
   for (let attempt = 0; attempt <= WORKOUT_LOAD_RETRY_DELAYS_MS.length; attempt += 1) {
     try {
-      const response = await fetch(`/api/workouts?userId=${userId}`, {
-        cache: "no-store",
+      const { data: payload } = await apiClient.get<WorkoutData | ApiErrorResponse>("/workouts", {
+        headers: { "Cache-Control": "no-cache" },
+        params: { userId },
       });
-      const payload = await readApiJson<WorkoutData | ApiErrorResponse>(response, fallbackMessage);
 
-      if (!response.ok || "success" in payload) {
+      if ("success" in payload) {
         throw new Error("error" in payload ? payload.error : fallbackMessage);
       }
 
@@ -66,37 +67,18 @@ export async function fetchWorkoutDataWithRetry(userId: string, fallbackMessage:
     }
   }
 
-  throw lastError instanceof Error ? lastError : new Error(fallbackMessage);
+  throw new Error(getApiErrorMessage(lastError, fallbackMessage));
 }
 
-export async function createWorkoutRequestInit(input: WorkoutInput | WorkoutUpdateInput) {
+export async function prepareWorkoutRequestData(input: WorkoutInput | WorkoutUpdateInput) {
   const { images = [], ...workoutInput } = input;
   const uploadedImagePublicIds = await uploadWorkoutImagesDirectly(images);
 
   return {
-    requestInit: {
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        ...workoutInput,
-        imagePublicIds: uploadedImagePublicIds,
-      }),
+    data: {
+      ...workoutInput,
+      imagePublicIds: uploadedImagePublicIds,
     },
     uploadedImagePublicIds,
   };
-}
-
-export async function readApiJson<T>(response: Response, fallbackMessage: string) {
-  const contentType = response.headers.get("content-type") ?? "";
-
-  if (!contentType.includes("application/json")) {
-    throw new Error(`${fallbackMessage} The server returned a non-JSON response.`);
-  }
-
-  try {
-    return (await response.json()) as T;
-  } catch {
-    throw new Error(`${fallbackMessage} The server returned invalid JSON.`);
-  }
 }

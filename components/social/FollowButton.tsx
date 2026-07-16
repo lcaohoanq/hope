@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { apiClient, getApiErrorMessage } from "@/lib/http";
 import type { Language } from "@/lib/i18n";
 import { getSocialCopy } from "@/lib/social-copy";
 import type { RelationshipStatus } from "@/lib/social-types";
@@ -24,6 +25,7 @@ export function FollowButton({
   const router = useRouter();
   const [status, setStatus] = useState(initialStatus);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
   if (status === "self") return null;
   if (!authenticated) {
     return (
@@ -38,17 +40,19 @@ export function FollowButton({
 
   async function toggle() {
     setSaving(true);
+    setError("");
     try {
-      const response = await fetch(`/api/profiles/${profileId}/follow`, {
-        method: status === "none" ? "POST" : "DELETE",
-      });
-      const payload = (await response.json()) as {
+      const { data: payload } = await apiClient.request<{
         relationshipStatus?: RelationshipStatus;
         error?: string;
-      };
-      if (!response.ok) throw new Error(payload.error ?? "Unable to update follow status.");
+      }>({
+        url: `/profiles/${profileId}/follow`,
+        method: status === "none" ? "POST" : "DELETE",
+      });
       setStatus(payload.relationshipStatus ?? "none");
       router.refresh();
+    } catch (caught) {
+      setError(getApiErrorMessage(caught, "Unable to update follow status."));
     } finally {
       setSaving(false);
     }
@@ -57,13 +61,20 @@ export function FollowButton({
   const label =
     status === "none" ? copy.follow : status === "pending" ? copy.requested : copy.unfollow;
   return (
-    <button
-      className={`h-10 w-full rounded-md px-4 text-sm font-semibold transition active:scale-[0.98] disabled:opacity-60 ${status === "none" ? "bg-accent text-accent-contrast" : "border border-border bg-panel text-text hover:bg-panel-muted"}`}
-      disabled={saving}
-      onClick={() => void toggle()}
-      type="button"
-    >
-      {label}
-    </button>
+    <>
+      <button
+        className={`h-10 w-full rounded-md px-4 text-sm font-semibold transition active:scale-[0.98] disabled:opacity-60 ${status === "none" ? "bg-accent text-accent-contrast" : "border border-border bg-panel text-text hover:bg-panel-muted"}`}
+        disabled={saving}
+        onClick={() => void toggle()}
+        type="button"
+      >
+        {label}
+      </button>
+      {error ? (
+        <p aria-live="polite" className="mt-2 text-sm font-medium text-danger">
+          {error}
+        </p>
+      ) : null}
+    </>
   );
 }

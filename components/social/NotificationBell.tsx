@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FaBell } from "react-icons/fa";
+import { apiClient, getApiErrorMessage } from "@/lib/http";
 import type { Language } from "@/lib/i18n";
 import { getSocialCopy } from "@/lib/social-copy";
 import type { AppNotification } from "@/lib/social-types";
@@ -25,20 +26,25 @@ export function NotificationBell({ language }: { language: Language }) {
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<AppNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [error, setError] = useState("");
 
   const load = useCallback(async () => {
-    const response = await fetch("/api/notifications", { cache: "no-store" });
-    if (!response.ok) return;
-    const payload = (await response.json()) as NotificationPayload;
-    const relationshipEvent = payload.items.find(
-      (item) => item.type === "follow_accepted" || item.type === "new_follower",
-    );
-    if (relationshipEvent && relationshipEvent.id !== lastRelationshipEventRef.current) {
-      lastRelationshipEventRef.current = relationshipEvent.id;
-      router.refresh();
+    try {
+      const { data: payload } = await apiClient.get<NotificationPayload>("/notifications", {
+        headers: { "Cache-Control": "no-cache" },
+      });
+      const relationshipEvent = payload.items.find(
+        (item) => item.type === "follow_accepted" || item.type === "new_follower",
+      );
+      if (relationshipEvent && relationshipEvent.id !== lastRelationshipEventRef.current) {
+        lastRelationshipEventRef.current = relationshipEvent.id;
+        router.refresh();
+      }
+      setItems(payload.items);
+      setUnreadCount(payload.unreadCount);
+    } catch {
+      // Notification polling remains best effort.
     }
-    setItems(payload.items);
-    setUnreadCount(payload.unreadCount);
   }, [router]);
 
   useEffect(() => {
@@ -75,22 +81,24 @@ export function NotificationBell({ language }: { language: Language }) {
   }, [load, open]);
 
   async function respond(actorId: string, action: "accept" | "decline") {
-    await fetch(`/api/follow-requests/${actorId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action }),
-    });
-    await load();
-    router.refresh();
+    setError("");
+    try {
+      await apiClient.patch(`/follow-requests/${actorId}`, { action });
+      await load();
+      router.refresh();
+    } catch (caught) {
+      setError(getApiErrorMessage(caught, "Unable to update follow request."));
+    }
   }
 
   async function markAllRead() {
-    await fetch("/api/notifications", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: "{}",
-    });
-    await load();
+    setError("");
+    try {
+      await apiClient.patch("/notifications", {});
+      await load();
+    } catch (caught) {
+      setError(getApiErrorMessage(caught, "Unable to update notifications."));
+    }
   }
 
   return (
@@ -123,6 +131,14 @@ export function NotificationBell({ language }: { language: Language }) {
               </button>
             ) : null}
           </div>
+          {error ? (
+            <p
+              aria-live="polite"
+              className="border-b border-border p-3 text-sm font-medium text-danger"
+            >
+              {error}
+            </p>
+          ) : null}
           <div className="max-h-96 overflow-y-auto p-2">
             {items.length === 0 ? (
               <p className="p-4 text-sm text-muted">{copy.noNotifications}</p>

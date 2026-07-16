@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { AvatarImage } from "@/components/dashboard/AvatarImage";
+import { apiClient } from "@/lib/http";
 import type { Language } from "@/lib/i18n";
 import { getAvatarUrl } from "@/lib/profile-utils";
 import { getSocialCopy } from "@/lib/social-copy";
@@ -95,15 +96,33 @@ export function ConnectionsDialog({
     ) : null;
 
   useEffect(() => {
-    if (!type || !canView) return;
+    if (!type || !canView) {
+      setLoading(false);
+      return;
+    }
+    const controller = new AbortController();
     const timer = window.setTimeout(() => {
       setLoading(true);
-      fetch(`/api/profiles/${profileId}/connections?type=${type}`, { cache: "no-store" })
-        .then((response) => response.json())
-        .then((payload: { items?: ConnectionItem[] }) => setItems(payload.items ?? []))
-        .finally(() => setLoading(false));
+      apiClient
+        .get<{ items?: ConnectionItem[] }>(`/profiles/${profileId}/connections`, {
+          headers: { "Cache-Control": "no-cache" },
+          params: { type },
+          signal: controller.signal,
+        })
+        .then(({ data }) => {
+          if (!controller.signal.aborted) setItems(data.items ?? []);
+        })
+        .catch(() => {
+          if (!controller.signal.aborted) setItems([]);
+        })
+        .finally(() => {
+          if (!controller.signal.aborted) setLoading(false);
+        });
     }, 0);
-    return () => window.clearTimeout(timer);
+    return () => {
+      controller.abort();
+      window.clearTimeout(timer);
+    };
   }, [canView, profileId, type]);
 
   return (

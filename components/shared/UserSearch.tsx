@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import { FaSearch } from "react-icons/fa";
 import { AvatarImage } from "@/components/dashboard/AvatarImage";
+import { apiClient } from "@/lib/http";
 import { getAvatarUrl } from "@/lib/profile-utils";
 import type { PublicAppUser } from "@/lib/users";
 
@@ -49,12 +50,12 @@ export function UserSearch({ className = "", copy, inputClassName = "" }: UserSe
     const timeout = window.setTimeout(async () => {
       setStatus("loading");
       try {
-        const response = await fetch(`/api/users/search?q=${encodeURIComponent(trimmedQuery)}`, {
+        const { data: payload } = await apiClient.get<UserSearchResponse>("/users/search", {
+          params: { q: trimmedQuery },
           signal: controller.signal,
         });
-        const payload = (await response.json()) as UserSearchResponse;
         if (requestRef.current !== requestId) return;
-        if (!response.ok || !payload.success) throw new Error("Search failed");
+        if (!payload.success) throw new Error("Search failed");
         setUsers(payload.users);
         setStatus("ready");
       } catch {
