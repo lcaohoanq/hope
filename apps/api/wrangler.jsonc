@@ -1,0 +1,17 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "hope-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-06-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": {
+    "enabled": true
+  },
+  "vars": {
+    "ALLOWED_ORIGINS": "http://localhost:3000"
+  },
+  // Secrets (set via `wrangler secret put`): CLERK_SECRET_KEY, CLOUDINARY_CLOUD_NAME,
+  // CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET, DATABASE_URL (dev fallback).
+  // Create via: wrangler hyperdrive create hope-db --connection-string="<supabase-pooler-url>"
+  "hyperdrive": [{ "binding": "HYPERDRIVE", "id": "<your-hyperdrive-id>" }]
+}

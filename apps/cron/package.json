@@ -1,0 +1,26 @@
+{
+  "name": "@hope/cron",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "reminder": "tsx src/send-reminder.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@clerk/backend": "^3.11.6",
+    "@hope/core": "workspace:*",
+    "@hope/db": "workspace:*",
+    "@hope/shared": "workspace:*",
+    "@react-email/components": "^1.0.12",
+    "@react-email/render": "^2.0.10",
+    "resend": "^6.16.0"
+  },
+  "devDependencies": {
+    "@next/env": "16.3.0-preview.6",
+    "@types/node": "^26.1.0",
+    "@types/react": "^19.2.17",
+    "tsx": "^4.22.4",
+    "typescript": "^6.0.3"
+  }
+}

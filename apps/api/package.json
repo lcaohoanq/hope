@@ -1,0 +1,38 @@
+{
+  "name": "@hope/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "dev": "wrangler dev",
+    "dev:node": "tsx --watch src/serve.ts",
+    "start": "tsx src/serve.ts",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit",
+    "cf-typegen": "wrangler types"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1088.0",
+    "@clerk/backend": "^3.11.6",
+    "@hono/node-server": "^2.0.10",
+    "@hono/zod-validator": "^0.9.0",
+    "@hope/core": "workspace:*",
+    "@hope/db": "workspace:*",
+    "@hope/shared": "workspace:*",
+    "hono": "^4.12.30",
+    "sharp": "^0.35.3",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260716.1",
+    "@types/node": "^26.1.0",
+    "tsx": "^4.22.4",
+    "typescript": "^6.0.3",
+    "wrangler": "^4.111.0"
+  }
+}
