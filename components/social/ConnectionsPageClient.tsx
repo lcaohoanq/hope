@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { AvatarImage } from "@/components/dashboard/AvatarImage";
+import { apiClient } from "@/lib/http";
 import type { Language } from "@/lib/i18n";
 import { getAvatarUrl } from "@/lib/profile-utils";
 import { getSocialCopy } from "@/lib/social-copy";
@@ -24,20 +25,17 @@ export function ConnectionsPageClient({
   const [cursor, setCursor] = useState<string | null>(null);
   const load = useCallback(
     async (next?: string) => {
-      const response = await fetch(
-        `/api/profiles/${profileId}/connections?type=${type}${next ? `&cursor=${encodeURIComponent(next)}` : ""}`,
-        { cache: "no-store" },
-      );
-      const payload = (await response.json()) as {
+      const { data: payload } = await apiClient.get<{
         items?: ConnectionItem[];
         nextCursor?: string | null;
-      };
-      if (response.ok) {
-        setItems((current) =>
-          next ? [...current, ...(payload.items ?? [])] : (payload.items ?? []),
-        );
-        setCursor(payload.nextCursor ?? null);
-      }
+      }>(`/profiles/${profileId}/connections`, {
+        headers: { "Cache-Control": "no-cache" },
+        params: { cursor: next, type },
+      });
+      setItems((current) =>
+        next ? [...current, ...(payload.items ?? [])] : (payload.items ?? []),
+      );
+      setCursor(payload.nextCursor ?? null);
     },
     [profileId, type],
   );

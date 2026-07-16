@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { WorkoutSocialCard } from "@/components/social/WorkoutSocialCard";
+import { apiClient, getApiErrorMessage } from "@/lib/http";
 import type { Language } from "@/lib/i18n";
 import { getSocialCopy } from "@/lib/social-copy";
 import type { FeedItem } from "@/lib/social-types";
@@ -19,22 +20,20 @@ export function FeedClient({ language, viewer }: { language: Language; viewer: P
       setLoading(true);
       setError("");
       try {
-        const response = await fetch(
-          `/api/feed${nextCursor ? `?cursor=${encodeURIComponent(nextCursor)}` : ""}`,
-          { cache: "no-store" },
-        );
-        const payload = (await response.json()) as {
+        const { data: payload } = await apiClient.get<{
           items?: FeedItem[];
           nextCursor?: string | null;
           error?: string;
-        };
-        if (!response.ok) throw new Error(payload.error ?? copy.interactionFailed);
+        }>("/feed", {
+          headers: { "Cache-Control": "no-cache" },
+          params: { cursor: nextCursor },
+        });
         setItems((current) =>
           nextCursor ? [...current, ...(payload.items ?? [])] : (payload.items ?? []),
         );
         setCursor(payload.nextCursor ?? null);
       } catch (caught) {
-        setError(caught instanceof Error ? caught.message : copy.interactionFailed);
+        setError(getApiErrorMessage(caught, copy.interactionFailed));
       } finally {
         setLoading(false);
       }

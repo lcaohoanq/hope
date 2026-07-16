@@ -8,6 +8,7 @@ import {
   formatActivityTimestamp,
   getActivityMonthKey,
 } from "@/lib/date-utils";
+import { apiClient, getApiErrorMessage } from "@/lib/http";
 import type { AppCopy, Language } from "@/lib/i18n";
 import type { HeatmapView } from "@/lib/users";
 import type { Workout } from "@/lib/workout-types";
@@ -51,38 +52,21 @@ export function WorkoutActivityTimeline({
       setError("");
 
       try {
-        const searchParams = new URLSearchParams({
-          userId,
-          limit: "6",
-        });
-
-        if (cursor) {
-          searchParams.set("cursor", cursor);
-        }
-
-        if (year) {
-          searchParams.set("year", String(year));
-        }
-
-        const response = await fetch(`/api/workouts/activity?${searchParams.toString()}`, {
-          cache: "no-store",
-        });
-        const payload = (await response.json()) as {
+        const { data: payload } = await apiClient.get<{
           workouts?: Workout[];
           nextCursor?: string | null;
           error?: string;
-        };
-
-        if (!response.ok) {
-          throw new Error(payload.error ?? copy.activityTimeline.loadError);
-        }
+        }>("/workouts/activity", {
+          headers: { "Cache-Control": "no-cache" },
+          params: { cursor, limit: 6, userId, year },
+        });
 
         setWorkouts((current) =>
           append ? [...current, ...(payload.workouts ?? [])] : (payload.workouts ?? []),
         );
         setNextCursor(payload.nextCursor ?? null);
       } catch (caught) {
-        setError(caught instanceof Error ? caught.message : copy.activityTimeline.loadError);
+        setError(getApiErrorMessage(caught, copy.activityTimeline.loadError));
       } finally {
         setIsLoading(false);
         setIsLoadingMore(false);

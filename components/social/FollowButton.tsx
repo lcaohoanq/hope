@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { apiClient, getApiErrorMessage } from "@/lib/http";
 import type { Language } from "@/lib/i18n";
 import { getSocialCopy } from "@/lib/social-copy";
 import type { RelationshipStatus } from "@/lib/social-types";
@@ -39,16 +40,17 @@ export function FollowButton({
   async function toggle() {
     setSaving(true);
     try {
-      const response = await fetch(`/api/profiles/${profileId}/follow`, {
-        method: status === "none" ? "POST" : "DELETE",
-      });
-      const payload = (await response.json()) as {
+      const { data: payload } = await apiClient.request<{
         relationshipStatus?: RelationshipStatus;
         error?: string;
-      };
-      if (!response.ok) throw new Error(payload.error ?? "Unable to update follow status.");
+      }>({
+        url: `/profiles/${profileId}/follow`,
+        method: status === "none" ? "POST" : "DELETE",
+      });
       setStatus(payload.relationshipStatus ?? "none");
       router.refresh();
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, "Unable to update follow status."));
     } finally {
       setSaving(false);
     }

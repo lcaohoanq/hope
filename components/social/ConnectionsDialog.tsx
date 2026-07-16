@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { AvatarImage } from "@/components/dashboard/AvatarImage";
+import { apiClient } from "@/lib/http";
 import type { Language } from "@/lib/i18n";
 import { getAvatarUrl } from "@/lib/profile-utils";
 import { getSocialCopy } from "@/lib/social-copy";
@@ -98,9 +99,13 @@ export function ConnectionsDialog({
     if (!type || !canView) return;
     const timer = window.setTimeout(() => {
       setLoading(true);
-      fetch(`/api/profiles/${profileId}/connections?type=${type}`, { cache: "no-store" })
-        .then((response) => response.json())
-        .then((payload: { items?: ConnectionItem[] }) => setItems(payload.items ?? []))
+      apiClient
+        .get<{ items?: ConnectionItem[] }>(`/profiles/${profileId}/connections`, {
+          headers: { "Cache-Control": "no-cache" },
+          params: { type },
+        })
+        .then(({ data }) => setItems(data.items ?? []))
+        .catch(() => setItems([]))
         .finally(() => setLoading(false));
     }, 0);
     return () => window.clearTimeout(timer);

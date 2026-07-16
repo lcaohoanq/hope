@@ -1,5 +1,6 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
+import { externalHttpClient } from "@/lib/http";
 import type { WorkoutData } from "@/lib/workout-types";
 import { validateWorkoutData } from "@/lib/workout-utils";
 
@@ -144,6 +145,10 @@ function getEncodedBranchPath(config: GitHubConfig) {
     .join("/");
 }
 
+function isSuccessfulStatus(status: number) {
+  return status >= 200 && status < 300;
+}
+
 export function isUsingGitHubDataSource() {
   return getGitHubConfig() !== null;
 }
@@ -176,18 +181,19 @@ export async function readGitHubRepositoryFile(filePath: string): Promise<Buffer
     throw new Error("GitHub environment variables are not configured.");
   }
 
-  const response = await fetch(
-    `${getGitHubContentsUrlForPath(config, filePath)}?ref=${encodeURIComponent(config.branch)}`,
+  const response = await externalHttpClient.get<unknown>(
+    getGitHubContentsUrlForPath(config, filePath),
     {
       headers: createGitHubHeaders(config),
+      params: { ref: config.branch },
     },
   );
 
-  if (!response.ok) {
+  if (!isSuccessfulStatus(response.status)) {
     throw new Error(`GitHub file read failed with status ${response.status}.`);
   }
 
-  const payload: unknown = await response.json();
+  const payload: unknown = response.data;
   assertGitHubObject(payload);
 
   return Buffer.from(payload.content, "base64");
@@ -204,22 +210,24 @@ export async function commitWorkoutDataToGitHub({ data, sha, message }: CommitJs
     throw new Error("GitHub environment variables are not configured.");
   }
 
-  const response = await fetch(getGitHubContentsUrl(config), {
-    method: "PUT",
-    headers: createGitHubHeaders(config),
-    body: JSON.stringify({
+  const response = await externalHttpClient.put(
+    getGitHubContentsUrl(config),
+    {
       branch: config.branch,
       message,
       content: encodeBase64(`${JSON.stringify(data, null, 2)}\n`),
       sha,
-    }),
-  });
+    },
+    {
+      headers: createGitHubHeaders(config),
+    },
+  );
 
   if (response.status === 409) {
     throw new GitHubJsonConflictError();
   }
 
-  if (!response.ok) {
+  if (!isSuccessfulStatus(response.status)) {
     throw new Error(`GitHub update failed with status ${response.status}.`);
   }
 }
@@ -307,18 +315,16 @@ export async function commitRepositoryFilesToGitHub({
 
 async function readWorkoutDataFromGitHub(config: GitHubConfig): Promise<GitHubFile> {
   return retryGitHubRead(async () => {
-    const response = await fetch(
-      `${getGitHubContentsUrl(config)}?ref=${encodeURIComponent(config.branch)}`,
-      {
-        headers: createGitHubHeaders(config),
-      },
-    );
+    const response = await externalHttpClient.get<unknown>(getGitHubContentsUrl(config), {
+      headers: createGitHubHeaders(config),
+      params: { ref: config.branch },
+    });
 
-    if (!response.ok) {
+    if (!isSuccessfulStatus(response.status)) {
       throw new GitHubReadError(response.status);
     }
 
-    const payload: unknown = await response.json();
+    const payload: unknown = response.data;
     assertGitHubObject(payload);
 
     return {
@@ -370,18 +376,18 @@ function sleep(milliseconds: number) {
 }
 
 async function readGitHubHeadSha(config: GitHubConfig) {
-  const response = await fetch(
+  const response = await externalHttpClient.get<unknown>(
     `${getGitHubApiBaseUrl(config)}/git/ref/heads/${getEncodedBranchPath(config)}`,
     {
       headers: createGitHubHeaders(config),
     },
   );
 
-  if (!response.ok) {
+  if (!isSuccessfulStatus(response.status)) {
     throw new Error(`GitHub ref read failed with status ${response.status}.`);
   }
 
-  const payload: unknown = await response.json();
+  const payload: unknown = response.data;
 
   if (
     !payload ||
@@ -399,33 +405,34 @@ async function readGitHubHeadSha(config: GitHubConfig) {
 }
 
 async function readGitHubDataShaAtRef(config: GitHubConfig, ref: string) {
-  const response = await fetch(`${getGitHubContentsUrl(config)}?ref=${encodeURIComponent(ref)}`, {
+  const response = await externalHttpClient.get<unknown>(getGitHubContentsUrl(config), {
     headers: createGitHubHeaders(config),
+    params: { ref },
   });
 
-  if (!response.ok) {
+  if (!isSuccessfulStatus(response.status)) {
     throw new Error(`GitHub data read failed with status ${response.status}.`);
   }
 
-  const payload: unknown = await response.json();
+  const payload: unknown = response.data;
   assertGitHubObject(payload);
 
   return payload.sha;
 }
 
 async function readGitHubCommitTreeSha(config: GitHubConfig, commitSha: string) {
-  const response = await fetch(
+  const response = await externalHttpClient.get<unknown>(
     `${getGitHubApiBaseUrl(config)}/git/commits/${encodeURIComponent(commitSha)}`,
     {
       headers: createGitHubHeaders(config),
     },
   );
 
-  if (!response.ok) {
+  if (!isSuccessfulStatus(response.status)) {
     throw new Error(`GitHub commit read failed with status ${response.status}.`);
   }
 
-  const payload: unknown = await response.json();
+  const payload: unknown = response.data;
 
   if (
     !payload ||
@@ -443,20 +450,20 @@ async function readGitHubCommitTreeSha(config: GitHubConfig, commitSha: string) 
 }
 
 async function createGitHubBlob(config: GitHubConfig, content: Buffer) {
-  const response = await fetch(`${getGitHubApiBaseUrl(config)}/git/blobs`, {
-    method: "POST",
-    headers: createGitHubHeaders(config),
-    body: JSON.stringify({
+  const response = await externalHttpClient.post<unknown>(
+    `${getGitHubApiBaseUrl(config)}/git/blobs`,
+    {
       content: encodeBase64Buffer(content),
       encoding: "base64",
-    }),
-  });
+    },
+    { headers: createGitHubHeaders(config) },
+  );
 
-  if (!response.ok) {
+  if (!isSuccessfulStatus(response.status)) {
     throw new Error(`GitHub blob create failed with status ${response.status}.`);
   }
 
-  const payload: unknown = await response.json();
+  const payload: unknown = response.data;
 
   if (
     !payload ||
@@ -480,10 +487,9 @@ async function createGitHubTree(
     entries: { path: string; blobSha: string | null }[];
   },
 ) {
-  const response = await fetch(`${getGitHubApiBaseUrl(config)}/git/trees`, {
-    method: "POST",
-    headers: createGitHubHeaders(config),
-    body: JSON.stringify({
+  const response = await externalHttpClient.post<unknown>(
+    `${getGitHubApiBaseUrl(config)}/git/trees`,
+    {
       base_tree: baseTreeSha,
       tree: entries.map((entry) => ({
         path: entry.path,
@@ -491,14 +497,15 @@ async function createGitHubTree(
         type: "blob",
         sha: entry.blobSha,
       })),
-    }),
-  });
+    },
+    { headers: createGitHubHeaders(config) },
+  );
 
-  if (!response.ok) {
+  if (!isSuccessfulStatus(response.status)) {
     throw new Error(`GitHub tree create failed with status ${response.status}.`);
   }
 
-  const payload: unknown = await response.json();
+  const payload: unknown = response.data;
 
   if (
     !payload ||
@@ -524,21 +531,21 @@ async function createGitHubCommit(
     parentSha: string;
   },
 ) {
-  const response = await fetch(`${getGitHubApiBaseUrl(config)}/git/commits`, {
-    method: "POST",
-    headers: createGitHubHeaders(config),
-    body: JSON.stringify({
+  const response = await externalHttpClient.post<unknown>(
+    `${getGitHubApiBaseUrl(config)}/git/commits`,
+    {
       message,
       tree: treeSha,
       parents: [parentSha],
-    }),
-  });
+    },
+    { headers: createGitHubHeaders(config) },
+  );
 
-  if (!response.ok) {
+  if (!isSuccessfulStatus(response.status)) {
     throw new Error(`GitHub commit create failed with status ${response.status}.`);
   }
 
-  const payload: unknown = await response.json();
+  const payload: unknown = response.data;
 
   if (
     !payload ||
@@ -553,23 +560,20 @@ async function createGitHubCommit(
 }
 
 async function updateGitHubBranchRef(config: GitHubConfig, commitSha: string) {
-  const response = await fetch(
+  const response = await externalHttpClient.patch(
     `${getGitHubApiBaseUrl(config)}/git/refs/heads/${getEncodedBranchPath(config)}`,
     {
-      method: "PATCH",
-      headers: createGitHubHeaders(config),
-      body: JSON.stringify({
-        sha: commitSha,
-        force: false,
-      }),
+      sha: commitSha,
+      force: false,
     },
+    { headers: createGitHubHeaders(config) },
   );
 
   if (response.status === 409 || response.status === 422) {
     throw new GitHubJsonConflictError();
   }
 
-  if (!response.ok) {
+  if (!isSuccessfulStatus(response.status)) {
     throw new Error(`GitHub ref update failed with status ${response.status}.`);
   }
 }

@@ -1,3 +1,4 @@
+import { apiClient, externalHttpClient } from "@/lib/http";
 import { prepareWorkoutImageUploads } from "@/lib/image-previews";
 import {
   MAX_OPTIMIZED_WORKOUT_IMAGE_BYTES,
@@ -35,14 +36,11 @@ export async function uploadWorkoutImagesDirectly(images: File[]) {
   }
 
   const optimizedImages = await prepareWorkoutImageUploads(images);
-  const signResponse = await fetch("/api/workout-images", {
-    body: JSON.stringify({ count: optimizedImages.length }),
-    headers: { "Content-Type": "application/json" },
-    method: "POST",
+  const { data: signed } = await apiClient.post<SignUploadResponse>("/workout-images", {
+    count: optimizedImages.length,
   });
-  const signed = (await readJson(signResponse)) as SignUploadResponse;
 
-  if (!signResponse.ok || !signed.success) {
+  if (!signed.success) {
     throw new Error("error" in signed ? signed.error : "Unable to prepare workout image uploads.");
   }
 
@@ -75,11 +73,7 @@ export async function cleanupWorkoutImageUploads(publicIds: string[]) {
   if (publicIds.length === 0) return;
 
   try {
-    await fetch("/api/workout-images", {
-      body: JSON.stringify({ publicIds }),
-      headers: { "Content-Type": "application/json" },
-      method: "DELETE",
-    });
+    await apiClient.delete("/workout-images", { data: { publicIds } });
   } catch {
     // Preserve the original upload or save error if best-effort cleanup cannot reach the server.
   }
@@ -100,18 +94,13 @@ async function uploadImageToCloudinary(
     formData.set(key, String(value));
   }
 
-  const response = await fetch(uploadUrl, { body: formData, method: "POST" });
-  const payload = (await readJson(response)) as CloudinaryUploadResponse;
+  const response = await externalHttpClient.post<CloudinaryUploadResponse>(uploadUrl, formData);
 
-  if (!response.ok || payload.public_id !== ticket.publicId) {
+  if (
+    response.status < 200 ||
+    response.status >= 300 ||
+    response.data.public_id !== ticket.publicId
+  ) {
     throw new Error("Unable to upload one or more workout images.");
-  }
-}
-
-async function readJson(response: Response) {
-  try {
-    return (await response.json()) as unknown;
-  } catch {
-    throw new Error("The image upload service returned an invalid response.");
   }
 }
