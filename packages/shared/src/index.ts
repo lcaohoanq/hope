@@ -1,3 +1,10 @@
+/**
+ * Shared isomorphic helpers and types for Hope (web, API, cron).
+ *
+ * Safe in the browser and on Workers — no Node-only or server-only deps.
+ *
+ * @packageDocumentation
+ */
 export * from "./avatar-image";
 export * from "./caption-utils";
 export * from "./date-utils";

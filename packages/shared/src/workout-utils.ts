@@ -13,9 +13,16 @@ import type {
   WorkoutImage,
 } from "./workout-types";
 
+/** Earliest date key included in workout tracking / heatmaps. */
 export const TRACKING_START_DATE = "2026-01-01";
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
+/**
+ * Group workouts by their `date` key.
+ *
+ * @param workouts - Workout list.
+ * @returns Map of date key → workouts on that day.
+ */
 export function groupWorkoutsByDate(workouts: Workout[]) {
   const grouped = new Map<string, Workout[]>();
 
@@ -27,6 +34,13 @@ export function groupWorkoutsByDate(workouts: Workout[]) {
   return grouped;
 }
 
+/**
+ * Build a 365-day contribution heatmap grid ending at `endDateKey`.
+ *
+ * @param endDateKey - Last day of the window (`YYYY-MM-DD`).
+ * @param workouts - Workouts to place on the grid.
+ * @returns Weeks of day cells (`null` for leading padding).
+ */
 export function createHeatmapWeeks(endDateKey: string, workouts: Workout[]) {
   const workoutsByDate = groupWorkoutsByDate(workouts);
   const days = getLastNDays(endDateKey, 365);
@@ -50,6 +64,12 @@ export function createHeatmapWeeks(endDateKey: string, workouts: Workout[]) {
   );
 }
 
+/**
+ * Lifetime heatmap: one year grid from `birthYear` through the end date's year.
+ *
+ * @param options - `birthYear`, `endDateKey`, `workouts`, optional `trackingStartDateKey`.
+ * @returns Array of `{ year, weeks }` heatmap years.
+ */
 export function createLifetimeHeatmapYears({
   birthYear,
   endDateKey,
@@ -72,6 +92,12 @@ export function createLifetimeHeatmapYears({
   });
 }
 
+/**
+ * Build per-year heatmap grids between `startYear` and `endYear`.
+ *
+ * @param options - `startYear`, `endYear`, `endDateKey`, `workouts`, optional `trackingStartDateKey`.
+ * @returns Array of `{ year, weeks }` heatmap years.
+ */
 export function createHeatmapYears({
   startYear,
   endYear,
@@ -124,6 +150,12 @@ export function createHeatmapYears({
   });
 }
 
+/**
+ * Coerce unknown JSON into a {@link WorkoutData} shape with safe defaults.
+ *
+ * @param value - Unknown payload.
+ * @returns Normalized workout data.
+ */
 export function validateWorkoutData(value: unknown): WorkoutData {
   if (!value || typeof value !== "object") {
     return {
@@ -147,6 +179,14 @@ export function validateWorkoutData(value: unknown): WorkoutData {
   };
 }
 
+/**
+ * Validate a create-workout request and stamp start/end times.
+ *
+ * @param body - Loose request body.
+ * @param todayDateKey - Today for future-date checks.
+ * @param currentTime - Clock time applied to start/end.
+ * @returns Success with workout input, or `{ success: false, error }`.
+ */
 export function validateCreateWorkoutRequest(
   body: CreateWorkoutRequest,
   todayDateKey = getTodayInTimezone(),
@@ -224,6 +264,13 @@ function validateWorkoutRequestDetails(
   };
 }
 
+/**
+ * Validate an update-workout request including optional image srcs.
+ *
+ * @param body - Loose request body.
+ * @param todayDateKey - Today for future-date checks.
+ * @returns Success with id + input (+ imageSrcs), or `{ success: false, error }`.
+ */
 export function validateUpdateWorkoutRequest(
   body: UpdateWorkoutRequest,
   todayDateKey = getTodayInTimezone(),
@@ -262,6 +309,13 @@ function parseWorkoutImageSrcs(value: unknown) {
   return values.filter((src): src is string => typeof src === "string" && src.trim().length > 0);
 }
 
+/**
+ * Build a new {@link Workout} record with a generated id and `createdAt`.
+ *
+ * @param input - Workout fields.
+ * @param now - Timestamp source for id / createdAt.
+ * @returns New workout record.
+ */
 export function createWorkoutRecord(
   input: {
     userId: string;
@@ -291,6 +345,13 @@ export function createWorkoutRecord(
   };
 }
 
+/**
+ * Append a workout if its id is not already present; keeps sorted order.
+ *
+ * @param data - Existing workout data.
+ * @param workout - Workout to append.
+ * @returns Updated data (or original if duplicate id).
+ */
 export function appendWorkout(data: WorkoutData, workout: Workout): WorkoutData {
   if (data.workouts.some((existing) => existing.id === workout.id)) {
     return data;
@@ -310,6 +371,13 @@ export function appendWorkout(data: WorkoutData, workout: Workout): WorkoutData 
   };
 }
 
+/**
+ * Replace an existing workout by id; no-op if missing.
+ *
+ * @param data - Existing workout data.
+ * @param workout - Replacement workout.
+ * @returns Updated data (or original if id not found).
+ */
 export function replaceWorkout(data: WorkoutData, workout: Workout): WorkoutData {
   if (!data.workouts.some((existing) => existing.id === workout.id)) {
     return data;
@@ -331,6 +399,13 @@ export function replaceWorkout(data: WorkoutData, workout: Workout): WorkoutData
   };
 }
 
+/**
+ * Aggregate streak and activity stats from tracked workouts.
+ *
+ * @param workouts - Workout list.
+ * @param todayDateKey - Today for streak / last-30 windows.
+ * @returns `{ activeDays, totalMinutes, last30ActiveDays, streak }`.
+ */
 export function getWorkoutStats(workouts: Workout[], todayDateKey: string) {
   const trackedWorkouts = workouts.filter((workout) => workout.date >= TRACKING_START_DATE);
   const workoutsByDate = groupWorkoutsByDate(trackedWorkouts);
@@ -356,6 +431,7 @@ export function getWorkoutStats(workouts: Workout[], todayDateKey: string) {
   };
 }
 
+/** Demo workouts used in local previews / fixtures. */
 export const sampleWorkouts: Workout[] = [
   {
     id: "2026-06-02-demo",

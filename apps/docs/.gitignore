@@ -9,6 +9,7 @@
 .cache-loader
 /docs/api/**
 !/docs/api/.gitkeep
+/static/openapi.json
 
 # Misc
 .DS_Store

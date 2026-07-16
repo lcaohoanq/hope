@@ -42,6 +42,7 @@ const socialLinksSchema = z
   .transform((value) => (value.facebook || value.instagram || value.linkedin ? value : undefined))
   .optional();
 
+/** Zod schema for profile settings update payloads. */
 export const profileUpdateSchema = z
   .object({
     displayName: z
@@ -61,9 +62,17 @@ export const profileUpdateSchema = z
   })
   .strict();
 
+/** Input type accepted by {@link profileUpdateSchema}. */
 export type ProfileUpdateInput = z.input<typeof profileUpdateSchema>;
+/** Parsed output type from {@link profileUpdateSchema}. */
 export type ValidatedProfileUpdate = z.output<typeof profileUpdateSchema>;
 
+/**
+ * Map a Zod error to a flat field → message record (first issue per path).
+ *
+ * @param error - Zod validation error.
+ * @returns Field error map for forms.
+ */
 export function getProfileUpdateFieldErrors(error: z.ZodError) {
   return error.issues.reduce<Record<string, string>>((errors, issue) => {
     const field = issue.path.join(".");

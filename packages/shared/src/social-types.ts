@@ -1,7 +1,9 @@
 import type { PublicAppUser } from "./users";
 import type { Workout } from "./workout-types";
 
+/** Follow edge status in the database. */
 export type FollowStatus = "pending" | "accepted";
+/** Notification event kinds emitted by social actions. */
 export type NotificationType =
   | "follow_request"
   | "new_follower"
@@ -9,8 +11,10 @@ export type NotificationType =
   | "workout_liked"
   | "workout_commented";
 
+/** Viewer's relationship to a profile. */
 export type RelationshipStatus = "self" | "none" | "pending" | "following";
 
+/** Counts and access flags for a profile's social graph. */
 export type SocialSummary = {
   followersCount: number;
   followingCount: number;
@@ -19,11 +23,13 @@ export type SocialSummary = {
   canViewWorkouts: boolean;
 };
 
+/** One entry in a followers/following list. */
 export type ConnectionItem = {
   profile: PublicAppUser;
   relationshipStatus: RelationshipStatus;
 };
 
+/** In-app notification shown in the bell / notifications page. */
 export type AppNotification = {
   id: string;
   type: NotificationType;
@@ -34,6 +40,7 @@ export type AppNotification = {
   createdAt: string;
 };
 
+/** Workout comment with viewer permission flags. */
 export type WorkoutComment = {
   id: string;
   workoutId: string;
@@ -45,6 +52,7 @@ export type WorkoutComment = {
   viewerCanDelete: boolean;
 };
 
+/** One card in the social feed. */
 export type FeedItem = {
   workout: Workout;
   profile: PublicAppUser;

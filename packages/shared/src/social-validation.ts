@@ -1,7 +1,14 @@
+/** Result of validating a comment body. */
 export type CommentBodyValidation =
   | { success: true; body: string }
   | { success: false; error: string };
 
+/**
+ * Validate a comment create/update JSON body (`{ body: string }`).
+ *
+ * @param input - Unknown request body.
+ * @returns Trimmed body on success, or an error message.
+ */
 export function validateCommentBody(input: unknown): CommentBodyValidation {
   if (!input || typeof input !== "object") {
     return { success: false, error: "Request body must include a comment." };

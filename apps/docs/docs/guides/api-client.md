@@ -86,4 +86,6 @@ try {
 import type { AppType, ApiClient } from "@hope/api-client";
 ```
 
-See the generated [API Reference](../api/README.md) for exported symbols from `@hope/shared` and `@hope/api-client`.
+See the generated [Library Reference](../api/README.md) for exported symbols from `@hope/shared` and `@hope/api-client`.
+
+For route-level HTTP docs (OpenAPI / Scalar), see the [HTTP API](../http/index.mdx).

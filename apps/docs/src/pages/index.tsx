@@ -22,7 +22,7 @@ function HomepageHeader() {
             to="/docs/api/"
             style={{ marginLeft: 12 }}
           >
-            API reference
+            Library reference
           </Link>
         </div>
       </div>

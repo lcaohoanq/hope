@@ -1,7 +1,10 @@
+/** Supported UI languages. */
 export type Language = "vi" | "en";
 
+/** Text with both Vietnamese and English strings. */
 export type LocalizedText = Record<Language, string>;
 
+/** Language picker options for settings UI. */
 export const languageOptions: Array<{
   label: string;
   value: Language;
@@ -16,6 +19,11 @@ export const languageOptions: Array<{
   },
 ];
 
+/**
+ * Full UI copy bag keyed by language.
+ *
+ * Large nested structure used by the web app; prefer {@link AppCopy} for typing.
+ */
 export const translations = {
   vi: {
     activity: {
@@ -440,4 +448,5 @@ export const translations = {
   },
 } as const;
 
+/** Copy bag for one language from {@link translations}. */
 export type AppCopy = (typeof translations)[Language];

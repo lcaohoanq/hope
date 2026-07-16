@@ -1,8 +1,16 @@
 import { configureStorageEnv } from "@hope/core";
 import { setDefaultConnectionString } from "@hope/db";
+import { Scalar } from "@scalar/hono-api-reference";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
+import { describeRoute, openAPIRouteHandler } from "hono-openapi";
 import type { AppEnv } from "./env";
+import {
+  healthResponseSchema,
+  jsonResponse,
+  openApiDocumentation,
+  publicSecurity,
+} from "./openapi";
 import { commentRoutes } from "./routes/comments";
 import { feedRoutes } from "./routes/feed";
 import { followRequestRoutes } from "./routes/follow-requests";
@@ -44,7 +52,18 @@ app.onError((error, c) => {
 });
 
 const routes = app
-  .get("/health", (c) => c.json({ ok: true as const }))
+  .get(
+    "/health",
+    describeRoute({
+      tags: ["Health"],
+      summary: "Liveness check",
+      security: [...publicSecurity],
+      responses: {
+        200: jsonResponse(healthResponseSchema, "OK"),
+      },
+    }),
+    (c) => c.json({ ok: true as const }),
+  )
   .route("/", feedRoutes)
   .route("/", notificationRoutes)
   .route("/", workoutRoutes)
@@ -55,5 +74,24 @@ const routes = app
   .route("/", followRequestRoutes)
   .route("/", storageRoutes);
 
+/** Business route tree used by `hc<AppType>` — excludes docs endpoints. */
 export type AppType = typeof routes;
-export default app;
+
+routes.get(
+  "/openapi.json",
+  openAPIRouteHandler(routes, {
+    documentation: openApiDocumentation,
+    exclude: ["/openapi.json", "/reference"],
+  }),
+);
+
+routes.get(
+  "/reference",
+  Scalar({
+    theme: "saturn",
+    url: "/openapi.json",
+  }),
+);
+
+export { routes };
+export default routes;

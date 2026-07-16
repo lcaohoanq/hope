@@ -121,6 +121,12 @@ const copies = {
   },
 } as const;
 
+/**
+ * Localized copy strings for social UI (follow, feed, comments, privacy).
+ *
+ * @param language - UI language.
+ * @returns Copy bag for that language.
+ */
 export function getSocialCopy(language: Language) {
   return copies[language];
 }

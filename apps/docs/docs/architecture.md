@@ -36,6 +36,8 @@ packages/  packages/
 - **`@hope/api-client`** — wraps `hono/client` with `hc<AppType>`.
 - **`@hope/core` / `@hope/db`** — server-only (API, cron, migrations).
 
+Docs on this site split three ways: hand-written **Guides**, TypeDoc **Library Reference** (`@hope/shared` / `@hope/api-client`), and **HTTP API** OpenAPI (from Hono `describeRoute`, rendered with Scalar).
+
 ## Auth
 
 1. Clerk issues a session JWT.

@@ -18,12 +18,15 @@ Hope is a workout consistency tracker split into a pnpm + Turborepo monorepo:
 | `packages/db` | Drizzle schema + Postgres client |
 | `packages/core` | Repositories, storage adapters (API/cron only) |
 
-## Public API surface
+## Documentation layers
 
-TypeDoc on this site documents the packages intended for app and client authors:
+This site has three layers:
 
-- **`@hope/shared`** — domain types, Zod validation, date/workout helpers
-- **`@hope/api-client`** — `createApiClient`, `ApiError`, and the Hono `AppType`
+- **Guides** — hand-written how-tos (for example [Using the API client](./guides/api-client.md))
+- **Library Reference** — TypeDoc for packages intended for app and client authors:
+  - **`@hope/shared`** — domain types, Zod validation, date/workout helpers
+  - **`@hope/api-client`** — `createApiClient`, `ApiError`, and the Hono `AppType`
+- **HTTP API** — OpenAPI from real Hono routes (Scalar embed)
 
 Internal packages (`@hope/db`, `@hope/core`) are not generated here.
 
@@ -32,4 +35,5 @@ Internal packages (`@hope/db`, `@hope/core`) are not generated here.
 - [Architecture](./architecture.md)
 - [Self-host with Docker](./self-host.md)
 - [Using the API client](./guides/api-client.md)
-- [API Reference](./api/README.md) (generated)
+- [Library Reference](./api/README.md) (generated)
+- [HTTP API](./http/index.mdx)

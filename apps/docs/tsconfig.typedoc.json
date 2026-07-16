@@ -21,5 +21,6 @@
     "../../apps/api/src/**/*.ts",
     "../../packages/core/src/**/*.ts",
     "../../packages/db/src/**/*.ts"
-  ]
+  ],
+  "exclude": ["../../apps/api/src/serve.ts"]
 }
