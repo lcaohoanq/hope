@@ -25,6 +25,7 @@ export function FollowButton({
   const router = useRouter();
   const [status, setStatus] = useState(initialStatus);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
   if (status === "self") return null;
   if (!authenticated) {
     return (
@@ -39,6 +40,7 @@ export function FollowButton({
 
   async function toggle() {
     setSaving(true);
+    setError("");
     try {
       const { data: payload } = await apiClient.request<{
         relationshipStatus?: RelationshipStatus;
@@ -49,8 +51,8 @@ export function FollowButton({
       });
       setStatus(payload.relationshipStatus ?? "none");
       router.refresh();
-    } catch (error) {
-      throw new Error(getApiErrorMessage(error, "Unable to update follow status."));
+    } catch (caught) {
+      setError(getApiErrorMessage(caught, "Unable to update follow status."));
     } finally {
       setSaving(false);
     }
@@ -59,13 +61,20 @@ export function FollowButton({
   const label =
     status === "none" ? copy.follow : status === "pending" ? copy.requested : copy.unfollow;
   return (
-    <button
-      className={`h-10 w-full rounded-md px-4 text-sm font-semibold transition active:scale-[0.98] disabled:opacity-60 ${status === "none" ? "bg-accent text-accent-contrast" : "border border-border bg-panel text-text hover:bg-panel-muted"}`}
-      disabled={saving}
-      onClick={() => void toggle()}
-      type="button"
-    >
-      {label}
-    </button>
+    <>
+      <button
+        className={`h-10 w-full rounded-md px-4 text-sm font-semibold transition active:scale-[0.98] disabled:opacity-60 ${status === "none" ? "bg-accent text-accent-contrast" : "border border-border bg-panel text-text hover:bg-panel-muted"}`}
+        disabled={saving}
+        onClick={() => void toggle()}
+        type="button"
+      >
+        {label}
+      </button>
+      {error ? (
+        <p aria-live="polite" className="mt-2 text-sm font-medium text-danger">
+          {error}
+        </p>
+      ) : null}
+    </>
   );
 }

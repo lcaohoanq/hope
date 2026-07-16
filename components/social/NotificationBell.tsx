@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FaBell } from "react-icons/fa";
-import { apiClient } from "@/lib/http";
+import { apiClient, getApiErrorMessage } from "@/lib/http";
 import type { Language } from "@/lib/i18n";
 import { getSocialCopy } from "@/lib/social-copy";
 import type { AppNotification } from "@/lib/social-types";
@@ -26,6 +26,7 @@ export function NotificationBell({ language }: { language: Language }) {
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<AppNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [error, setError] = useState("");
 
   const load = useCallback(async () => {
     try {
@@ -80,14 +81,24 @@ export function NotificationBell({ language }: { language: Language }) {
   }, [load, open]);
 
   async function respond(actorId: string, action: "accept" | "decline") {
-    await apiClient.patch(`/follow-requests/${actorId}`, { action });
-    await load();
-    router.refresh();
+    setError("");
+    try {
+      await apiClient.patch(`/follow-requests/${actorId}`, { action });
+      await load();
+      router.refresh();
+    } catch (caught) {
+      setError(getApiErrorMessage(caught, "Unable to update follow request."));
+    }
   }
 
   async function markAllRead() {
-    await apiClient.patch("/notifications", {});
-    await load();
+    setError("");
+    try {
+      await apiClient.patch("/notifications", {});
+      await load();
+    } catch (caught) {
+      setError(getApiErrorMessage(caught, "Unable to update notifications."));
+    }
   }
 
   return (
@@ -120,6 +131,14 @@ export function NotificationBell({ language }: { language: Language }) {
               </button>
             ) : null}
           </div>
+          {error ? (
+            <p
+              aria-live="polite"
+              className="border-b border-border p-3 text-sm font-medium text-danger"
+            >
+              {error}
+            </p>
+          ) : null}
           <div className="max-h-96 overflow-y-auto p-2">
             {items.length === 0 ? (
               <p className="p-4 text-sm text-muted">{copy.noNotifications}</p>

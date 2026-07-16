@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { AvatarImage } from "@/components/dashboard/AvatarImage";
-import { apiClient } from "@/lib/http";
+import { apiClient, getApiErrorMessage } from "@/lib/http";
 import type { Language } from "@/lib/i18n";
 import { getAvatarUrl } from "@/lib/profile-utils";
 import { getSocialCopy } from "@/lib/social-copy";
@@ -23,19 +23,25 @@ export function ConnectionsPageClient({
   const copy = getSocialCopy(language);
   const [items, setItems] = useState<ConnectionItem[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
+  const [error, setError] = useState("");
   const load = useCallback(
     async (next?: string) => {
-      const { data: payload } = await apiClient.get<{
-        items?: ConnectionItem[];
-        nextCursor?: string | null;
-      }>(`/profiles/${profileId}/connections`, {
-        headers: { "Cache-Control": "no-cache" },
-        params: { cursor: next, type },
-      });
-      setItems((current) =>
-        next ? [...current, ...(payload.items ?? [])] : (payload.items ?? []),
-      );
-      setCursor(payload.nextCursor ?? null);
+      setError("");
+      try {
+        const { data: payload } = await apiClient.get<{
+          items?: ConnectionItem[];
+          nextCursor?: string | null;
+        }>(`/profiles/${profileId}/connections`, {
+          headers: { "Cache-Control": "no-cache" },
+          params: { cursor: next, type },
+        });
+        setItems((current) =>
+          next ? [...current, ...(payload.items ?? [])] : (payload.items ?? []),
+        );
+        setCursor(payload.nextCursor ?? null);
+      } catch (caught) {
+        setError(getApiErrorMessage(caught, "Unable to load connections."));
+      }
     },
     [profileId, type],
   );
@@ -54,6 +60,14 @@ export function ConnectionsPageClient({
     );
   return (
     <section className="overflow-hidden rounded-lg border border-border bg-panel">
+      {error ? (
+        <p
+          aria-live="polite"
+          className="border-b border-border p-4 text-sm font-medium text-danger"
+        >
+          {error}
+        </p>
+      ) : null}
       <div className="divide-y divide-border">
         {items.map(({ profile }) => (
           <Link
