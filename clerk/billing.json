@@ -1,0 +1,78 @@
+{
+  "billing": {
+    "user_enabled": true,
+    "organization_enabled": false,
+    "free_trial_requires_payment_method": true,
+    "features": {
+      "past_workout_edits": {
+        "name": "Edit past workouts",
+        "description": "Correct or backfill workouts on any past day.",
+        "publicly_visible": true,
+        "include_in_jwt": true
+      },
+      "more_workout_images": {
+        "name": "More workout photos",
+        "description": "Attach more images per workout than the Standard limit.",
+        "publicly_visible": true,
+        "include_in_jwt": true
+      },
+      "workout_reminders": {
+        "name": "Workout reminders",
+        "description": "Email reminders to keep your streak going.",
+        "publicly_visible": true,
+        "include_in_jwt": true
+      },
+      "export_csv": {
+        "name": "Export history",
+        "description": "Download your workout history as CSV.",
+        "publicly_visible": true,
+        "include_in_jwt": true
+      },
+      "delete_workouts": {
+        "name": "Delete workouts",
+        "description": "Remove workouts you no longer want on your timeline.",
+        "publicly_visible": true,
+        "include_in_jwt": true
+      },
+      "advanced_stats": {
+        "name": "Advanced stats",
+        "description": "Deeper year-over-year and consistency insights.",
+        "publicly_visible": true,
+        "include_in_jwt": true
+      }
+    },
+    "plans": {
+      "free_user": {
+        "name": "Standard",
+        "description": "Log workouts, heatmap, social feed, edit today only.",
+        "amount": 0,
+        "annual_monthly_amount": 0,
+        "currency": "usd",
+        "payer_type": "user",
+        "is_recurring": true,
+        "publicly_visible": true,
+        "free_trial_enabled": false,
+        "features": []
+      },
+      "pro": {
+        "name": "Pro",
+        "description": "Edit past workouts and unlock Pro tracking tools.",
+        "amount": 500,
+        "annual_monthly_amount": 0,
+        "currency": "usd",
+        "payer_type": "user",
+        "is_recurring": true,
+        "publicly_visible": true,
+        "free_trial_enabled": false,
+        "features": [
+          "past_workout_edits",
+          "more_workout_images",
+          "workout_reminders",
+          "export_csv",
+          "delete_workouts",
+          "advanced_stats"
+        ]
+      }
+    }
+  }
+}

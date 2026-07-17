@@ -9,8 +9,9 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "dev": "wrangler dev",
-    "dev:node": "tsx --watch src/serve.ts",
+    "dev": "tsx --watch --env-file=../../.env --env-file=../../.env.local src/serve.ts",
+    "dev:wrangler": "bash scripts/dev.sh",
+    "dev:node": "tsx --watch --env-file=../../.env --env-file=../../.env.local src/serve.ts",
     "start": "tsx src/serve.ts",
     "deploy": "wrangler deploy",
     "typecheck": "tsc --noEmit",

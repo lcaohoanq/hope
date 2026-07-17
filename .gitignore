@@ -12,6 +12,8 @@ tmp/
 
 .env
 .env*.local
+.dev.vars
+apps/api/.dev.vars
 .migration-users.json
 public/uploads/
 

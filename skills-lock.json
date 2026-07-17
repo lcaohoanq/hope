@@ -1,6 +1,12 @@
 {
   "version": 1,
   "skills": {
+    "clerk-billing": {
+      "source": "clerk/skills",
+      "sourceType": "github",
+      "skillPath": "skills/features/clerk-billing/SKILL.md",
+      "computedHash": "8ac867c502c8b7e2a6928ef16a446565c884e027465a0e408e80c8e2ee301e99"
+    },
     "design-taste-frontend": {
       "source": "Leonxlnx/taste-skill",
       "sourceType": "github",

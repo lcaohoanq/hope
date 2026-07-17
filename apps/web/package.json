@@ -16,6 +16,8 @@
   "dependencies": {
     "@clerk/nextjs": "^7.5.17",
     "@hope/api-client": "workspace:*",
+    "@hope/core": "workspace:*",
+    "@hope/db": "workspace:*",
     "@hope/shared": "workspace:*",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.6.1",
@@ -39,8 +41,6 @@
     "@clerk/backend": "^3.11.6",
     "@clerk/testing": "^2.2.7",
     "@cloudflare/workers-types": "^5.20260716.1",
-    "@hope/core": "workspace:*",
-    "@hope/db": "workspace:*",
     "@next/env": "^16.1.0",
     "@playwright/test": "^1.61.1",
     "@types/node": "^26.1.0",

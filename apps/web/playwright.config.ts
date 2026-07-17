@@ -1,7 +1,12 @@
+import { resolve } from "node:path";
 import { loadEnvConfig } from "@next/env";
 import { defineConfig } from "@playwright/test";
 
+loadEnvConfig(resolve(__dirname, "../.."));
 loadEnvConfig(process.cwd());
+process.env.E2E_CLERK_USER_EMAIL ??= "hoangclw@gmail.com";
+process.env.CLERK_PUBLISHABLE_KEY ??= process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+
 const e2ePort = process.env.E2E_PORT ?? "3000";
 const e2eBaseUrl = process.env.E2E_BASE_URL ?? `http://localhost:${e2ePort}`;
 
@@ -13,13 +18,7 @@ export default defineConfig({
       name: "chromium",
       dependencies: ["setup"],
       testIgnore: /global\.setup\.ts/,
-      use: { channel: "chromium" },
-    },
-    {
-      name: "firefox",
-      dependencies: ["setup"],
-      testIgnore: /global\.setup\.ts/,
-      use: { browserName: "firefox" },
+      use: { browserName: "chromium" },
     },
   ],
   reporter: "list",

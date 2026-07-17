@@ -18,6 +18,7 @@ import { notificationRoutes } from "./routes/notifications";
 import { profileRoutes } from "./routes/profiles";
 import { storageRoutes } from "./routes/storage";
 import { userRoutes } from "./routes/users";
+import { webhookRoutes } from "./routes/webhooks";
 import { workoutImageRoutes } from "./routes/workout-images";
 import { workoutRoutes } from "./routes/workouts";
 
@@ -102,7 +103,8 @@ const routes = app
   .route("/", profileRoutes)
   .route("/", commentRoutes)
   .route("/", followRequestRoutes)
-  .route("/", storageRoutes);
+  .route("/", storageRoutes)
+  .route("/", webhookRoutes);
 
 /** Business route tree used by `hc<AppType>` — excludes docs endpoints. */
 export type AppType = typeof routes;

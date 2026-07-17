@@ -52,11 +52,15 @@ pnpm status
 
 ## Environment
 
+Keep Clerk/API keys in the **repo-root** `.env` / `.env.local`. `apps/web/next.config.ts` loads those files; also keep a copy of `NEXT_PUBLIC_*` / `CLERK_*` in `apps/web/.env.local` for Next’s client bundle (or re-sync after editing root env).
+
 Minimal `.env` (also see `.env.docker` / `.env.example`):
 
 ```env
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
 CLERK_SECRET_KEY=sk_test_...
+NEXT_PUBLIC_CLERK_KEYLESS_DISABLED=1
+NEXT_PUBLIC_API_URL=http://localhost:8787
 STORAGE_PROVIDER=minio
 ```
 
@@ -72,6 +76,39 @@ CLOUDINARY_API_SECRET=...
 ## Clerk dashboard
 
 Add `http://localhost` to allowed origins and redirect URLs for the development instance.
+
+### Billing (Clerk Billing + Stripe)
+
+1. Enable Billing for **user** plans: [Dashboard → Billing → Settings](https://dashboard.clerk.com/last-active?path=billing/settings), or after `clerk auth login`:
+
+   ```bash
+   clerk enable billing --for user
+   clerk config patch --file clerk/billing.json --dry-run
+   clerk config patch --file clerk/billing.json --yes
+   ```
+
+   `clerk/billing.json` must match the Platform config schema (`user_enabled`, `plans`/`features` as objects keyed by slug, plan `features` as slug string arrays). Validate with `clerk config schema --keys billing`.
+
+2. Confirm a **Pro** plan with slug `pro` and feature `past_workout_edits` exists under User Plans.
+3. Add a Clerk webhook endpoint. Prefer the API (Traefik strips `/api`):
+
+   | Environment | Endpoint URL |
+   | --- | --- |
+   | Docker / Traefik | `http://localhost/api/webhooks/clerk` |
+   | API only | `http://localhost:8787/webhooks/clerk` |
+   | Next only (`next dev`) | `http://localhost:3000/api/webhooks/clerk` (+ `DATABASE_URL` on web) |
+
+   Subscribe to billing events (`subscription.*`, `subscriptionItem.*`, optionally `paymentAttempt.*`).
+
+   Local relay without a public URL:
+
+   ```bash
+   clerk webhooks listen --token "$(clerk webhooks token)" --forward-to http://localhost:8787/webhooks/clerk
+   ```
+
+4. Copy the endpoint signing secret into `.env` as `CLERK_WEBHOOK_SIGNING_SECRET` (API and/or web).
+5. Dev instances can use Clerk’s shared payment gateway; production requires linking your Stripe account in Clerk Billing.
+6. After checkout, UI uses session `has({ feature })` immediately; DB `profiles.plan` updates when the webhook runs.
 
 ## Notes
 
