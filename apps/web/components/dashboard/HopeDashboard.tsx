@@ -43,6 +43,7 @@ import { cleanupWorkoutImageUploads } from "@/lib/workout-image-upload";
 import type { Workout, WorkoutInput, WorkoutUpdateInput } from "@/lib/workout-types";
 
 type HopeDashboardProps = {
+  currentTab?: "overview" | "workouts";
   isAuthenticated: boolean;
   isEditable: boolean;
   user: PublicAppUser;
@@ -52,6 +53,7 @@ type HopeDashboardProps = {
 };
 
 export function HopeDashboard({
+  currentTab = "overview",
   isAuthenticated,
   isEditable,
   user,
@@ -82,7 +84,9 @@ export function HopeDashboard({
   const [themeError, setThemeError] = useState("");
   const [isSavingTheme, setIsSavingTheme] = useState(false);
   const [workouts, setWorkouts] = useState<Workout[]>([]);
-  const [isLoadingWorkouts, setIsLoadingWorkouts] = useState(socialSummary.canViewWorkouts);
+  const [isLoadingWorkouts, setIsLoadingWorkouts] = useState(
+    socialSummary.canViewWorkouts && currentTab === "overview",
+  );
   const [isSubmittingWorkout, setIsSubmittingWorkout] = useState(false);
   const [isUploadingWorkoutImages, setIsUploadingWorkoutImages] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState(() => user.avatarUrl ?? getAvatarUrl(user.avatarSeed));
@@ -137,7 +141,8 @@ export function HopeDashboard({
   }, [theme]);
 
   useEffect(() => {
-    if (!socialSummary.canViewWorkouts) {
+    if (!socialSummary.canViewWorkouts || currentTab !== "overview") {
+      setIsLoadingWorkouts(false);
       return;
     }
     const timer = window.setTimeout(() => {
@@ -145,7 +150,7 @@ export function HopeDashboard({
     }, 0);
 
     return () => window.clearTimeout(timer);
-  }, [loadWorkouts, socialSummary.canViewWorkouts]);
+  }, [currentTab, loadWorkouts, socialSummary.canViewWorkouts]);
 
   useEffect(() => {
     return () => {
@@ -391,7 +396,7 @@ export function HopeDashboard({
       <ProfileNavigationTabs
         username={user.username}
         workoutCount={workoutCount}
-        currentTab="overview"
+        currentTab={currentTab}
         copy={copy}
       />
 
@@ -422,74 +427,70 @@ export function HopeDashboard({
 
           {socialSummary.canViewWorkouts ? (
             <div className="grid min-w-0 gap-6">
-              {workoutLoadError ? (
-                <section className="rounded-lg border border-danger-border bg-danger-soft p-4 text-sm text-danger">
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <p>{workoutLoadError}</p>
-                    <button
-                      className="h-9 rounded-md border border-danger-border bg-panel px-3 font-semibold text-danger transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-danger-soft active:scale-[0.98]"
-                      onClick={() => void loadWorkouts()}
-                      type="button"
-                    >
-                      {copy.common.retry}
-                    </button>
-                  </div>
-                </section>
-              ) : null}
-
-              {isLoadingWorkouts ? (
-                <WorkoutLoadingState />
-              ) : (
-                <StatsCards
+              {currentTab === "workouts" ? (
+                <WorkoutActivityTimeline
                   copy={copy}
-                  todayDateKey={todayDateKey}
-                  view={selectedHeatmapView}
-                  workouts={visibleWorkouts}
+                  emptyMessage={copy.workoutsList.empty}
+                  language={language}
+                  limit={20}
+                  refreshKey={activityRefreshKey}
+                  title={copy.workoutsList.title}
+                  userId={user.id}
+                  view={{ mode: "lifetime" }}
                 />
-              )}
-
-              {isLoadingWorkouts ? (
-                <section className="min-h-[480px] rounded-lg border border-border bg-panel p-5 sm:p-6">
-                  <div className="h-5 w-40 animate-pulse rounded bg-panel-muted" />
-                  <div className="mt-8 grid gap-5">
-                    {Array.from({ length: 8 }, (_, index) => (
-                      // biome-ignore lint/suspicious/noArrayIndexKey: Skeleton rows are fixed placeholders that never reorder.
-                      <div className="grid gap-2" key={index}>
-                        <div className="ml-24 h-3 w-80 rounded bg-panel-muted" />
-                        <div className="flex gap-3">
-                          <div className="h-3 w-10 rounded bg-panel-muted" />
-                          <div className="grid flex-1 grid-cols-12 gap-1">
-                            {Array.from({ length: 48 }, (_, cellIndex) => (
-                              // biome-ignore lint/suspicious/noArrayIndexKey: Skeleton cells are fixed placeholders that never reorder.
-                              <div className="h-2.5 rounded-[2px] bg-panel-muted" key={cellIndex} />
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </section>
               ) : (
                 <>
-                  <ContributionHeatmap
-                    allowPastWorkoutEdits={allowPastWorkoutEdits}
-                    birthYear={birthYear}
-                    canEditWorkouts={isEditable}
-                    copy={copy}
-                    language={language}
-                    onUpdateWorkout={handleUpdateWorkout}
-                    onViewChange={setSelectedHeatmapView}
-                    view={selectedHeatmapView}
-                    workouts={workouts}
-                    todayDateKey={todayDateKey}
-                  />
-                  <WorkoutActivityTimeline
-                    copy={copy}
-                    language={language}
-                    refreshKey={activityRefreshKey}
-                    userId={user.id}
-                    view={selectedHeatmapView}
-                  />
+                  {workoutLoadError ? (
+                    <section className="rounded-lg border border-danger-border bg-danger-soft p-4 text-sm text-danger">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <p>{workoutLoadError}</p>
+                        <button
+                          className="h-9 rounded-md border border-danger-border bg-panel px-3 font-semibold text-danger transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-danger-soft active:scale-[0.98]"
+                          onClick={() => void loadWorkouts()}
+                          type="button"
+                        >
+                          {copy.common.retry}
+                        </button>
+                      </div>
+                    </section>
+                  ) : null}
+
+                  {isLoadingWorkouts ? (
+                    <WorkoutLoadingState />
+                  ) : (
+                    <StatsCards
+                      copy={copy}
+                      todayDateKey={todayDateKey}
+                      view={selectedHeatmapView}
+                      workouts={visibleWorkouts}
+                    />
+                  )}
+
+                  {isLoadingWorkouts ? (
+                    <HeatmapLoadingSkeleton />
+                  ) : (
+                    <>
+                      <ContributionHeatmap
+                        allowPastWorkoutEdits={allowPastWorkoutEdits}
+                        birthYear={birthYear}
+                        canEditWorkouts={isEditable}
+                        copy={copy}
+                        language={language}
+                        onUpdateWorkout={handleUpdateWorkout}
+                        onViewChange={setSelectedHeatmapView}
+                        view={selectedHeatmapView}
+                        workouts={workouts}
+                        todayDateKey={todayDateKey}
+                      />
+                      <WorkoutActivityTimeline
+                        copy={copy}
+                        language={language}
+                        refreshKey={activityRefreshKey}
+                        userId={user.id}
+                        view={selectedHeatmapView}
+                      />
+                    </>
+                  )}
                 </>
               )}
             </div>
@@ -523,5 +524,30 @@ export function HopeDashboard({
         onSave={handleUploadAvatar}
       />
     </main>
+  );
+}
+
+function HeatmapLoadingSkeleton() {
+  return (
+    <section className="min-h-[480px] rounded-lg border border-border bg-panel p-5 sm:p-6">
+      <div className="h-5 w-40 animate-pulse rounded bg-panel-muted" />
+      <div className="mt-8 grid gap-5">
+        {Array.from({ length: 8 }, (_, index) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: Skeleton rows are fixed placeholders that never reorder.
+          <div className="grid gap-2" key={index}>
+            <div className="ml-24 h-3 w-80 rounded bg-panel-muted" />
+            <div className="flex gap-3">
+              <div className="h-3 w-10 rounded bg-panel-muted" />
+              <div className="grid flex-1 grid-cols-12 gap-1">
+                {Array.from({ length: 48 }, (_, cellIndex) => (
+                  // biome-ignore lint/suspicious/noArrayIndexKey: Skeleton cells are fixed placeholders that never reorder.
+                  <div className="h-2.5 rounded-[2px] bg-panel-muted" key={cellIndex} />
+                ))}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }

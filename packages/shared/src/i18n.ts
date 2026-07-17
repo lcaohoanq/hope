@@ -224,6 +224,10 @@ export const translations = {
       overview: "Tổng quan",
       workouts: "Buổi tập",
     },
+    workoutsList: {
+      empty: "Chưa có buổi tập nào.",
+      title: "Buổi tập",
+    },
     modal: {
       addMoreImages: (count: number) => `Thêm tối đa ${count} ảnh nữa.`,
       backToEditWorkout: "Quay lại chỉnh sửa",
@@ -441,6 +445,10 @@ export const translations = {
     navigation: {
       overview: "Overview",
       workouts: "Workouts",
+    },
+    workoutsList: {
+      empty: "No workouts yet.",
+      title: "Workouts",
     },
     modal: {
       addMoreImages: (count: number) => `Add up to ${count} more image${count === 1 ? "" : "s"}.`,

@@ -19,10 +19,11 @@ const withClerk = clerkMiddleware();
 async function isExistingProfileRoute(pathname: string) {
   const segments = pathname.split("/").filter(Boolean);
   const isProfilePage = segments.length === 1;
-  const isConnectionsPage =
-    segments.length === 2 && (segments[1] === "followers" || segments[1] === "following");
+  const isProfileSubpage =
+    segments.length === 2 &&
+    (segments[1] === "followers" || segments[1] === "following" || segments[1] === "workouts");
 
-  if (!isProfilePage && !isConnectionsPage) return false;
+  if (!isProfilePage && !isProfileSubpage) return false;
 
   try {
     const res = await fetch(`${API_URL}/profiles/by-username/${encodeURIComponent(segments[0])}`);

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { AppCopy } from "@/lib/i18n";
 
 type ProfileNavigationTabsProps = {
@@ -25,7 +26,7 @@ export function ProfileNavigationTabs({
     {
       id: "workouts" as const,
       label: copy.navigation.workouts,
-      href: `/${username}`,
+      href: `/${username}/workouts`,
       badge: workoutCount,
     },
   ];
@@ -40,7 +41,7 @@ export function ProfileNavigationTabs({
           {tabs.map((tab) => {
             const isActive = currentTab === tab.id;
             return (
-              <a
+              <Link
                 key={tab.id}
                 href={tab.href}
                 className={`
@@ -59,7 +60,7 @@ export function ProfileNavigationTabs({
                     {tab.badge}
                   </span>
                 )}
-              </a>
+              </Link>
             );
           })}
         </div>
