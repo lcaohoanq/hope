@@ -55,6 +55,8 @@ function writeEnv(vars: Record<string, string>) {
     "# --- Clerk (required) ---",
     `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${vars.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ?? ""}`,
     `CLERK_SECRET_KEY=${vars.CLERK_SECRET_KEY ?? ""}`,
+    "# Optional: Clerk Billing webhooks (Dashboard → Webhooks signing secret)",
+    `CLERK_WEBHOOK_SIGNING_SECRET=${vars.CLERK_WEBHOOK_SIGNING_SECRET ?? ""}`,
     "",
     "# --- Storage ---",
     `STORAGE_PROVIDER=${vars.STORAGE_PROVIDER ?? "minio"}`,

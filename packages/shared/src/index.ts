@@ -8,6 +8,7 @@
 export * from "./avatar-image";
 export * from "./caption-utils";
 export * from "./date-utils";
+export * from "./entitlements";
 export * from "./i18n";
 export * from "./profile-update";
 export * from "./social-copy";

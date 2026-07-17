@@ -15,10 +15,20 @@ async function getClerkUserId(c: Context<AppEnv>): Promise<string | null> {
   const token = header?.startsWith("Bearer ") ? header.slice("Bearer ".length).trim() : null;
   if (!token) return null;
 
+  const secretKey = c.env.CLERK_SECRET_KEY;
+  if (!secretKey) {
+    console.error("CLERK_SECRET_KEY is missing from the API environment");
+    return null;
+  }
+
   try {
-    const payload = await verifyToken(token, { secretKey: c.env.CLERK_SECRET_KEY });
+    const payload = await verifyToken(token, { secretKey });
     return typeof payload.sub === "string" ? payload.sub : null;
-  } catch {
+  } catch (error) {
+    console.warn(
+      "Clerk token verification failed",
+      error instanceof Error ? error.message : "unknown error",
+    );
     return null;
   }
 }

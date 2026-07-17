@@ -1,3 +1,4 @@
+import { useAuth } from "@clerk/nextjs";
 import Link from "next/link";
 import type { IconType } from "react-icons";
 import {
@@ -13,7 +14,7 @@ import { ConnectionsDialog } from "@/components/social/ConnectionsDialog";
 import { FollowButton } from "@/components/social/FollowButton";
 import type { AppCopy, Language } from "@/lib/i18n";
 import type { SocialSummary } from "@/lib/social-types";
-import type { PublicAppUser } from "@/lib/users";
+import { isProPlan, type PublicAppUser } from "@/lib/users";
 import { AvatarImage } from "./AvatarImage";
 import { getGoogleMaps3dUrl, getGoogleMapsEmbedUrl } from "./dashboard-utils";
 
@@ -58,6 +59,8 @@ export function UserProfileSidebar({
   socialSummary,
   canViewDetails,
 }: UserProfileSidebarProps) {
+  const { has } = useAuth();
+  const showPro = isProPlan(user) || Boolean(has?.({ plan: "pro" }));
   const profileLinks: ProfileLink[] = [
     ...(user.website
       ? [
@@ -150,7 +153,7 @@ export function UserProfileSidebar({
             <h1 className="text-2xl font-semibold tracking-[-0.03em] text-text">
               {user.displayName}
             </h1>
-            {canViewDetails && user.plan === "pro" ? (
+            {canViewDetails && showPro ? (
               <span className="rounded-full border border-accent/30 bg-accent/10 px-2 py-0.5 text-[10px] font-bold tracking-[0.08em] text-accent">
                 PRO
               </span>
@@ -201,6 +204,12 @@ export function UserProfileSidebar({
           >
             <FaEdit aria-hidden="true" className="h-3.5 w-3.5" />
             {copy.dashboard.editProfile}
+          </Link>
+          <Link
+            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-md border border-accent/30 bg-accent/10 px-4 text-sm font-semibold text-accent transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-accent/15 active:scale-[0.98]"
+            href="/pricing"
+          >
+            {showPro ? copy.dashboard.managePlan : copy.dashboard.upgradeToPro}
           </Link>
           <button
             className="h-11 w-full rounded-md bg-accent px-4 text-sm font-semibold text-accent-contrast transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-accent/90 active:scale-[0.98]"

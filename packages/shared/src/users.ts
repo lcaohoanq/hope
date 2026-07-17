@@ -1,3 +1,4 @@
+import { hasFeature } from "./entitlements";
 import type { Language, LocalizedText } from "./i18n";
 import type { UserProfile, Workout } from "./workout-types";
 
@@ -138,19 +139,32 @@ export function isWorkoutVisibleForUser(workout: Workout, userId: string) {
 }
 
 /**
+ * Whether the user may edit workouts on dates before today.
+ *
+ * Granted by the `past_workout_edits` plan feature. The settings flag remains
+ * an admin/seed override for testing without a paid plan.
+ *
+ * @param user - User with plan and workout settings.
+ * @returns `true` when past-day edits are unlocked.
+ */
+export function canUserEditPastWorkouts(user: Pick<AppUser, "plan" | "settings">) {
+  return hasFeature(user, "past_workout_edits") || user.settings.workouts.allowPastWorkoutEdits;
+}
+
+/**
  * Whether the user may edit a workout on `workoutDate` given today's key.
  *
- * @param user - User with workout settings.
+ * @param user - User with plan and workout settings.
  * @param workoutDate - Workout date key.
  * @param todayDateKey - Today's date key.
  * @returns `true` if past edits are allowed or the date is today/future-gated by caller.
  */
 export function canUserEditWorkoutDate(
-  user: Pick<AppUser, "settings">,
+  user: Pick<AppUser, "plan" | "settings">,
   workoutDate: string,
   todayDateKey: string,
 ) {
-  return user.settings.workouts.allowPastWorkoutEdits || workoutDate >= todayDateKey;
+  return canUserEditPastWorkouts(user) || workoutDate >= todayDateKey;
 }
 
 /**

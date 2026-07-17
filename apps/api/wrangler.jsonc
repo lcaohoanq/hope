@@ -11,9 +11,11 @@
     "ALLOWED_ORIGINS": "http://localhost:3000,https://hope-matcha.vercel.app",
     "STORAGE_PROVIDER": "cloudinary"
   },
-  // Secrets (set via `wrangler secret put`): CLERK_SECRET_KEY, CLOUDINARY_CLOUD_NAME,
-  // CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET, DATABASE_URL (dev fallback).
+  // Secrets (set via `wrangler secret put`): CLERK_SECRET_KEY, CLERK_WEBHOOK_SIGNING_SECRET,
+  // CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET, DATABASE_URL (dev fallback).
   // Create via: wrangler hyperdrive create hope-db --connection-string="<supabase-pooler-url>"
+  // Local: scripts/dev.sh sets CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE
+  // from DATABASE_URL so `wrangler dev` can emulate Hyperdrive.
   "hyperdrive": [
     {
       "binding": "HYPERDRIVE",

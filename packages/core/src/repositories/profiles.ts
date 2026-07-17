@@ -1,6 +1,6 @@
 import { getDatabase } from "@hope/db";
 import { type ProfileRow, profiles } from "@hope/db/schema";
-import type { AppTheme, AppUser, ValidatedProfileUpdate } from "@hope/shared";
+import type { AppTheme, AppUser, UserPlan, ValidatedProfileUpdate } from "@hope/shared";
 import { getDefaultUserSettings, normalizeUsername } from "@hope/shared";
 import { and, asc, eq, ilike, isNotNull, isNull, or, sql } from "drizzle-orm";
 
@@ -137,6 +137,15 @@ export async function updateProfileTheme(profile: AppUser, theme: AppTheme) {
     .set({ settings, updatedAt: new Date() })
     .where(eq(profiles.id, profile.id));
   return settings;
+}
+
+export async function updateProfilePlan(clerkUserId: string, plan: UserPlan) {
+  const [row] = await getDatabase()
+    .update(profiles)
+    .set({ plan, updatedAt: new Date() })
+    .where(eq(profiles.clerkUserId, clerkUserId))
+    .returning();
+  return row ? toAppUser(row) : undefined;
 }
 
 export async function updateProfileAvatar(input: {

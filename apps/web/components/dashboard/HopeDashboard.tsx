@@ -32,7 +32,12 @@ import { type Language, translations } from "@/lib/i18n";
 import { getAvatarUrl } from "@/lib/profile-utils";
 import { getSocialCopy } from "@/lib/social-copy";
 import type { SocialSummary } from "@/lib/social-types";
-import type { AppTheme, HeatmapView, PublicAppUser } from "@/lib/users";
+import {
+  type AppTheme,
+  canUserEditPastWorkouts,
+  type HeatmapView,
+  type PublicAppUser,
+} from "@/lib/users";
 import { cleanupWorkoutImageUploads } from "@/lib/workout-image-upload";
 import type { Workout, WorkoutInput, WorkoutUpdateInput } from "@/lib/workout-types";
 
@@ -51,8 +56,11 @@ export function HopeDashboard({
   viewer,
   socialSummary,
 }: HopeDashboardProps) {
-  const { getToken } = useAuth();
+  const { getToken, has } = useAuth();
   const { signOut } = useClerk();
+  // Clerk session entitlements update before the DB webhook; combine both for UI.
+  const allowPastWorkoutEdits =
+    canUserEditPastWorkouts(user) || Boolean(has?.({ feature: "past_workout_edits" }));
   const todayDateKey = getTodayInTimezone();
   const currentYear = Number(todayDateKey.slice(0, 4));
   const birthYear = user.birthYear ?? currentYear;
@@ -453,7 +461,7 @@ export function HopeDashboard({
               ) : (
                 <>
                   <ContributionHeatmap
-                    allowPastWorkoutEdits={user.settings.workouts.allowPastWorkoutEdits}
+                    allowPastWorkoutEdits={allowPastWorkoutEdits}
                     birthYear={birthYear}
                     canEditWorkouts={isEditable}
                     copy={copy}
