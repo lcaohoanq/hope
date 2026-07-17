@@ -62,8 +62,12 @@ export const translations = {
       retry: "Thử lại",
       saveChanges: "Lưu thay đổi",
       saving: "Đang lưu...",
+      settings: "Cài đặt",
       signIn: "Đăng nhập",
       signOut: "Đăng xuất",
+    },
+    settings: {
+      account: "Tài khoản",
     },
     dashboard: {
       addWorkout: "Thêm buổi tập",
@@ -105,6 +109,7 @@ export const translations = {
     },
     profileSettings: {
       backToProfile: "Quay lại hồ sơ",
+      backToSettings: "Quay lại cài đặt",
       basicDescription: "Tên hiển thị và năm bắt đầu dòng thời gian của bạn.",
       basicTitle: "Thông tin cơ bản",
       bioEnglish: "Giới thiệu bằng tiếng Anh",
@@ -224,6 +229,10 @@ export const translations = {
       overview: "Tổng quan",
       workouts: "Buổi tập",
     },
+    workoutsList: {
+      empty: "Chưa có buổi tập nào.",
+      title: "Buổi tập",
+    },
     modal: {
       addMoreImages: (count: number) => `Thêm tối đa ${count} ảnh nữa.`,
       backToEditWorkout: "Quay lại chỉnh sửa",
@@ -291,8 +300,12 @@ export const translations = {
       retry: "Retry",
       saveChanges: "Save changes",
       saving: "Saving...",
+      settings: "Settings",
       signIn: "Sign in",
       signOut: "Sign out",
+    },
+    settings: {
+      account: "Account",
     },
     dashboard: {
       addWorkout: "Add a workout",
@@ -335,6 +348,7 @@ export const translations = {
     },
     profileSettings: {
       backToProfile: "Back to profile",
+      backToSettings: "Back to settings",
       basicDescription: "Your display name and the year your timeline begins.",
       basicTitle: "Basic information",
       bioEnglish: "English bio",
@@ -441,6 +455,10 @@ export const translations = {
     navigation: {
       overview: "Overview",
       workouts: "Workouts",
+    },
+    workoutsList: {
+      empty: "No workouts yet.",
+      title: "Workouts",
     },
     modal: {
       addMoreImages: (count: number) => `Add up to ${count} more image${count === 1 ? "" : "s"}.`,

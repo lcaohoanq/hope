@@ -29,7 +29,7 @@ export default async function PricingPage() {
           </Link>
           <Link
             className="text-sm font-medium text-muted transition hover:text-text"
-            href="/settings/profile"
+            href="/settings"
           >
             Settings
           </Link>
