@@ -186,6 +186,21 @@ export async function listWorkoutsByProfile(
   );
 }
 
+export async function getWorkoutCountByProfile(
+  profileId: string,
+  visibility: "all" | "public" = "all",
+): Promise<number> {
+  const result = await getDatabase()
+    .select({ count: count() })
+    .from(workouts)
+    .where(
+      visibility === "all"
+        ? eq(workouts.profileId, profileId)
+        : and(eq(workouts.profileId, profileId), eq(workouts.isPublic, true)),
+    );
+  return result[0]?.count ?? 0;
+}
+
 export async function listWorkoutActivityByProfile({
   profileId,
   visibility = "all",

@@ -220,6 +220,10 @@ export const translations = {
       workoutCount: (count: number) => `${count} buổi tập`,
       yearTitle: (year: number) => `Năm ${year}`,
     },
+    navigation: {
+      overview: "Tổng quan",
+      workouts: "Buổi tập",
+    },
     modal: {
       addMoreImages: (count: number) => `Thêm tối đa ${count} ảnh nữa.`,
       backToEditWorkout: "Quay lại chỉnh sửa",
@@ -433,6 +437,10 @@ export const translations = {
       workout: "Workout",
       workoutCount: (count: number) => `${count} workout${count === 1 ? "" : "s"}`,
       yearTitle: (year: number) => `Your ${year}`,
+    },
+    navigation: {
+      overview: "Overview",
+      workouts: "Workouts",
     },
     modal: {
       addMoreImages: (count: number) => `Add up to ${count} more image${count === 1 ? "" : "s"}.`,
