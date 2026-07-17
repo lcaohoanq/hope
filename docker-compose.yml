@@ -1,0 +1,109 @@
+services:
+  traefik:
+    image: traefik:v3.6
+    restart: unless-stopped
+    depends_on:
+      - api
+      - web
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - ./docker/traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./docker/traefik/dynamic.yml:/etc/traefik/dynamic.yml:ro
+
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: hope
+      POSTGRES_USER: hope
+      POSTGRES_PASSWORD: hope_local_pw
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hope -d hope"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+  migrate:
+    build:
+      context: .
+      dockerfile: docker/migrate.Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DIRECT_URL: postgres://hope:hope_local_pw@db:5432/hope
+
+  minio:
+    image: minio/minio
+    restart: unless-stopped
+    profiles: ["minio"]
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: hope
+      MINIO_ROOT_PASSWORD: hope_local_pw
+    volumes:
+      - minio-data:/data
+
+  minio-init:
+    image: minio/mc
+    profiles: ["minio"]
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      until mc alias set local http://minio:9000 hope hope_local_pw; do sleep 1; done;
+      mc mb --ignore-existing local/hope
+      "
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/api.Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      PORT: "8787"
+      DATABASE_URL: postgres://hope:hope_local_pw@db:5432/hope
+      ALLOWED_ORIGINS: http://localhost
+      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY}
+      CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+      STORAGE_PROVIDER: ${STORAGE_PROVIDER:-cloudinary}
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ACCESS_KEY: hope
+      MINIO_SECRET_KEY: hope_local_pw
+      MINIO_BUCKET: hope
+      STORAGE_PUBLIC_URL: http://localhost/api/storage
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
+
+  web:
+    build:
+      context: .
+      dockerfile: docker/web.Dockerfile
+      args:
+        NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+        NEXT_PUBLIC_APP_URL: http://localhost
+        NEXT_PUBLIC_API_URL: http://localhost/api
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_started
+    environment:
+      API_URL: http://api:8787
+      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY}
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+
+volumes:
+  pgdata:
+  minio-data:

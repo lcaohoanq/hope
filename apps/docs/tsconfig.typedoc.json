@@ -1,0 +1,26 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "ignoreDeprecations": "6.0",
+    "baseUrl": "../..",
+    "paths": {
+      "@hope/shared": ["packages/shared/src/index.ts"],
+      "@hope/shared/*": ["packages/shared/src/*"],
+      "@hope/api-client": ["packages/api-client/src/index.ts"],
+      "@hope/api": ["apps/api/src/index.ts"],
+      "@hope/core": ["packages/core/src/index.ts"],
+      "@hope/db": ["packages/db/src/index.ts"],
+      "@hope/db/schema": ["packages/db/src/schema.ts"]
+    },
+    "types": ["node", "@cloudflare/workers-types"]
+  },
+  "include": [
+    "../../packages/shared/src/**/*.ts",
+    "../../packages/api-client/src/**/*.ts",
+    "../../apps/api/src/**/*.ts",
+    "../../packages/core/src/**/*.ts",
+    "../../packages/db/src/**/*.ts"
+  ],
+  "exclude": ["../../apps/api/src/serve.ts"]
+}

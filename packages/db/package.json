@@ -1,0 +1,28 @@
+{
+  "name": "@hope/db",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./schema": "./src/schema.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate"
+  },
+  "dependencies": {
+    "@hope/shared": "workspace:*",
+    "drizzle-orm": "^0.45.2",
+    "postgres": "^3.4.9"
+  },
+  "devDependencies": {
+    "@next/env": "16.3.0-preview.6",
+    "@types/node": "^26.1.0",
+    "drizzle-kit": "^0.31.10",
+    "typescript": "^6.0.3"
+  }
+}

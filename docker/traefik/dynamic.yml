@@ -1,0 +1,34 @@
+http:
+  middlewares:
+    strip-api:
+      stripPrefix:
+        prefixes:
+          - "/api"
+
+  routers:
+    api:
+      rule: "PathPrefix(`/api`)"
+      entryPoints:
+        - web
+      middlewares:
+        - strip-api
+      service: api
+      priority: 100
+
+    web:
+      rule: "PathPrefix(`/`)"
+      entryPoints:
+        - web
+      service: web
+      priority: 1
+
+  services:
+    api:
+      loadBalancer:
+        servers:
+          - url: "http://api:8787"
+
+    web:
+      loadBalancer:
+        servers:
+          - url: "http://web:3000"

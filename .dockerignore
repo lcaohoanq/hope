@@ -1,0 +1,12 @@
+node_modules
+.next
+.turbo
+.pnpm-store
+.git
+*.log
+.env
+.env.*
+!.env.example
+dist
+coverage
+.playwright

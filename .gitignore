@@ -7,6 +7,8 @@ dist/
 tmp/
 .codebase-memory/
 .agents/
+.pnpm-store/
+.turbo/
 
 .env
 .env*.local
@@ -27,4 +29,6 @@ OPEN_SOURCE_RELEASE.md
 !.agents/skills/next-cache-components-adoption/**/*.md
 !.agents/skills/next-cache-components-optimizer/**/*.md
 !.agents/skills/next-dev-loop/**/*.md
+!apps/docs/**/*.md
+!apps/docs/**/*.mdx
 test-results/
