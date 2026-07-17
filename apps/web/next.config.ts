@@ -1,4 +1,11 @@
+import { resolve } from "node:path";
+import { loadEnvConfig } from "@next/env";
 import type { NextConfig } from "next";
+
+// Monorepo: Clerk/API secrets live in the repo root `.env*`, not only `apps/web/.env*`.
+const monorepoRoot = resolve(__dirname, "../..");
+loadEnvConfig(monorepoRoot);
+loadEnvConfig(__dirname);
 
 const nextConfig: NextConfig = {
   output: process.env.DOCKER_BUILD === "1" ? "standalone" : undefined,

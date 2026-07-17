@@ -7,7 +7,7 @@ import { FaArrowLeft } from "react-icons/fa";
 import { getApiErrorMessage, getClientApiClient } from "@/lib/http";
 import { translations } from "@/lib/i18n";
 import { getProfileUpdateFieldErrors, profileUpdateSchema } from "@/lib/profile-update";
-import { getCanonicalUserPath, type PublicAppUser } from "@/lib/users";
+import { getCanonicalUserPath, isProPlan, type PublicAppUser } from "@/lib/users";
 import { PrivacySettingsCard } from "./PrivacySettingsCard";
 
 type ProfileSettingsFormProps = {
@@ -159,6 +159,30 @@ export function ProfileSettingsForm({ user }: ProfileSettingsFormProps) {
           </p>
           <p className="mt-2 text-sm text-muted">{copy.profileSettings.usernameLocked}</p>
         </header>
+
+        <section className="mb-6 rounded-lg border border-border bg-panel p-5 sm:p-6">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="min-w-0">
+              <h2 className="text-lg font-semibold tracking-[-0.03em] text-text">
+                {copy.profileSettings.planTitle}
+              </h2>
+              <p className="mt-2 max-w-xl text-sm leading-6 text-muted">
+                {copy.profileSettings.planDescription}
+              </p>
+              <p className="mt-3 text-sm font-semibold text-text">
+                {isProPlan(user) ? copy.profileSettings.planPro : copy.profileSettings.planStandard}
+              </p>
+            </div>
+            <Link
+              className="inline-flex h-11 shrink-0 items-center justify-center rounded-md bg-accent px-4 text-sm font-semibold text-accent-contrast transition hover:bg-accent/90 active:scale-[0.98]"
+              href="/pricing"
+            >
+              {isProPlan(user)
+                ? copy.profileSettings.manageBilling
+                : copy.profileSettings.upgradeToPro}
+            </Link>
+          </div>
+        </section>
 
         <div className="mb-6">
           <PrivacySettingsCard user={user} />

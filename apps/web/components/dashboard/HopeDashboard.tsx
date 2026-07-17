@@ -10,6 +10,7 @@ import {
   hasWorkoutImages,
   resolveDefaultHeatmapView,
 } from "@/components/dashboard/dashboard-utils";
+import { ProfileNavigationTabs } from "@/components/dashboard/ProfileNavigationTabs";
 import { TopHeader } from "@/components/dashboard/TopHeader";
 import { UserProfileSidebar } from "@/components/dashboard/UserProfileSidebar";
 import { WorkoutActivityTimeline } from "@/components/dashboard/WorkoutActivityTimeline";
@@ -32,7 +33,12 @@ import { type Language, translations } from "@/lib/i18n";
 import { getAvatarUrl } from "@/lib/profile-utils";
 import { getSocialCopy } from "@/lib/social-copy";
 import type { SocialSummary } from "@/lib/social-types";
-import type { AppTheme, HeatmapView, PublicAppUser } from "@/lib/users";
+import {
+  type AppTheme,
+  canUserEditPastWorkouts,
+  type HeatmapView,
+  type PublicAppUser,
+} from "@/lib/users";
 import { cleanupWorkoutImageUploads } from "@/lib/workout-image-upload";
 import type { Workout, WorkoutInput, WorkoutUpdateInput } from "@/lib/workout-types";
 
@@ -42,6 +48,7 @@ type HopeDashboardProps = {
   user: PublicAppUser;
   viewer?: PublicAppUser;
   socialSummary: SocialSummary;
+  workoutCount: number;
 };
 
 export function HopeDashboard({
@@ -50,9 +57,13 @@ export function HopeDashboard({
   user,
   viewer,
   socialSummary,
+  workoutCount,
 }: HopeDashboardProps) {
-  const { getToken } = useAuth();
+  const { getToken, has } = useAuth();
   const { signOut } = useClerk();
+  // Clerk session entitlements update before the DB webhook; combine both for UI.
+  const allowPastWorkoutEdits =
+    canUserEditPastWorkouts(user) || Boolean(has?.({ feature: "past_workout_edits" }));
   const todayDateKey = getTodayInTimezone();
   const currentYear = Number(todayDateKey.slice(0, 4));
   const birthYear = user.birthYear ?? currentYear;
@@ -376,6 +387,14 @@ export function HopeDashboard({
         isSavingTheme={isSavingTheme}
         user={headerUser}
       />
+
+      <ProfileNavigationTabs
+        username={user.username}
+        workoutCount={workoutCount}
+        currentTab="overview"
+        copy={copy}
+      />
+
       <div className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:px-8">
         <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)] lg:items-start">
           <UserProfileSidebar
@@ -453,7 +472,7 @@ export function HopeDashboard({
               ) : (
                 <>
                   <ContributionHeatmap
-                    allowPastWorkoutEdits={user.settings.workouts.allowPastWorkoutEdits}
+                    allowPastWorkoutEdits={allowPastWorkoutEdits}
                     birthYear={birthYear}
                     canEditWorkouts={isEditable}
                     copy={copy}

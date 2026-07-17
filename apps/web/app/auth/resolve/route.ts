@@ -32,18 +32,29 @@ export async function GET(request: NextRequest) {
 
   const apiUrl = process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8787";
   const client = createApiClient(apiUrl, token);
-  const res = await client.users.me.$get();
-  const me = (await res.json()) as { status: string; user: { username: string } | null };
+
+  let me: { status: string; user: { username: string } | null };
+  try {
+    const res = await client.users.me.$get();
+    me = (await res.json()) as { status: string; user: { username: string } | null };
+  } catch {
+    return redirectTo(request, "/login?error=api_unreachable");
+  }
+
+  // Token present in Next but rejected by API (key mismatch / keyless session).
+  if (me.status === "signed-out") {
+    return redirectTo(request, "/login?error=session_mismatch");
+  }
 
   if (me.status === "ready" && me.user) {
-    return redirectTo(request, `/@${me.user.username}`);
+    return redirectTo(request, `/${me.user.username}`);
   }
 
   try {
     const linkRes = await client.users.profile.$post({ json: {} });
     const linkData = (await linkRes.json()) as { success: boolean; user?: { username: string } };
     if (linkData.success && linkData.user) {
-      return redirectTo(request, `/@${linkData.user.username}`);
+      return redirectTo(request, `/${linkData.user.username}`);
     }
   } catch {
     // Legacy linking failed, continue to onboarding

@@ -1,6 +1,7 @@
 import Spline from "@splinetool/react-spline/next";
 import Image from "next/image";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { FaArrowRight, FaChartLine, FaDumbbell, FaLeaf } from "react-icons/fa";
 import { FocusableSplineScene } from "@/components/home/FocusableSplineScene";
@@ -54,13 +55,16 @@ export default async function Home() {
   const client = await getServerApiClient();
   const res = await client.users.me.$get();
   const me = (await res.json()) as { status: string; user: { username: string } | null };
-  const isSignedIn = me.status !== "signed-out";
-  const primaryHref = isSignedIn
-    ? me.user
-      ? `/@${me.user.username}`
-      : "/auth/continue"
-    : "/login";
-  const primaryLabel = isSignedIn ? "Open dashboard" : "Start your journal";
+
+  if (me.status === "ready" && me.user) {
+    redirect(`/@${me.user.username}`);
+  }
+  if (me.status !== "signed-out") {
+    redirect("/auth/continue");
+  }
+
+  const primaryHref = "/login";
+  const primaryLabel = "Start your journal";
 
   return (
     <main className="relative overflow-hidden bg-app text-text">

@@ -51,6 +51,7 @@ Required server configuration:
 ```env
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
 CLERK_SECRET_KEY=
+CLERK_WEBHOOK_SIGNING_SECRET=
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 DATABASE_URL=
 DIRECT_URL=
@@ -61,6 +62,8 @@ RESEND_API_KEY=
 RESEND_FROM=Hope <onboarding@resend.dev>
 TIMEZONE=Asia/Ho_Chi_Minh
 ```
+
+Billing uses Clerk Billing (Stripe for payments). Enable user plans in the Clerk Dashboard, apply `clerk/billing.json` for the Pro plan + `past_workout_edits` feature, and point a webhook at `POST /api/webhooks/clerk`. See [Self-host](apps/docs/docs/self-host.md) for steps.
 
 Use Supabase's transaction pooler URL for `DATABASE_URL` and a direct/session URL for `DIRECT_URL`. Do not expose either URL to the browser. Keep `CLOUDINARY_API_SECRET` server-only; authenticated workout uploads receive short-lived signed parameters from the app.
 
