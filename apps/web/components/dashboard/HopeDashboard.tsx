@@ -10,6 +10,7 @@ import {
   hasWorkoutImages,
   resolveDefaultHeatmapView,
 } from "@/components/dashboard/dashboard-utils";
+import { ProfileNavigationTabs } from "@/components/dashboard/ProfileNavigationTabs";
 import { TopHeader } from "@/components/dashboard/TopHeader";
 import { UserProfileSidebar } from "@/components/dashboard/UserProfileSidebar";
 import { WorkoutActivityTimeline } from "@/components/dashboard/WorkoutActivityTimeline";
@@ -47,6 +48,7 @@ type HopeDashboardProps = {
   user: PublicAppUser;
   viewer?: PublicAppUser;
   socialSummary: SocialSummary;
+  workoutCount: number;
 };
 
 export function HopeDashboard({
@@ -55,6 +57,7 @@ export function HopeDashboard({
   user,
   viewer,
   socialSummary,
+  workoutCount,
 }: HopeDashboardProps) {
   const { getToken, has } = useAuth();
   const { signOut } = useClerk();
@@ -384,6 +387,14 @@ export function HopeDashboard({
         isSavingTheme={isSavingTheme}
         user={headerUser}
       />
+
+      <ProfileNavigationTabs
+        username={user.username}
+        workoutCount={workoutCount}
+        currentTab="overview"
+        copy={copy}
+      />
+
       <div className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:px-8">
         <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)] lg:items-start">
           <UserProfileSidebar

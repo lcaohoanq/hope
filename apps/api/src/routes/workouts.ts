@@ -5,6 +5,7 @@ import {
   getProfileById,
   getStorageAdapter,
   getVerifiedWorkoutImageAssets,
+  getWorkoutCountByProfile,
   getWorkoutPost,
   insertWorkout,
   likeWorkout,
@@ -241,6 +242,52 @@ export const workoutRoutes = new Hono<AppEnv>()
       } catch (error) {
         console.error("Unable to load workout data.", error);
         return jsonError(c, "Unable to load workout data.", 500);
+      }
+    },
+  )
+  .get(
+    "/workouts/count",
+    describeRoute({
+      tags: ["Workouts"],
+      summary: "Get workout count for a profile",
+      security: [...publicSecurity],
+      responses: {
+        200: jsonResponse(
+          z.object({
+            count: z.number(),
+            visibility: z.enum(["all", "public"]),
+          }),
+          "Workout count with visibility info",
+        ),
+        ...authErrorResponses,
+      },
+    }),
+    validated("query", userIdQuerySchema),
+    async (c) => {
+      const userId = normalizeUserId(c.req.valid("query").userId);
+      if (!userId) return jsonError(c, "A valid user is required.", 400);
+
+      try {
+        const profile = await getProfileById(userId);
+        if (!profile) return jsonError(c, "User was not found.", 404);
+
+        const owner = await resolveOwner(c);
+        const viewer = owner.status === "ready" ? owner.profile : undefined;
+        const access = await resolveProfileAccess(profile, viewer);
+        if (!access.canViewWorkouts) {
+          return jsonError(c, "This profile is private.", 403, {
+            reason: "private-profile",
+            relationshipStatus: access.relationshipStatus,
+          });
+        }
+
+        const isOwner = viewer?.id === profile.id;
+        const visibility = isOwner ? "all" : "public";
+        const count = await getWorkoutCountByProfile(profile.id, visibility);
+        return c.json({ count, visibility });
+      } catch (error) {
+        console.error("Unable to load workout count.", error);
+        return jsonError(c, "Unable to load workout count.", 500);
       }
     },
   )
