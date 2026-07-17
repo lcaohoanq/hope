@@ -379,17 +379,11 @@ export function HopeDashboard({
         avatarUrl={headerAvatarUrl}
         copy={copy}
         language={language}
-        onLanguageChange={setLanguage}
         onSignOut={() => void handleSignOut()}
-        onThemeChange={(nextTheme) => void handleThemeChange(nextTheme)}
         showProfileShortcut={Boolean(viewer)}
         showNotifications={Boolean(viewer)}
         showSignOut={isAuthenticated}
-        showThemeControl={isEditable}
-        theme={theme}
-        themeError={themeError}
-        themeMessage={themeMessage}
-        isSavingTheme={isSavingTheme}
+        showSettings={isEditable}
         user={headerUser}
       />
 

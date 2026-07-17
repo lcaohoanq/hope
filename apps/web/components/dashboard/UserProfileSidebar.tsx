@@ -3,7 +3,6 @@ import Link from "next/link";
 import type { IconType } from "react-icons";
 import {
   FaCamera,
-  FaEdit,
   FaExternalLinkAlt,
   FaFacebookF,
   FaGlobe,
@@ -198,13 +197,6 @@ export function UserProfileSidebar({
 
       {isEditable ? (
         <div className="mt-5 grid gap-2">
-          <Link
-            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-md border border-border bg-panel px-4 text-sm font-semibold text-muted transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-panel-muted hover:text-text active:scale-[0.98]"
-            href="/settings/profile"
-          >
-            <FaEdit aria-hidden="true" className="h-3.5 w-3.5" />
-            {copy.dashboard.editProfile}
-          </Link>
           <Link
             className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-md border border-accent/30 bg-accent/10 px-4 text-sm font-semibold text-accent transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-accent/15 active:scale-[0.98]"
             href="/pricing"
