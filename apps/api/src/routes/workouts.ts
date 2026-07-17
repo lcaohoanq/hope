@@ -56,7 +56,7 @@ import {
 
 const TIMEZONE = "Asia/Ho_Chi_Minh";
 const DEFAULT_ACTIVITY_LIMIT = 6;
-const MAX_ACTIVITY_LIMIT = 12;
+const MAX_ACTIVITY_LIMIT = 20;
 
 function publicWorkout(workout: StoredWorkout): Workout {
   return {

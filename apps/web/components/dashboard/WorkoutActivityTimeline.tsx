@@ -16,8 +16,11 @@ import type { Workout } from "@/lib/workout-types";
 
 type WorkoutActivityTimelineProps = {
   copy: AppCopy;
+  emptyMessage?: string;
   language: Language;
+  limit?: number;
   refreshKey: number;
+  title?: string;
   userId: string;
   view: HeatmapView;
 };
@@ -30,8 +33,11 @@ type WorkoutActivityGroup = {
 
 export function WorkoutActivityTimeline({
   copy,
+  emptyMessage,
   language,
+  limit = 6,
   refreshKey,
+  title,
   userId,
   view,
 }: WorkoutActivityTimelineProps) {
@@ -44,6 +50,8 @@ export function WorkoutActivityTimeline({
   const requestRef = useRef<{ id: number } | null>(null);
   const groups = useMemo(() => groupWorkoutsByMonth(workouts, language), [language, workouts]);
   const year = view.mode === "year" ? view.year : undefined;
+  const sectionTitle = title ?? copy.activityTimeline.title;
+  const emptyText = emptyMessage ?? copy.activityTimeline.empty;
 
   const loadActivity = useCallback(
     async ({ cursor, append = false }: { cursor?: string; append?: boolean } = {}) => {
@@ -61,7 +69,12 @@ export function WorkoutActivityTimeline({
         const token = await getToken();
         const client = getClientApiClient(token);
         const res = await client.workouts.activity.$get({
-          query: { cursor, limit: "6", userId, year: year != null ? String(year) : undefined },
+          query: {
+            cursor,
+            limit: String(limit),
+            userId,
+            year: year != null ? String(year) : undefined,
+          },
         });
 
         if (requestRef.current?.id !== requestId) return;
@@ -86,7 +99,7 @@ export function WorkoutActivityTimeline({
         }
       }
     },
-    [copy.activityTimeline.loadError, getToken, userId, year],
+    [copy.activityTimeline.loadError, getToken, limit, userId, year],
   );
 
   useEffect(() => {
@@ -100,16 +113,12 @@ export function WorkoutActivityTimeline({
 
   return (
     <section className="rounded-lg p-5 shadow-[var(--shadow-panel)] sm:p-6">
-      <h2 className="text-xl font-semibold tracking-[-0.02em] text-text">
-        {copy.activityTimeline.title}
-      </h2>
+      <h2 className="text-xl font-semibold tracking-[-0.02em] text-text">{sectionTitle}</h2>
 
       {isLoading ? (
         <WorkoutActivitySkeleton />
       ) : groups.length === 0 ? (
-        <div className="mt-5 rounded-lg bg-panel-muted/50 p-6 text-sm text-muted">
-          {copy.activityTimeline.empty}
-        </div>
+        <div className="mt-5 rounded-lg bg-panel-muted/50 p-6 text-sm text-muted">{emptyText}</div>
       ) : (
         <div className="mt-6 grid gap-8">
           {groups.map((group) => (
@@ -208,10 +217,6 @@ function WorkoutActivityItem({
   );
   const itemClassName =
     "relative grid grid-cols-[24px_minmax(0,1fr)] gap-3 rounded-md py-1 pr-2 transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] sm:ml-[115px] sm:pr-3";
-
-  if (!workout.isPublic) {
-    return <article className={itemClassName}>{body}</article>;
-  }
 
   return (
     <Link

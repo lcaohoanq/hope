@@ -2,27 +2,30 @@ import { notFound, redirect } from "next/navigation";
 import { HopeDashboard } from "@/components/dashboard/HopeDashboard";
 import { resolveOwner } from "@/lib/auth";
 import { getCanonicalUserPath } from "@/lib/users";
-import { getProfile, getWorkoutCount } from "./profile-page";
+import { getProfile, getWorkoutCount } from "../profile-page";
 
-type UserPageProps = { params: Promise<{ userSlug: string }> };
+type WorkoutsPageProps = { params: Promise<{ userSlug: string }> };
 
 export const dynamic = "force-dynamic";
 
-export async function generateMetadata({ params }: UserPageProps) {
+export async function generateMetadata({ params }: WorkoutsPageProps) {
   const { userSlug } = await params;
   const data = await getProfile(userSlug);
+  if (!data) {
+    return { title: "Không tìm thấy trang | Hope" };
+  }
   return {
-    title: data ? `${data.profile.displayName} - Hope` : "Không tìm thấy trang | Hope",
+    title: `${data.profile.displayName} · Workouts - Hope`,
   };
 }
 
-export default async function UserPage({ params }: UserPageProps) {
+export default async function UserWorkoutsPage({ params }: WorkoutsPageProps) {
   const { userSlug } = await params;
   const data = await getProfile(userSlug);
   if (!data) notFound();
 
   const canonicalPath = getCanonicalUserPath(data.profile);
-  if (`/${userSlug}` !== canonicalPath) redirect(canonicalPath);
+  if (`/${userSlug}` !== canonicalPath) redirect(`${canonicalPath}/workouts`);
 
   const owner = await resolveOwner();
   const viewer = owner.status === "ready" ? owner.user : undefined;
@@ -30,10 +33,10 @@ export default async function UserPage({ params }: UserPageProps) {
 
   return (
     <HopeDashboard
-      currentTab="overview"
+      currentTab="workouts"
       isAuthenticated={owner.status !== "signed-out"}
       isEditable={viewer?.id === data.profile.id}
-      key={data.profile.id}
+      key={`${data.profile.id}-workouts`}
       socialSummary={data.social}
       user={data.profile}
       viewer={viewer}
