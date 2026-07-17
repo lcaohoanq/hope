@@ -20,7 +20,6 @@ import {
   type CreateWorkoutResponse,
   fetchWorkoutDataWithRetry,
   prepareWorkoutRequestData,
-  type UpdateSettingsResponse,
   type UpdateWorkoutResponse,
   type UploadAvatarResponse,
 } from "@/components/dashboard/workout-api";
@@ -29,7 +28,7 @@ import { Loading } from "@/components/shared/Loading";
 import { validateAvatarFile } from "@/lib/avatar-image";
 import { getTodayInTimezone } from "@/lib/date-utils";
 import { getApiErrorMessage, getClientApiClient } from "@/lib/http";
-import { type Language, translations } from "@/lib/i18n";
+import { translations } from "@/lib/i18n";
 import { getAvatarUrl } from "@/lib/profile-utils";
 import { getSocialCopy } from "@/lib/social-copy";
 import type { SocialSummary } from "@/lib/social-types";
@@ -69,20 +68,17 @@ export function HopeDashboard({
   const todayDateKey = getTodayInTimezone();
   const currentYear = Number(todayDateKey.slice(0, 4));
   const birthYear = user.birthYear ?? currentYear;
-  const [language, setLanguage] = useState<Language>(user.preferredLanguage);
+  const language = user.preferredLanguage;
   const copy = translations[language];
   const socialCopy = getSocialCopy(language);
   const themeStorageKey = `hope:theme:${user.id}`;
-  const [theme, setTheme] = useState<AppTheme>(() =>
+  const [theme] = useState<AppTheme>(() =>
     getInitialTheme({
       fallbackTheme: user.settings.theme,
       isEditable,
       storageKey: themeStorageKey,
     }),
   );
-  const [themeMessage, setThemeMessage] = useState("");
-  const [themeError, setThemeError] = useState("");
-  const [isSavingTheme, setIsSavingTheme] = useState(false);
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [isLoadingWorkouts, setIsLoadingWorkouts] = useState(
     socialSummary.canViewWorkouts && currentTab === "overview",
@@ -325,45 +321,6 @@ export function HopeDashboard({
 
   async function handleSignOut() {
     await signOut({ redirectUrl: "/login" });
-  }
-
-  async function handleThemeChange(nextTheme: AppTheme) {
-    if (nextTheme === theme || isSavingTheme) {
-      return;
-    }
-
-    const previousTheme = theme;
-
-    setTheme(nextTheme);
-    if (isEditable) {
-      window.localStorage.setItem(themeStorageKey, nextTheme);
-    }
-    setThemeError("");
-    setThemeMessage(copy.header.savingTheme);
-    setIsSavingTheme(true);
-
-    try {
-      const token = await getToken();
-      const client = getClientApiClient(token);
-      const res = await client.users.settings.$patch({ json: { theme: nextTheme } });
-      const payload = (await res.json()) as UpdateSettingsResponse;
-
-      if (!res.ok || !payload.success) {
-        throw new Error("error" in payload ? payload.error : copy.header.themeUpdateFailed);
-      }
-
-      setTheme(payload.settings.theme);
-      setThemeMessage("");
-    } catch (error) {
-      setTheme(previousTheme);
-      if (isEditable) {
-        window.localStorage.setItem(themeStorageKey, previousTheme);
-      }
-      setThemeMessage("");
-      setThemeError(getApiErrorMessage(error, copy.header.themeUpdateFailed));
-    } finally {
-      setIsSavingTheme(false);
-    }
   }
 
   return (

@@ -66,6 +66,9 @@ export const translations = {
       signIn: "Đăng nhập",
       signOut: "Đăng xuất",
     },
+    settings: {
+      account: "Tài khoản",
+    },
     dashboard: {
       addWorkout: "Thêm buổi tập",
       ageMap: "Tuổi trên bản đồ",
@@ -106,6 +109,7 @@ export const translations = {
     },
     profileSettings: {
       backToProfile: "Quay lại hồ sơ",
+      backToSettings: "Quay lại cài đặt",
       basicDescription: "Tên hiển thị và năm bắt đầu dòng thời gian của bạn.",
       basicTitle: "Thông tin cơ bản",
       bioEnglish: "Giới thiệu bằng tiếng Anh",
@@ -300,6 +304,9 @@ export const translations = {
       signIn: "Sign in",
       signOut: "Sign out",
     },
+    settings: {
+      account: "Account",
+    },
     dashboard: {
       addWorkout: "Add a workout",
       ageMap: "Age map",
@@ -341,6 +348,7 @@ export const translations = {
     },
     profileSettings: {
       backToProfile: "Back to profile",
+      backToSettings: "Back to settings",
       basicDescription: "Your display name and the year your timeline begins.",
       basicTitle: "Basic information",
       bioEnglish: "English bio",

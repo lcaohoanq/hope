@@ -4,23 +4,33 @@ import { useAuth, useClerk } from "@clerk/nextjs";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { FaChevronLeft, FaLanguage, FaMoon, FaSignOutAlt, FaSun } from "react-icons/fa";
+import {
+  FaChevronLeft,
+  FaChevronRight,
+  FaCreditCard,
+  FaLanguage,
+  FaMoon,
+  FaSignOutAlt,
+  FaSun,
+  FaUserEdit,
+} from "react-icons/fa";
 import { getInitialTheme } from "@/components/dashboard/dashboard-utils";
 import type { UpdateSettingsResponse } from "@/components/dashboard/workout-api";
 import { getApiErrorMessage, getClientApiClient } from "@/lib/http";
 import { type Language, languageOptions, translations } from "@/lib/i18n";
-import type { AppTheme, PublicAppUser } from "@/lib/users";
+import { type AppTheme, isProPlan, type PublicAppUser } from "@/lib/users";
 
 type SettingsClientProps = {
   user: PublicAppUser;
 };
 
 export function SettingsClient({ user }: SettingsClientProps) {
-  const { getToken } = useAuth();
+  const { getToken, has } = useAuth();
   const { signOut } = useClerk();
   const router = useRouter();
   const [language, setLanguage] = useState<Language>(user.preferredLanguage);
   const copy = translations[language];
+  const showPro = isProPlan(user) || Boolean(has?.({ plan: "pro" }));
   const themeStorageKey = `hope:theme:${user.id}`;
   const [theme, setTheme] = useState<AppTheme>(() =>
     getInitialTheme({
@@ -101,6 +111,30 @@ export function SettingsClient({ user }: SettingsClientProps) {
 
       <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="grid gap-6">
+          <section className="rounded-lg border border-border bg-panel p-6">
+            <h2 className="text-lg font-semibold text-text">{copy.settings.account}</h2>
+            <div className="mt-4 grid gap-2">
+              <Link
+                className="flex h-12 items-center gap-3 rounded-md px-3 text-sm font-semibold text-text transition hover:bg-panel-muted active:scale-[0.99]"
+                href="/settings/profile"
+              >
+                <FaUserEdit aria-hidden="true" className="h-4 w-4 text-muted" />
+                <span className="flex-1">{copy.dashboard.editProfile}</span>
+                <FaChevronRight aria-hidden="true" className="h-3.5 w-3.5 text-muted" />
+              </Link>
+              <Link
+                className="flex h-12 items-center gap-3 rounded-md px-3 text-sm font-semibold text-text transition hover:bg-panel-muted active:scale-[0.99]"
+                href="/pricing"
+              >
+                <FaCreditCard aria-hidden="true" className="h-4 w-4 text-muted" />
+                <span className="flex-1">
+                  {showPro ? copy.dashboard.managePlan : copy.dashboard.upgradeToPro}
+                </span>
+                <FaChevronRight aria-hidden="true" className="h-3.5 w-3.5 text-muted" />
+              </Link>
+            </div>
+          </section>
+
           {/* Theme Settings */}
           <section className="rounded-lg border border-border bg-panel p-6">
             <div className="flex items-center gap-2 text-lg font-semibold text-text">

@@ -221,10 +221,17 @@ test("shows owner controls to the linked Clerk account", async ({ page }) => {
   await workoutDialog
     .getByRole("button", { name: /close workout form|đóng biểu mẫu tập luyện/i })
     .click();
+
+  await page.getByRole("button", { name: /profile|hồ sơ/i }).click();
+  await page.getByRole("link", { name: /settings|cài đặt/i }).click();
+  await expect(page).toHaveURL("/settings");
   await expect(page.getByRole("link", { name: /edit profile|chỉnh sửa hồ sơ/i })).toHaveAttribute(
     "href",
     "/settings/profile",
   );
+  await expect(
+    page.getByRole("link", { name: /manage plan|quản lý gói|upgrade to pro|nâng cấp pro/i }),
+  ).toHaveAttribute("href", "/pricing");
 });
 
 test("searches users from dashboard and social headers", async ({ page }) => {

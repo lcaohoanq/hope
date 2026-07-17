@@ -137,10 +137,10 @@ export function ProfileSettingsForm({ user }: ProfileSettingsFormProps) {
         <nav className="mb-8 flex items-center justify-between gap-4">
           <Link
             className="inline-flex h-10 items-center gap-2 rounded-md px-2 text-sm font-semibold text-muted transition hover:bg-panel-muted hover:text-text"
-            href={profilePath}
+            href="/settings"
           >
             <FaArrowLeft aria-hidden="true" className="h-3.5 w-3.5" />
-            {copy.profileSettings.backToProfile}
+            {copy.profileSettings.backToSettings}
           </Link>
           <span className="truncate font-mono text-xs font-semibold text-accent">
             @{user.username}
