@@ -14,6 +14,7 @@ import {
 import { commentRoutes } from "./routes/comments";
 import { feedRoutes } from "./routes/feed";
 import { followRequestRoutes } from "./routes/follow-requests";
+import { galleryRoutes } from "./routes/gallery";
 import { notificationRoutes } from "./routes/notifications";
 import { profileRoutes } from "./routes/profiles";
 import { storageRoutes } from "./routes/storage";
@@ -96,6 +97,7 @@ const routes = app
     (c) => c.json({ ok: true as const }),
   )
   .route("/", feedRoutes)
+  .route("/", galleryRoutes)
   .route("/", notificationRoutes)
   .route("/", workoutRoutes)
   .route("/", workoutImageRoutes)

@@ -63,6 +63,17 @@ if (!res.ok) throw new Error("error" in data ? data.error : "Request failed");
 
 Always call `getToken()` before each request (short-lived session JWTs).
 
+## Expo / mobile
+
+See [Mobile app](./mobile.md). The Expo client uses the same helper:
+
+```ts
+import { createApiClient } from "@hope/api-client";
+
+const token = await getToken(); // @clerk/clerk-expo
+const client = createApiClient(process.env.EXPO_PUBLIC_API_URL!, token);
+```
+
 ## Errors
 
 ```ts

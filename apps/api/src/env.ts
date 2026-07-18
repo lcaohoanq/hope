@@ -14,6 +14,10 @@ export type Bindings = {
   MINIO_SECRET_KEY?: string;
   MINIO_BUCKET?: string;
   STORAGE_PUBLIC_URL?: string;
+  /** Featured homepage gallery profile username (preferred over email). */
+  FEATURED_GALLERY_USERNAME?: string;
+  /** Featured homepage gallery profile email (Clerk lookup). Defaults to hoangclw@gmail.com. */
+  FEATURED_GALLERY_EMAIL?: string;
 };
 
 export type AppEnv = {
