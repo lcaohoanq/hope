@@ -201,6 +201,42 @@ export async function getWorkoutCountByProfile(
   return result[0]?.count ?? 0;
 }
 
+export type PublicGalleryItem = {
+  image: string;
+  text: string;
+  workoutId: string;
+  date: string;
+};
+
+/** Recent public workout images for a profile (homepage / marketing gallery). */
+export async function listPublicGalleryItemsByProfile(
+  profileId: string,
+  limit = 12,
+): Promise<PublicGalleryItem[]> {
+  const cappedLimit = Math.min(Math.max(limit, 1), 24);
+  const rows = await getDatabase()
+    .select({
+      secureUrl: workoutImages.secureUrl,
+      type: workouts.type,
+      date: workouts.date,
+      workoutId: workouts.id,
+      createdAt: workouts.createdAt,
+      position: workoutImages.position,
+    })
+    .from(workoutImages)
+    .innerJoin(workouts, eq(workoutImages.workoutId, workouts.id))
+    .where(and(eq(workouts.profileId, profileId), eq(workouts.isPublic, true)))
+    .orderBy(desc(workouts.createdAt), asc(workoutImages.position))
+    .limit(cappedLimit);
+
+  return rows.map((row) => ({
+    image: row.secureUrl,
+    text: row.type?.trim() || row.date,
+    workoutId: row.workoutId,
+    date: row.date,
+  }));
+}
+
 export async function listWorkoutActivityByProfile({
   profileId,
   visibility = "all",

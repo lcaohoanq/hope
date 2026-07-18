@@ -21,6 +21,8 @@ nodeApp.use("*", async (c, next) => {
     MINIO_SECRET_KEY: process.env.MINIO_SECRET_KEY,
     MINIO_BUCKET: process.env.MINIO_BUCKET,
     STORAGE_PUBLIC_URL: process.env.STORAGE_PUBLIC_URL,
+    FEATURED_GALLERY_USERNAME: process.env.FEATURED_GALLERY_USERNAME,
+    FEATURED_GALLERY_EMAIL: process.env.FEATURED_GALLERY_EMAIL,
   } satisfies Bindings;
   await next();
 });
