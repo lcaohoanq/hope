@@ -1,6 +1,15 @@
 "use client";
 
-import { Camera, Mesh, type OGLRenderingContext, Plane, Program, Renderer, Texture, Transform } from "ogl";
+import {
+  Camera,
+  Mesh,
+  type OGLRenderingContext,
+  Plane,
+  Program,
+  Renderer,
+  Texture,
+  Transform,
+} from "ogl";
 import { useEffect, useRef } from "react";
 import "./CircularGallery.css";
 
@@ -89,8 +98,7 @@ async function loadFontFromFile(url: string) {
 }
 
 async function loadCustomFont(fontUrl: string) {
-  const isStylesheet =
-    fontUrl.includes("fonts.googleapis.com") || /\.css(\?.*)?$/i.test(fontUrl);
+  const isStylesheet = fontUrl.includes("fonts.googleapis.com") || /\.css(\?.*)?$/i.test(fontUrl);
   return isStylesheet ? loadFontFromStylesheet(fontUrl) : loadFontFromFile(fontUrl);
 }
 

@@ -8,11 +8,7 @@ type ScrollToHomeSectionProps = {
   children: ReactNode;
 };
 
-export function ScrollToHomeSection({
-  sectionId,
-  className,
-  children,
-}: ScrollToHomeSectionProps) {
+export function ScrollToHomeSection({ sectionId, className, children }: ScrollToHomeSectionProps) {
   return (
     <a
       className={className}

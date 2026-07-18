@@ -127,9 +127,7 @@ export default function BlurText({
           initial={fromSnapshot}
           animate={inView ? animateKeyframes : fromSnapshot}
           transition={spanTransition}
-          onAnimationComplete={
-            index === elements.length - 1 ? onAnimationComplete : undefined
-          }
+          onAnimationComplete={index === elements.length - 1 ? onAnimationComplete : undefined}
         >
           {segment === " " ? "\u00A0" : segment}
           {animateBy === "words" && index < elements.length - 1 && "\u00A0"}

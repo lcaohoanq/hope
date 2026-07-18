@@ -24,12 +24,7 @@ type HomeScrollProps = {
   galleryProfileLabel?: string;
 };
 
-export function HomeScroll({
-  hero,
-  features,
-  galleryItems,
-  galleryProfileLabel,
-}: HomeScrollProps) {
+export function HomeScroll({ hero, features, galleryItems, galleryProfileLabel }: HomeScrollProps) {
   const scrollRef = useRef<HTMLElement | null>(null);
   const [activeSection, setActiveSection] = useState<SectionId>("hero");
 

@@ -43,8 +43,7 @@ async function resolveGalleryProfile(
   env: AppEnv["Bindings"],
   query: z.infer<typeof galleryQuerySchema>,
 ) {
-  const username =
-    query.username?.trim() || env.FEATURED_GALLERY_USERNAME?.trim() || undefined;
+  const username = query.username?.trim() || env.FEATURED_GALLERY_USERNAME?.trim() || undefined;
   if (username) {
     return getProfileByUsername(username);
   }
@@ -89,10 +88,7 @@ export const galleryRoutes = new Hono<AppEnv>().get(
     if (!profile) return jsonError(c, "Profile was not found.", 404);
     if (profile.isPrivate) return jsonError(c, "This gallery is private.", 403);
 
-    const items = await listPublicGalleryItemsByProfile(
-      profile.id,
-      query.limit ?? DEFAULT_LIMIT,
-    );
+    const items = await listPublicGalleryItemsByProfile(profile.id, query.limit ?? DEFAULT_LIMIT);
 
     return c.json({
       success: true as const,

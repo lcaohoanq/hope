@@ -2,13 +2,7 @@
 
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import {
-  type ReactNode,
-  type RefObject,
-  useEffect,
-  useMemo,
-  useRef,
-} from "react";
+import { type ReactNode, type RefObject, useEffect, useMemo, useRef } from "react";
 import "./ScrollReveal.css";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -58,8 +52,7 @@ export default function ScrollReveal({
 
     let ctx: gsap.Context | undefined;
     const frame = requestAnimationFrame(() => {
-      const scroller =
-        scrollContainerRef?.current != null ? scrollContainerRef.current : window;
+      const scroller = scrollContainerRef?.current != null ? scrollContainerRef.current : window;
 
       ctx = gsap.context(() => {
         const wordElements = el.querySelectorAll(".word");
