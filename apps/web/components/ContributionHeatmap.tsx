@@ -4,6 +4,7 @@ import { AnimatePresence } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { WorkoutDayDetailModal } from "@/components/WorkoutDayDetailModal";
 import { WorkoutTooltip } from "@/components/WorkoutTooltip";
+import { resolveWorkoutIntensity } from "@/lib/heatmap-intensity";
 import type { AppCopy, Language } from "@/lib/i18n";
 import type { HeatmapView } from "@/lib/users";
 import type { HeatmapDay, Workout, WorkoutUpdateInput } from "@/lib/workout-types";
@@ -24,6 +25,13 @@ type ContributionHeatmapProps = {
 
 const TOOLTIP_WIDTH = 256;
 const TOOLTIP_MARGIN = 16;
+const heatmapIntensityClasses = [
+  "",
+  "bg-[#033A16]",
+  "bg-[#196C2E]",
+  "bg-[#2EA043]",
+  "bg-[#56D364]",
+] as const;
 
 type ActiveTooltip = {
   date: string;
@@ -248,12 +256,16 @@ export function ContributionHeatmap({
             ) : null}
           </div>
           <div className="flex flex-wrap items-center gap-2 text-xs text-muted">
-            <span>{copy.heatmap.noData}</span>
-            <span className="h-3 w-3 rounded-[3px] border border-border bg-panel-muted" />
-            <span>{copy.heatmap.noWorkout}</span>
-            <span className="h-3 w-3 rounded-[3px] bg-text" />
-            <span className="h-3 w-3 rounded-[3px] bg-accent" />
-            <span>{copy.heatmap.workout}</span>
+            <span>{copy.heatmap.less}</span>
+            <span aria-hidden="true" className="h-3 w-3 rounded-[3px] bg-[#151B23]" />
+            {[1, 2, 3, 4].map((workoutCount) => (
+              <span
+                aria-hidden="true"
+                className={`h-3 w-3 rounded-[3px] ${heatmapIntensityClasses[workoutCount]}`}
+                key={workoutCount}
+              />
+            ))}
+            <span>{copy.heatmap.more}</span>
           </div>
         </div>
       </div>
@@ -292,6 +304,8 @@ export function ContributionHeatmap({
 
                       const hasWorkout = day.status === "workout";
                       const isTrackable = day.status !== "no-data";
+                      const intensityClass =
+                        heatmapIntensityClasses[resolveWorkoutIntensity(day.workouts.length)];
                       const label = !isTrackable
                         ? copy.heatmap.noTrackingYet
                         : hasWorkout
@@ -303,9 +317,9 @@ export function ContributionHeatmap({
                           aria-label={`${day.date}: ${label}`}
                           className={`relative h-2.5 w-2.5 rounded-[2px] outline-none ring-offset-2 ring-offset-panel transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:ring-2 hover:ring-text/20 focus-visible:ring-2 focus-visible:ring-accent ${
                             hasWorkout
-                              ? "bg-accent"
+                              ? intensityClass
                               : isTrackable
-                                ? "bg-text hover:bg-accent/90"
+                                ? "bg-[#151B23] hover:bg-[#196C2E]"
                                 : "border border-border bg-panel-muted"
                           }`}
                           onBlur={() => setActiveTooltip(null)}

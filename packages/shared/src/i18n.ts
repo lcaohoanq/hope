@@ -205,6 +205,7 @@ export const translations = {
     },
     heatmap: {
       lifetime: "Trọn đời",
+      less: "Ít hơn",
       months: [
         "Th1",
         "Th2",
@@ -219,6 +220,7 @@ export const translations = {
         "Th11",
         "Th12",
       ],
+      more: "Nhiều hơn",
       noData: "Chưa có dữ liệu",
       noTrackingYet: "Chưa bắt đầu theo dõi",
       noWorkout: "Chưa tập",
@@ -448,7 +450,9 @@ export const translations = {
     },
     heatmap: {
       lifetime: "Lifetime",
+      less: "Less",
       months: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+      more: "More",
       noData: "No data",
       noTrackingYet: "No tracking yet",
       noWorkout: "No workout",

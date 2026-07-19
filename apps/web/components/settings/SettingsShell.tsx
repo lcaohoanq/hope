@@ -65,12 +65,14 @@ export function SettingsShell({
               className="mb-6 flex items-center gap-3 rounded-lg p-2 transition hover:bg-panel-muted"
               href={`/${user.username}`}
             >
-              <AvatarImage
-                alt={`${user.displayName}'s avatar`}
-                className="h-10 w-10 rounded-full object-cover"
-                sizes="40px"
-                src={user.avatarUrl ?? getAvatarUrl(user.avatarSeed)}
-              />
+              <span className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full">
+                <AvatarImage
+                  alt={`${user.displayName}'s avatar`}
+                  className="h-full w-full object-cover"
+                  sizes="40px"
+                  src={user.avatarUrl ?? getAvatarUrl(user.avatarSeed)}
+                />
+              </span>
               <span className="min-w-0">
                 <span className="block truncate text-sm font-semibold text-text">
                   {user.displayName}
