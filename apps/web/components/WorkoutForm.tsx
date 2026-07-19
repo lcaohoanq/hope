@@ -1,8 +1,9 @@
 "use client";
 
 import { type DragEvent, type ReactNode, useEffect, useRef, useState } from "react";
-import { FaImages, FaTimes } from "react-icons/fa";
+import { FaCamera, FaImages, FaTimes } from "react-icons/fa";
 import { ActivityTypeSelector } from "@/components/ActivityTypeSelector";
+import { WebcamCaptureDialog } from "@/components/WebcamCaptureDialog";
 import { appendCaptionPill, hasCaptionPill } from "@/lib/caption-utils";
 import type { AppCopy } from "@/lib/i18n";
 import { createImagePreviewUrls, revokeImagePreviewUrls } from "@/lib/image-previews";
@@ -61,6 +62,7 @@ export function WorkoutForm({
   const [imageInputKey, setImageInputKey] = useState(0);
   const [isDraggingImages, setIsDraggingImages] = useState(false);
   const [isPreparingImages, setIsPreparingImages] = useState(false);
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
   const previewUrlsRef = useRef<string[]>([]);
   const imageSelectionIdRef = useRef(0);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -352,6 +354,22 @@ export function WorkoutForm({
               </span>
             </button>
 
+            <button
+              className="flex h-16 w-24 shrink-0 flex-col items-center justify-center gap-1 rounded-md bg-panel px-2 text-center text-xs font-semibold text-text transition hover:bg-border/50 active:scale-[0.98] disabled:cursor-not-allowed disabled:text-muted disabled:hover:bg-panel"
+              disabled={isSubmitting || selectedImages.length >= MAX_SELECTED_IMAGES}
+              onClick={() => setIsCameraOpen(true)}
+              title={
+                selectedImages.length >= MAX_SELECTED_IMAGES
+                  ? copy.form.imageLimitReached(MAX_SELECTED_IMAGES)
+                  : copy.form.takePhoto
+              }
+              type="button"
+            >
+              <FaCamera aria-hidden="true" className="h-4 w-4" />
+              <span className="whitespace-nowrap">{copy.form.takePhoto}</span>
+              <span className="font-normal text-muted">{copy.form.webcam}</span>
+            </button>
+
             {isPreparingImages
               ? selectedImages.map((file) => (
                   <div
@@ -413,6 +431,16 @@ export function WorkoutForm({
       >
         {isSubmitting ? copy.common.saving : copy.form.submit}
       </button>
+
+      <WebcamCaptureDialog
+        copy={copy}
+        isOpen={isCameraOpen}
+        onCapture={(image) => {
+          addImages([image]);
+          setIsCameraOpen(false);
+        }}
+        onClose={() => setIsCameraOpen(false)}
+      />
     </form>
   );
 }
