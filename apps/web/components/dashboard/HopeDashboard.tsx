@@ -3,7 +3,6 @@
 import { useAuth, useClerk } from "@clerk/nextjs";
 import { useCallback, useEffect, useState } from "react";
 import { ContributionHeatmap } from "@/components/ContributionHeatmap";
-import { AvatarCropDialog } from "@/components/dashboard/AvatarCropDialog";
 import {
   filterWorkoutsForHeatmapView,
   getInitialTheme,
@@ -21,11 +20,9 @@ import {
   fetchWorkoutDataWithRetry,
   prepareWorkoutRequestData,
   type UpdateWorkoutResponse,
-  type UploadAvatarResponse,
 } from "@/components/dashboard/workout-api";
 import { StatsCards } from "@/components/StatsCards";
 import { Loading } from "@/components/shared/Loading";
-import { validateAvatarFile } from "@/lib/avatar-image";
 import { getTodayInTimezone } from "@/lib/date-utils";
 import { getApiErrorMessage, getClientApiClient } from "@/lib/http";
 import { translations } from "@/lib/i18n";
@@ -85,13 +82,7 @@ export function HopeDashboard({
   );
   const [isSubmittingWorkout, setIsSubmittingWorkout] = useState(false);
   const [isUploadingWorkoutImages, setIsUploadingWorkoutImages] = useState(false);
-  const [avatarUrl, setAvatarUrl] = useState(() => user.avatarUrl ?? getAvatarUrl(user.avatarSeed));
-  const [pendingAvatarPreviewUrl, setPendingAvatarPreviewUrl] = useState("");
-  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
-  const [avatarUploadMessage, setAvatarUploadMessage] = useState("");
-  const [avatarUploadError, setAvatarUploadError] = useState("");
-  const [avatarCropImageUrl, setAvatarCropImageUrl] = useState("");
-  const [avatarCropImageName, setAvatarCropImageName] = useState("");
+  const avatarUrl = user.avatarUrl ?? getAvatarUrl(user.avatarSeed);
   const [workoutLoadError, setWorkoutLoadError] = useState("");
   const [isWorkoutDialogOpen, setIsWorkoutDialogOpen] = useState(false);
   const [activityRefreshKey, setActivityRefreshKey] = useState(0);
@@ -99,10 +90,9 @@ export function HopeDashboard({
     resolveDefaultHeatmapView(user, currentYear),
   );
   const visibleWorkouts = filterWorkoutsForHeatmapView(workouts, selectedHeatmapView);
-  const displayedAvatarUrl = pendingAvatarPreviewUrl || avatarUrl;
   const headerUser = viewer ?? user;
   const headerAvatarUrl = isEditable
-    ? displayedAvatarUrl
+    ? avatarUrl
     : (headerUser.avatarUrl ?? getAvatarUrl(headerUser.avatarSeed));
 
   const loadWorkouts = useCallback(async () => {
@@ -124,11 +114,6 @@ export function HopeDashboard({
     setIsWorkoutDialogOpen(false);
   }, []);
 
-  const closeAvatarCropDialog = useCallback(() => {
-    setAvatarCropImageUrl("");
-    setAvatarCropImageName("");
-  }, []);
-
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
     return () => {
@@ -147,22 +132,6 @@ export function HopeDashboard({
 
     return () => window.clearTimeout(timer);
   }, [currentTab, loadWorkouts, socialSummary.canViewWorkouts]);
-
-  useEffect(() => {
-    return () => {
-      if (pendingAvatarPreviewUrl) {
-        URL.revokeObjectURL(pendingAvatarPreviewUrl);
-      }
-    };
-  }, [pendingAvatarPreviewUrl]);
-
-  useEffect(() => {
-    return () => {
-      if (avatarCropImageUrl) {
-        URL.revokeObjectURL(avatarCropImageUrl);
-      }
-    };
-  }, [avatarCropImageUrl]);
 
   async function handleSubmitWorkout(input: WorkoutInput) {
     setIsSubmittingWorkout(true);
@@ -255,70 +224,6 @@ export function HopeDashboard({
     }
   }
 
-  function handleSelectAvatar(file: File) {
-    const validationError = validateAvatarFile(file);
-
-    if (validationError) {
-      setAvatarUploadError(
-        validationError === "too-large"
-          ? copy.dashboard.avatarTooLarge
-          : copy.dashboard.avatarInvalidType,
-      );
-      setAvatarUploadMessage("");
-      return;
-    }
-
-    setAvatarUploadError("");
-    setAvatarUploadMessage("");
-    setAvatarCropImageName(file.name);
-    setAvatarCropImageUrl(URL.createObjectURL(file));
-  }
-
-  async function handleUploadAvatar(file: File) {
-    const formData = new FormData();
-    const previewUrl = URL.createObjectURL(file);
-    const previousPreviewUrl = pendingAvatarPreviewUrl;
-
-    formData.set("avatar", file);
-
-    if (previousPreviewUrl) {
-      URL.revokeObjectURL(previousPreviewUrl);
-    }
-
-    setPendingAvatarPreviewUrl(previewUrl);
-    setIsUploadingAvatar(true);
-    setAvatarUploadMessage(copy.dashboard.avatarUploadPending);
-    setAvatarUploadError("");
-
-    try {
-      const token = await getToken();
-      const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8787";
-      const res = await fetch(`${API_URL}/users/avatar`, {
-        method: "POST",
-        body: formData,
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const payload = (await res.json()) as UploadAvatarResponse;
-
-      if (!res.ok || !payload.success) {
-        throw new Error("error" in payload ? payload.error : copy.dashboard.avatarUploadFailed);
-      }
-
-      setAvatarUrl(payload.avatarUrl);
-      URL.revokeObjectURL(previewUrl);
-      setPendingAvatarPreviewUrl("");
-      setAvatarUploadMessage(copy.dashboard.avatarUpdated);
-      return true;
-    } catch (error) {
-      URL.revokeObjectURL(previewUrl);
-      setPendingAvatarPreviewUrl("");
-      setAvatarUploadError(getApiErrorMessage(error, copy.dashboard.avatarUploadFailed));
-      return false;
-    } finally {
-      setIsUploadingAvatar(false);
-    }
-  }
-
   async function handleSignOut() {
     await signOut({ redirectUrl: "/login" });
   }
@@ -354,25 +259,14 @@ export function HopeDashboard({
       <div className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:px-8">
         <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)] lg:items-start">
           <UserProfileSidebar
-            avatarUploadError={avatarUploadError}
-            avatarUploadMessage={avatarUploadMessage}
-            avatarUrl={displayedAvatarUrl}
+            avatarUrl={avatarUrl}
             copy={copy}
-            hasPendingAvatarPreview={Boolean(pendingAvatarPreviewUrl)}
-            isUploadingAvatar={isUploadingAvatar}
             isEditable={isEditable}
             isAuthenticated={isAuthenticated}
             socialSummary={socialSummary}
             canViewDetails={socialSummary.canViewWorkouts}
             language={language}
-            onAvatarLoad={(loadedAvatarUrl) => {
-              if (pendingAvatarPreviewUrl && loadedAvatarUrl === avatarUrl) {
-                URL.revokeObjectURL(pendingAvatarPreviewUrl);
-                setPendingAvatarPreviewUrl("");
-              }
-            }}
             onAddWorkout={() => setIsWorkoutDialogOpen(true)}
-            onSelectAvatar={handleSelectAvatar}
             user={user}
           />
 
@@ -462,17 +356,6 @@ export function HopeDashboard({
         isSubmitting={isSubmittingWorkout}
         onClose={closeWorkoutDialog}
         onSubmitWorkout={handleSubmitWorkout}
-      />
-      <AvatarCropDialog
-        copy={copy}
-        error={avatarUploadError}
-        imageName={avatarCropImageName}
-        imageUrl={avatarCropImageUrl}
-        isOpen={Boolean(avatarCropImageUrl)}
-        isSaving={isUploadingAvatar}
-        key={avatarCropImageUrl || "closed-avatar-crop"}
-        onClose={closeAvatarCropDialog}
-        onSave={handleUploadAvatar}
       />
     </main>
   );

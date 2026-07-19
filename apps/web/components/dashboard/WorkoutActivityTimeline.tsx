@@ -9,7 +9,7 @@ import {
   formatActivityTimestamp,
   getActivityMonthKey,
 } from "@/lib/date-utils";
-import { getApiErrorMessage, getClientApiClient } from "@/lib/http";
+import { getApiErrorMessage, getClientApiClient, parseApiJson } from "@/lib/http";
 import type { AppCopy, Language } from "@/lib/i18n";
 import type { HeatmapView } from "@/lib/users";
 import type { Workout } from "@/lib/workout-types";
@@ -29,6 +29,12 @@ type WorkoutActivityGroup = {
   id: string;
   label: string;
   workouts: Workout[];
+};
+
+type WorkoutActivityResponse = {
+  error?: string;
+  nextCursor?: string | null;
+  workouts?: Workout[];
 };
 
 export function WorkoutActivityTimeline({
@@ -78,17 +84,12 @@ export function WorkoutActivityTimeline({
         });
 
         if (requestRef.current?.id !== requestId) return;
-        const payload = await res.json();
-        if (!res.ok)
-          throw new Error(("error" in payload && payload.error) || copy.activityTimeline.loadError);
+        const payload = await parseApiJson<WorkoutActivityResponse>(res);
+        if (!res.ok) throw new Error(payload.error || copy.activityTimeline.loadError);
         setWorkouts((current) =>
-          append
-            ? [...current, ...("workouts" in payload ? (payload.workouts ?? []) : [])]
-            : "workouts" in payload
-              ? (payload.workouts ?? [])
-              : [],
+          append ? [...current, ...(payload.workouts ?? [])] : (payload.workouts ?? []),
         );
-        setNextCursor("nextCursor" in payload ? (payload.nextCursor ?? null) : null);
+        setNextCursor(payload.nextCursor ?? null);
       } catch (caught) {
         if (requestRef.current?.id !== requestId) return;
         setError(getApiErrorMessage(caught, copy.activityTimeline.loadError));

@@ -68,6 +68,8 @@ export const translations = {
     },
     settings: {
       account: "Tài khoản",
+      appearance: "Giao diện",
+      profile: "Hồ sơ công khai",
     },
     dashboard: {
       addWorkout: "Thêm buổi tập",
@@ -133,6 +135,7 @@ export const translations = {
       pronounsEnglish: "Đại từ bằng tiếng Anh",
       pronounsVietnamese: "Đại từ bằng tiếng Việt",
       saveFailed: "Chưa thể cập nhật hồ sơ.",
+      saveSuccess: "Đã lưu thay đổi hồ sơ.",
       title: "Chỉnh sửa hồ sơ",
       upgradeToPro: "Nâng cấp Pro",
       usernameLocked: "Username và đường dẫn hồ sơ được quản lý bởi Clerk.",
@@ -202,6 +205,7 @@ export const translations = {
     },
     heatmap: {
       lifetime: "Trọn đời",
+      less: "Ít hơn",
       months: [
         "Th1",
         "Th2",
@@ -216,6 +220,7 @@ export const translations = {
         "Th11",
         "Th12",
       ],
+      more: "Nhiều hơn",
       noData: "Chưa có dữ liệu",
       noTrackingYet: "Chưa bắt đầu theo dõi",
       noWorkout: "Chưa tập",
@@ -306,6 +311,8 @@ export const translations = {
     },
     settings: {
       account: "Account",
+      appearance: "Appearance",
+      profile: "Public profile",
     },
     dashboard: {
       addWorkout: "Add a workout",
@@ -372,6 +379,7 @@ export const translations = {
       pronounsEnglish: "English pronouns",
       pronounsVietnamese: "Vietnamese pronouns",
       saveFailed: "Unable to update your profile.",
+      saveSuccess: "Profile changes saved.",
       title: "Edit profile",
       upgradeToPro: "Upgrade to Pro",
       usernameLocked: "Your username and profile URL are managed by Clerk.",
@@ -442,7 +450,9 @@ export const translations = {
     },
     heatmap: {
       lifetime: "Lifetime",
+      less: "Less",
       months: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+      more: "More",
       noData: "No data",
       noTrackingYet: "No tracking yet",
       noWorkout: "No workout",

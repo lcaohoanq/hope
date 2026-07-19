@@ -1,19 +1,14 @@
 import { useAuth } from "@clerk/nextjs";
+import { useState } from "react";
 import type { IconType } from "react-icons";
-import {
-  FaCamera,
-  FaExternalLinkAlt,
-  FaFacebookF,
-  FaGlobe,
-  FaInstagram,
-  FaLinkedinIn,
-} from "react-icons/fa";
+import { FaExternalLinkAlt, FaFacebookF, FaGlobe, FaInstagram, FaLinkedinIn } from "react-icons/fa";
 import { ConnectionsDialog } from "@/components/social/ConnectionsDialog";
 import { FollowButton } from "@/components/social/FollowButton";
 import type { AppCopy, Language } from "@/lib/i18n";
 import type { SocialSummary } from "@/lib/social-types";
 import { isProPlan, type PublicAppUser } from "@/lib/users";
 import { AvatarImage } from "./AvatarImage";
+import { AvatarPreviewDialog } from "./AvatarPreviewDialog";
 import { getGoogleMaps3dUrl, getGoogleMapsEmbedUrl } from "./dashboard-utils";
 
 type ProfileLink = {
@@ -23,41 +18,30 @@ type ProfileLink = {
 };
 
 type UserProfileSidebarProps = {
-  avatarUploadError: string;
-  avatarUploadMessage: string;
   avatarUrl: string;
   copy: AppCopy;
-  hasPendingAvatarPreview: boolean;
   isEditable: boolean;
-  isUploadingAvatar: boolean;
   language: Language;
-  onAvatarLoad: (avatarUrl: string) => void;
   user: PublicAppUser;
   onAddWorkout: () => void;
-  onSelectAvatar: (file: File) => void;
   isAuthenticated: boolean;
   socialSummary: SocialSummary;
   canViewDetails: boolean;
 };
 
 export function UserProfileSidebar({
-  avatarUploadError,
-  avatarUploadMessage,
   avatarUrl,
   copy,
-  hasPendingAvatarPreview,
   isEditable,
-  isUploadingAvatar,
   language,
-  onAvatarLoad,
   user,
   onAddWorkout,
-  onSelectAvatar,
   isAuthenticated,
   socialSummary,
   canViewDetails,
 }: UserProfileSidebarProps) {
   const { has } = useAuth();
+  const [isAvatarPreviewOpen, setIsAvatarPreviewOpen] = useState(false);
   const showPro = isProPlan(user) || Boolean(has?.({ plan: "pro" }));
   const profileLinks: ProfileLink[] = [
     ...(user.website
@@ -101,48 +85,20 @@ export function UserProfileSidebar({
   return (
     <aside className="rounded-lg p-5 lg:sticky lg:top-6">
       <div className="flex gap-4 lg:block">
-        <div className="group relative aspect-square h-24 w-24 shrink-0 overflow-hidden rounded-full border border-border bg-panel-muted sm:h-28 sm:w-28 lg:h-auto lg:w-full">
+        <button
+          aria-label={`View ${user.displayName}'s avatar`}
+          className="relative aspect-square h-24 w-24 shrink-0 overflow-hidden rounded-full border border-border bg-panel-muted transition hover:ring-2 hover:ring-accent/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent sm:h-28 sm:w-28 lg:h-auto lg:w-full"
+          onClick={() => setIsAvatarPreviewOpen(true)}
+          type="button"
+        >
           <AvatarImage
             alt={`${user.displayName}'s avatar`}
-            className={`aspect-square h-full w-full object-cover ${
-              hasPendingAvatarPreview ? "opacity-90" : ""
-            }`}
-            onLoad={() => onAvatarLoad(avatarUrl)}
+            className="aspect-square h-full w-full object-cover"
             priority
             sizes="(min-width: 1024px) 248px, (min-width: 640px) 112px, 96px"
             src={avatarUrl}
           />
-          {isUploadingAvatar ? (
-            <div className="absolute inset-0 grid place-items-center bg-text/20">
-              <span className="h-8 w-8 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-            </div>
-          ) : null}
-          {isEditable ? (
-            <label
-              className="absolute inset-x-0 bottom-0 flex cursor-pointer items-center justify-center gap-2 bg-text/75 px-3 py-2 text-xs font-semibold text-white opacity-100 transition group-hover:bg-accent/90 lg:opacity-0 lg:group-hover:opacity-100"
-              title={copy.dashboard.uploadAvatar}
-            >
-              <FaCamera aria-hidden="true" className="h-3.5 w-3.5" />
-              <span className="sr-only lg:not-sr-only lg:truncate">
-                {isUploadingAvatar ? copy.dashboard.uploadingAvatar : copy.dashboard.uploadAvatar}
-              </span>
-              <input
-                accept="image/jpeg,image/png,image/webp"
-                className="sr-only"
-                disabled={isUploadingAvatar}
-                onChange={(event) => {
-                  const [file] = Array.from(event.target.files ?? []);
-                  event.currentTarget.value = "";
-
-                  if (file) {
-                    onSelectAvatar(file);
-                  }
-                }}
-                type="file"
-              />
-            </label>
-          ) : null}
-        </div>
+        </button>
         <div className="min-w-0 flex-1 lg:mt-5">
           {/* <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted">
             {copy.dashboard.appName}
@@ -165,14 +121,15 @@ export function UserProfileSidebar({
             ) : null}
           </div>
           <p className="mt-4 max-w-sm text-sm leading-6 text-text">{user.bio[language]}</p>
-          {avatarUploadMessage ? (
-            <p className="mt-3 text-sm font-medium text-accent">{avatarUploadMessage}</p>
-          ) : null}
-          {avatarUploadError ? (
-            <p className="mt-3 text-sm font-medium text-danger">{avatarUploadError}</p>
-          ) : null}
         </div>
       </div>
+      <AvatarPreviewDialog
+        alt={`${user.displayName}'s avatar`}
+        copy={copy}
+        isOpen={isAvatarPreviewOpen}
+        onClose={() => setIsAvatarPreviewOpen(false)}
+        src={avatarUrl}
+      />
 
       <div className="mt-5 grid gap-3">
         <ConnectionsDialog

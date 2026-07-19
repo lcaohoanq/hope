@@ -1,0 +1,51 @@
+{
+  "name": "@hope/mobile",
+  "version": "0.1.0",
+  "private": true,
+  "main": "expo-router/entry",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "typecheck": "tsc --noEmit",
+    "eas:build:preview": "eas build --profile preview",
+    "eas:build:production": "eas build --profile production"
+  },
+  "dependencies": {
+    "@clerk/clerk-expo": "^2.19.22",
+    "@hope/api-client": "workspace:*",
+    "@hope/shared": "workspace:*",
+    "@react-native-async-storage/async-storage": "2.2.0",
+    "expo": "~57.0.7",
+    "expo-auth-session": "~57.0.4",
+    "expo-constants": "~57.0.6",
+    "expo-crypto": "~57.0.1",
+    "expo-font": "~57.0.1",
+    "expo-image": "~57.0.1",
+    "expo-image-manipulator": "~57.0.5",
+    "expo-image-picker": "~57.0.5",
+    "expo-linking": "~57.0.3",
+    "expo-router": "~57.0.7",
+    "expo-secure-store": "~57.0.1",
+    "expo-splash-screen": "~57.0.4",
+    "expo-status-bar": "~57.0.1",
+    "expo-symbols": "~57.0.1",
+    "expo-web-browser": "~57.0.1",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-native": "0.86.0",
+    "react-native-gesture-handler": "~2.32.0",
+    "react-native-reanimated": "4.5.0",
+    "react-native-safe-area-context": "~5.7.0",
+    "react-native-screens": "4.25.2",
+    "react-native-web": "~0.21.0",
+    "react-native-worklets": "0.10.0"
+  },
+  "devDependencies": {
+    "@hope/api": "workspace:*",
+    "@types/react": "~19.2.2",
+    "babel-preset-expo": "^57.0.3",
+    "typescript": "~6.0.3"
+  }
+}

@@ -8,6 +8,10 @@ loadEnvConfig(monorepoRoot);
 loadEnvConfig(__dirname);
 
 const nextConfig: NextConfig = {
+  experimental: {
+    // The Fragment-ref scroll handler throws during App Router navigation in this Next preview.
+    appNewScrollHandler: false,
+  },
   output: process.env.DOCKER_BUILD === "1" ? "standalone" : undefined,
   transpilePackages: ["@hope/shared", "@hope/api-client"],
   images: {

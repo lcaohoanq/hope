@@ -21,6 +21,9 @@
     "status": "tsx scripts/setup.ts status",
     "docs:dev": "pnpm --filter @hope/docs dev",
     "docs:build": "pnpm --filter @hope/docs build",
+    "mobile": "pnpm --filter @hope/mobile start",
+    "mobile:android": "pnpm --filter @hope/mobile android",
+    "mobile:ios": "pnpm --filter @hope/mobile ios",
     "prepare": "lefthook install"
   },
   "devDependencies": {

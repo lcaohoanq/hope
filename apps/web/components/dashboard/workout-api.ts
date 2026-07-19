@@ -1,4 +1,4 @@
-import { getApiErrorMessage, getClientApiClient } from "@/lib/http";
+import { getApiErrorMessage, getClientApiClient, parseApiJson } from "@/lib/http";
 import type { UserSettings } from "@/lib/users";
 import { uploadWorkoutImagesDirectly } from "@/lib/workout-image-upload";
 import type { Workout, WorkoutData, WorkoutInput, WorkoutUpdateInput } from "@/lib/workout-types";
@@ -50,7 +50,7 @@ export async function fetchWorkoutDataWithRetry(
     try {
       const client = getClientApiClient(token);
       const res = await client.workouts.$get({ query: { userId } });
-      const payload = await res.json();
+      const payload = await parseApiJson<WorkoutData | ApiErrorResponse>(res);
 
       if (!res.ok || ("success" in payload && !(payload as { success: boolean }).success)) {
         throw new Error(

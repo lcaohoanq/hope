@@ -8,7 +8,7 @@ const sidebars: SidebarsConfig = {
     {
       type: "category",
       label: "Guides",
-      items: ["guides/api-client"],
+      items: ["guides/api-client", "guides/mobile"],
     },
     {
       type: "category",

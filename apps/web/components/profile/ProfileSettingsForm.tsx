@@ -3,11 +3,11 @@
 import { useAuth } from "@clerk/nextjs";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { FaArrowLeft } from "react-icons/fa";
+import { AvatarSettingsCard } from "@/components/settings/AvatarSettingsCard";
 import { getApiErrorMessage, getClientApiClient } from "@/lib/http";
 import { translations } from "@/lib/i18n";
 import { getProfileUpdateFieldErrors, profileUpdateSchema } from "@/lib/profile-update";
-import { getCanonicalUserPath, isProPlan, type PublicAppUser } from "@/lib/users";
+import { getCanonicalUserPath, type PublicAppUser } from "@/lib/users";
 import { PrivacySettingsCard } from "./PrivacySettingsCard";
 
 type ProfileSettingsFormProps = {
@@ -58,6 +58,7 @@ export function ProfileSettingsForm({ user }: ProfileSettingsFormProps) {
   }));
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [submitError, setSubmitError] = useState("");
+  const [submitMessage, setSubmitMessage] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -76,6 +77,7 @@ export function ProfileSettingsForm({ user }: ProfileSettingsFormProps) {
   function updateField(field: keyof ProfileFormState, value: string) {
     setForm((current) => ({ ...current, [field]: value }));
     setSubmitError("");
+    setSubmitMessage("");
     setFieldErrors((current) => {
       const next = { ...current };
       const errorField = getErrorField(field);
@@ -108,6 +110,7 @@ export function ProfileSettingsForm({ user }: ProfileSettingsFormProps) {
 
     setIsSaving(true);
     setSubmitError("");
+    setSubmitMessage("");
     setFieldErrors({});
 
     try {
@@ -124,249 +127,211 @@ export function ProfileSettingsForm({ user }: ProfileSettingsFormProps) {
         throw new Error("error" in payload ? payload.error : copy.profileSettings.saveFailed);
       }
 
-      window.location.assign(getCanonicalUserPath(payload.profile));
+      setSubmitMessage(copy.profileSettings.saveSuccess);
     } catch (error) {
       setSubmitError(getApiErrorMessage(error, copy.profileSettings.saveFailed));
+    } finally {
       setIsSaving(false);
     }
   }
 
   return (
-    <main className="min-h-[100dvh] bg-app px-4 py-6 text-text sm:px-6 lg:px-8">
-      <div className="mx-auto w-full max-w-4xl">
-        <nav className="mb-8 flex items-center justify-between gap-4">
-          <Link
-            className="inline-flex h-10 items-center gap-2 rounded-md px-2 text-sm font-semibold text-muted transition hover:bg-panel-muted hover:text-text"
-            href="/settings"
-          >
-            <FaArrowLeft aria-hidden="true" className="h-3.5 w-3.5" />
-            {copy.profileSettings.backToSettings}
-          </Link>
-          <span className="truncate font-mono text-xs font-semibold text-accent">
-            @{user.username}
-          </span>
-        </nav>
-
-        <header className="mb-8 border-b border-border pb-8">
+    <div className="grid gap-6">
+      <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
+        <AvatarSettingsCard user={user} />
+        <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted">
-            {user.displayName}
+            @{user.username}
           </p>
-          <h1 className="mt-3 text-4xl font-semibold tracking-[-0.05em] sm:text-5xl">
-            {copy.profileSettings.title}
-          </h1>
-          <p className="mt-4 max-w-2xl text-base leading-7 text-muted">
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
             {copy.profileSettings.description}
           </p>
           <p className="mt-2 text-sm text-muted">{copy.profileSettings.usernameLocked}</p>
-        </header>
-
-        <section className="mb-6 rounded-lg border border-border bg-panel p-5 sm:p-6">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div className="min-w-0">
-              <h2 className="text-lg font-semibold tracking-[-0.03em] text-text">
-                {copy.profileSettings.planTitle}
-              </h2>
-              <p className="mt-2 max-w-xl text-sm leading-6 text-muted">
-                {copy.profileSettings.planDescription}
-              </p>
-              <p className="mt-3 text-sm font-semibold text-text">
-                {isProPlan(user) ? copy.profileSettings.planPro : copy.profileSettings.planStandard}
-              </p>
-            </div>
-            <Link
-              className="inline-flex h-11 shrink-0 items-center justify-center rounded-md bg-accent px-4 text-sm font-semibold text-accent-contrast transition hover:bg-accent/90 active:scale-[0.98]"
-              href="/pricing"
-            >
-              {isProPlan(user)
-                ? copy.profileSettings.manageBilling
-                : copy.profileSettings.upgradeToPro}
-            </Link>
-          </div>
-        </section>
-
-        <div className="mb-6">
-          <PrivacySettingsCard user={user} />
         </div>
-        <form className="grid gap-6" noValidate onSubmit={handleSubmit}>
-          <FormSection
-            description={copy.profileSettings.basicDescription}
-            title={copy.profileSettings.basicTitle}
-          >
-            <div className="grid gap-5 sm:grid-cols-2">
-              <FormField
-                error={fieldErrors.displayName}
-                htmlFor="displayName"
-                label={copy.profileSettings.displayName}
-              >
-                <input
-                  aria-invalid={Boolean(fieldErrors.displayName)}
-                  className={inputClassName}
-                  disabled={isSaving}
-                  id="displayName"
-                  maxLength={80}
-                  name="displayName"
-                  onChange={(event) => updateField("displayName", event.target.value)}
-                  value={form.displayName}
-                />
-              </FormField>
-              <FormField
-                error={fieldErrors.birthYear}
-                htmlFor="birthYear"
-                label={copy.profileSettings.birthYear}
-              >
-                <input
-                  aria-invalid={Boolean(fieldErrors.birthYear)}
-                  className={inputClassName}
-                  disabled={isSaving}
-                  id="birthYear"
-                  inputMode="numeric"
-                  max={new Date().getFullYear()}
-                  min={1900}
-                  name="birthYear"
-                  onChange={(event) => updateField("birthYear", event.target.value)}
-                  type="number"
-                  value={form.birthYear}
-                />
-              </FormField>
-            </div>
-          </FormSection>
-
-          <FormSection
-            description={copy.profileSettings.profileDescription}
-            title={copy.profileSettings.profileTitle}
-          >
-            <div className="grid gap-5 sm:grid-cols-2">
-              <FormField
-                error={fieldErrors["bio.vi"]}
-                htmlFor="bio.vi"
-                label={copy.profileSettings.bioVietnamese}
-              >
-                <textarea
-                  aria-invalid={Boolean(fieldErrors["bio.vi"])}
-                  className={textareaClassName}
-                  disabled={isSaving}
-                  id="bio.vi"
-                  maxLength={500}
-                  name="bio.vi"
-                  onChange={(event) => updateField("bioVi", event.target.value)}
-                  value={form.bioVi}
-                />
-              </FormField>
-              <FormField
-                error={fieldErrors["bio.en"]}
-                htmlFor="bio.en"
-                label={copy.profileSettings.bioEnglish}
-              >
-                <textarea
-                  aria-invalid={Boolean(fieldErrors["bio.en"])}
-                  className={textareaClassName}
-                  disabled={isSaving}
-                  id="bio.en"
-                  maxLength={500}
-                  name="bio.en"
-                  onChange={(event) => updateField("bioEn", event.target.value)}
-                  value={form.bioEn}
-                />
-              </FormField>
-              <FormField
-                error={fieldErrors["pronouns.vi"]}
-                htmlFor="pronouns.vi"
-                label={copy.profileSettings.pronounsVietnamese}
-              >
-                <input
-                  aria-invalid={Boolean(fieldErrors["pronouns.vi"])}
-                  className={inputClassName}
-                  disabled={isSaving}
-                  id="pronouns.vi"
-                  maxLength={50}
-                  name="pronouns.vi"
-                  onChange={(event) => updateField("pronounsVi", event.target.value)}
-                  value={form.pronounsVi}
-                />
-              </FormField>
-              <FormField
-                error={fieldErrors["pronouns.en"]}
-                htmlFor="pronouns.en"
-                label={copy.profileSettings.pronounsEnglish}
-              >
-                <input
-                  aria-invalid={Boolean(fieldErrors["pronouns.en"])}
-                  className={inputClassName}
-                  disabled={isSaving}
-                  id="pronouns.en"
-                  maxLength={50}
-                  name="pronouns.en"
-                  onChange={(event) => updateField("pronounsEn", event.target.value)}
-                  value={form.pronounsEn}
-                />
-              </FormField>
-            </div>
-          </FormSection>
-
-          <FormSection
-            description={copy.profileSettings.linksDescription}
-            title={copy.profileSettings.linksTitle}
-          >
-            <div className="grid gap-5 sm:grid-cols-2">
-              <UrlField
-                disabled={isSaving}
-                error={fieldErrors.website}
-                label={copy.profileSettings.website}
-                name="website"
-                onChange={(value) => updateField("website", value)}
-                value={form.website}
-              />
-              <UrlField
-                disabled={isSaving}
-                error={fieldErrors["socialLinks.facebook"]}
-                label={copy.profileSettings.facebook}
-                name="socialLinks.facebook"
-                onChange={(value) => updateField("facebook", value)}
-                value={form.facebook}
-              />
-              <UrlField
-                disabled={isSaving}
-                error={fieldErrors["socialLinks.instagram"]}
-                label={copy.profileSettings.instagram}
-                name="socialLinks.instagram"
-                onChange={(value) => updateField("instagram", value)}
-                value={form.instagram}
-              />
-              <UrlField
-                disabled={isSaving}
-                error={fieldErrors["socialLinks.linkedin"]}
-                label={copy.profileSettings.linkedin}
-                name="socialLinks.linkedin"
-                onChange={(value) => updateField("linkedin", value)}
-                value={form.linkedin}
-              />
-            </div>
-          </FormSection>
-
-          <div className="sticky bottom-4 z-10 flex flex-col-reverse gap-3 rounded-lg border border-border bg-panel/95 p-4 shadow-[var(--shadow-panel)] backdrop-blur sm:flex-row sm:items-center sm:justify-between">
-            <div aria-live="polite" className="min-h-5 text-sm font-medium text-danger">
-              {submitError}
-            </div>
-            <div className="flex shrink-0 gap-3">
-              <Link
-                aria-disabled={isSaving}
-                className="inline-flex h-11 items-center justify-center rounded-md border border-border px-5 text-sm font-semibold text-muted transition hover:bg-panel-muted hover:text-text aria-disabled:pointer-events-none aria-disabled:opacity-60"
-                href={profilePath}
-              >
-                {copy.common.cancel}
-              </Link>
-              <button
-                className="h-11 rounded-md bg-accent px-5 text-sm font-semibold text-accent-contrast transition hover:bg-accent/90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
-                disabled={isSaving}
-                type="submit"
-              >
-                {isSaving ? copy.common.saving : copy.common.saveChanges}
-              </button>
-            </div>
-          </div>
-        </form>
       </div>
-    </main>
+      <PrivacySettingsCard user={user} />
+      <form className="grid gap-6" noValidate onSubmit={handleSubmit}>
+        <FormSection
+          description={copy.profileSettings.basicDescription}
+          title={copy.profileSettings.basicTitle}
+        >
+          <div className="grid gap-5 sm:grid-cols-2">
+            <FormField
+              error={fieldErrors.displayName}
+              htmlFor="displayName"
+              label={copy.profileSettings.displayName}
+            >
+              <input
+                aria-invalid={Boolean(fieldErrors.displayName)}
+                className={inputClassName}
+                disabled={isSaving}
+                id="displayName"
+                maxLength={80}
+                name="displayName"
+                onChange={(event) => updateField("displayName", event.target.value)}
+                value={form.displayName}
+              />
+            </FormField>
+            <FormField
+              error={fieldErrors.birthYear}
+              htmlFor="birthYear"
+              label={copy.profileSettings.birthYear}
+            >
+              <input
+                aria-invalid={Boolean(fieldErrors.birthYear)}
+                className={inputClassName}
+                disabled={isSaving}
+                id="birthYear"
+                inputMode="numeric"
+                max={new Date().getFullYear()}
+                min={1900}
+                name="birthYear"
+                onChange={(event) => updateField("birthYear", event.target.value)}
+                type="number"
+                value={form.birthYear}
+              />
+            </FormField>
+          </div>
+        </FormSection>
+
+        <FormSection
+          description={copy.profileSettings.profileDescription}
+          title={copy.profileSettings.profileTitle}
+        >
+          <div className="grid gap-5 sm:grid-cols-2">
+            <FormField
+              error={fieldErrors["bio.vi"]}
+              htmlFor="bio.vi"
+              label={copy.profileSettings.bioVietnamese}
+            >
+              <textarea
+                aria-invalid={Boolean(fieldErrors["bio.vi"])}
+                className={textareaClassName}
+                disabled={isSaving}
+                id="bio.vi"
+                maxLength={500}
+                name="bio.vi"
+                onChange={(event) => updateField("bioVi", event.target.value)}
+                value={form.bioVi}
+              />
+            </FormField>
+            <FormField
+              error={fieldErrors["bio.en"]}
+              htmlFor="bio.en"
+              label={copy.profileSettings.bioEnglish}
+            >
+              <textarea
+                aria-invalid={Boolean(fieldErrors["bio.en"])}
+                className={textareaClassName}
+                disabled={isSaving}
+                id="bio.en"
+                maxLength={500}
+                name="bio.en"
+                onChange={(event) => updateField("bioEn", event.target.value)}
+                value={form.bioEn}
+              />
+            </FormField>
+            <FormField
+              error={fieldErrors["pronouns.vi"]}
+              htmlFor="pronouns.vi"
+              label={copy.profileSettings.pronounsVietnamese}
+            >
+              <input
+                aria-invalid={Boolean(fieldErrors["pronouns.vi"])}
+                className={inputClassName}
+                disabled={isSaving}
+                id="pronouns.vi"
+                maxLength={50}
+                name="pronouns.vi"
+                onChange={(event) => updateField("pronounsVi", event.target.value)}
+                value={form.pronounsVi}
+              />
+            </FormField>
+            <FormField
+              error={fieldErrors["pronouns.en"]}
+              htmlFor="pronouns.en"
+              label={copy.profileSettings.pronounsEnglish}
+            >
+              <input
+                aria-invalid={Boolean(fieldErrors["pronouns.en"])}
+                className={inputClassName}
+                disabled={isSaving}
+                id="pronouns.en"
+                maxLength={50}
+                name="pronouns.en"
+                onChange={(event) => updateField("pronounsEn", event.target.value)}
+                value={form.pronounsEn}
+              />
+            </FormField>
+          </div>
+        </FormSection>
+
+        <FormSection
+          description={copy.profileSettings.linksDescription}
+          title={copy.profileSettings.linksTitle}
+        >
+          <div className="grid gap-5 sm:grid-cols-2">
+            <UrlField
+              disabled={isSaving}
+              error={fieldErrors.website}
+              label={copy.profileSettings.website}
+              name="website"
+              onChange={(value) => updateField("website", value)}
+              value={form.website}
+            />
+            <UrlField
+              disabled={isSaving}
+              error={fieldErrors["socialLinks.facebook"]}
+              label={copy.profileSettings.facebook}
+              name="socialLinks.facebook"
+              onChange={(value) => updateField("facebook", value)}
+              value={form.facebook}
+            />
+            <UrlField
+              disabled={isSaving}
+              error={fieldErrors["socialLinks.instagram"]}
+              label={copy.profileSettings.instagram}
+              name="socialLinks.instagram"
+              onChange={(value) => updateField("instagram", value)}
+              value={form.instagram}
+            />
+            <UrlField
+              disabled={isSaving}
+              error={fieldErrors["socialLinks.linkedin"]}
+              label={copy.profileSettings.linkedin}
+              name="socialLinks.linkedin"
+              onChange={(value) => updateField("linkedin", value)}
+              value={form.linkedin}
+            />
+          </div>
+        </FormSection>
+
+        <div className="sticky bottom-4 z-10 flex flex-col-reverse gap-3 rounded-lg border border-border bg-panel/95 p-4 shadow-[var(--shadow-panel)] backdrop-blur sm:flex-row sm:items-center sm:justify-between">
+          <div
+            aria-live="polite"
+            className={`min-h-5 text-sm font-medium ${submitError ? "text-danger" : "text-accent"}`}
+          >
+            {submitError || submitMessage}
+          </div>
+          <div className="flex shrink-0 gap-3">
+            <Link
+              aria-disabled={isSaving}
+              className="inline-flex h-11 items-center justify-center rounded-md border border-border px-5 text-sm font-semibold text-muted transition hover:bg-panel-muted hover:text-text aria-disabled:pointer-events-none aria-disabled:opacity-60"
+              href={profilePath}
+            >
+              {copy.common.cancel}
+            </Link>
+            <button
+              className="h-11 rounded-md bg-accent px-5 text-sm font-semibold text-accent-contrast transition hover:bg-accent/90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+              disabled={isSaving}
+              type="submit"
+            >
+              {isSaving ? copy.common.saving : copy.common.saveChanges}
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
   );
 }
 
