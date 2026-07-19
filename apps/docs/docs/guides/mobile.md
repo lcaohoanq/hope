@@ -48,7 +48,7 @@ Use the **same** Clerk application / publishable key as web so tokens verify aga
 
 ## Monorepo / Metro
 
-[`apps/mobile/metro.config.js`](../../../apps/mobile/metro.config.js) watches the workspace root and resolves `@hope/shared` + `@hope/api-client`. Do not import `@hope/core` or `@hope/db` from the app.
+[`apps/mobile/metro.config.js`](https://github.com/lcaohoanq/hope/blob/develop/apps/mobile/metro.config.js) watches the workspace root and resolves `@hope/shared` + `@hope/api-client`. Do not import `@hope/core` or `@hope/db` from the app.
 
 ## EAS
 
@@ -60,7 +60,7 @@ pnpm eas:build:preview
 pnpm eas:build:production
 ```
 
-Profiles live in [`apps/mobile/eas.json`](../../../apps/mobile/eas.json): `development`, `preview`, `production`.
+Profiles live in [`apps/mobile/eas.json`](https://github.com/lcaohoanq/hope/blob/develop/apps/mobile/eas.json): `development`, `preview`, `production`.
 
 ## Smoke checklist
 
