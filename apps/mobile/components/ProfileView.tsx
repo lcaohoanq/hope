@@ -2,7 +2,7 @@ import type { PublicAppUser, SocialSummary, Workout } from "@hope/shared";
 import { Image } from "expo-image";
 import { Link } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Modal, Pressable, ScrollView, Text, View } from "react-native";
 import { FollowButton } from "@/components/FollowButton";
 import { Card, LoadingState, Muted } from "@/components/ui";
 import { useTheme } from "@/context/ThemeContext";
@@ -26,6 +26,7 @@ export function ProfileView({ username, isSelf = false }: { username: string; is
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [isAvatarPreviewOpen, setIsAvatarPreviewOpen] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -72,14 +73,18 @@ export function ProfileView({ username, isSelf = false }: { username: string; is
     return <Text style={{ color: colors.danger }}>{error || "Profile not found."}</Text>;
   }
 
+  const avatarUrl = profile.avatarUrl ?? getAvatarUrl(profile.avatarSeed);
+
   return (
     <ScrollView contentContainerStyle={{ gap: 12, paddingBottom: 24 }}>
       <Card>
         <View style={{ flexDirection: "row", gap: 12, alignItems: "center" }}>
-          <Image
-            source={profile.avatarUrl ?? getAvatarUrl(profile.avatarSeed)}
-            style={{ width: 72, height: 72, borderRadius: 36 }}
-          />
+          <Pressable
+            accessibilityLabel={`View ${profile.displayName}'s avatar`}
+            onPress={() => setIsAvatarPreviewOpen(true)}
+          >
+            <Image source={avatarUrl} style={{ width: 72, height: 72, borderRadius: 36 }} />
+          </Pressable>
           <View style={{ flex: 1, gap: 4 }}>
             <Text style={{ color: colors.text, fontSize: 20, fontWeight: "700" }}>
               {profile.displayName}
@@ -120,6 +125,39 @@ export function ProfileView({ username, isSelf = false }: { username: string; is
           />
         ) : null}
       </Card>
+
+      <Modal
+        animationType="fade"
+        onRequestClose={() => setIsAvatarPreviewOpen(false)}
+        transparent
+        visible={isAvatarPreviewOpen}
+      >
+        <Pressable
+          accessibilityLabel="Close avatar preview"
+          onPress={() => setIsAvatarPreviewOpen(false)}
+          style={{
+            alignItems: "center",
+            backgroundColor: "rgba(0, 0, 0, 0.72)",
+            flex: 1,
+            justifyContent: "center",
+            padding: 24,
+          }}
+        >
+          <Pressable onPress={(event) => event.stopPropagation()}>
+            <Image
+              contentFit="contain"
+              source={avatarUrl}
+              style={{
+                borderRadius: 160,
+                height: 320,
+                maxHeight: "80%",
+                maxWidth: "80%",
+                width: 320,
+              }}
+            />
+          </Pressable>
+        </Pressable>
+      </Modal>
 
       <Card>
         <Text style={{ color: colors.text, fontWeight: "700" }}>Recent workouts</Text>

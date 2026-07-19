@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { ProfileSettingsForm } from "@/components/profile/ProfileSettingsForm";
+import { SettingsShell } from "@/components/settings/SettingsShell";
 import { resolveOwner } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
@@ -17,5 +18,9 @@ export default async function ProfileSettingsPage() {
   if (owner.status === "onboarding") {
     redirect("/onboarding");
   }
-  return <ProfileSettingsForm user={owner.user} />;
+  return (
+    <SettingsShell section="profile" user={owner.user}>
+      <ProfileSettingsForm user={owner.user} />
+    </SettingsShell>
+  );
 }

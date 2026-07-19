@@ -16,6 +16,7 @@ import {
 } from "react-icons/fa";
 import { getInitialTheme } from "@/components/dashboard/dashboard-utils";
 import type { UpdateSettingsResponse } from "@/components/dashboard/workout-api";
+import { AvatarSettingsCard } from "@/components/settings/AvatarSettingsCard";
 import { getApiErrorMessage, getClientApiClient } from "@/lib/http";
 import { type Language, languageOptions, translations } from "@/lib/i18n";
 import { type AppTheme, isProPlan, type PublicAppUser } from "@/lib/users";
@@ -111,6 +112,7 @@ export function SettingsClient({ user }: SettingsClientProps) {
 
       <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="grid gap-6">
+          <AvatarSettingsCard user={user} />
           <section className="rounded-lg border border-border bg-panel p-6">
             <h2 className="text-lg font-semibold text-text">{copy.settings.account}</h2>
             <div className="mt-4 grid gap-2">

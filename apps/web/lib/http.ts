@@ -7,6 +7,30 @@ export function getClientApiClient(token?: string | null): ApiClient {
   return createApiClient(API_URL, token);
 }
 
+type ApiResponse = {
+  ok: boolean;
+  status: number;
+  text: () => Promise<string>;
+};
+
+export async function parseApiJson<T>(response: ApiResponse): Promise<T> {
+  const body = await response.text();
+
+  if (!body) {
+    if (response.ok) return {} as T;
+    throw new Error(`API request failed (${response.status}).`);
+  }
+
+  try {
+    return JSON.parse(body) as T;
+  } catch {
+    const message = response.ok
+      ? "The API returned an invalid response."
+      : `API request failed (${response.status}): ${body}`;
+    throw new Error(message);
+  }
+}
+
 export const externalHttpClient = axios.create({
   validateStatus: () => true,
 });

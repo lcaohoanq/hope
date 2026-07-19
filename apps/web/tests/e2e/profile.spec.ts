@@ -273,14 +273,14 @@ test("searches users from dashboard and social headers", async ({ page }) => {
   await expect(page.getByText(/no users found|không tìm thấy người dùng/i)).toBeVisible();
 });
 
-test("lets the owner reposition and crop an avatar before upload", async ({ page }) => {
+test("lets the owner reposition and crop an avatar in settings before upload", async ({ page }) => {
   test.skip(
     !publicUsername || !ownerEmail,
     "Set E2E public profile and Clerk test user variables.",
   );
   await page.goto("/");
   await clerk.signIn({ page, emailAddress: ownerEmail! });
-  await page.goto(`/${publicUsername}`);
+  await page.goto("/settings");
 
   const avatarInput = page.locator('input[type="file"][accept="image/jpeg,image/png,image/webp"]');
   const imagePath = path.join(process.cwd(), "public/apple-touch-icon.png");
@@ -381,10 +381,8 @@ test("validates and updates the owner's public profile", async ({ page }) => {
 
   try {
     await page.getByRole("button", { name: /save changes|lưu thay đổi/i }).click();
-    await expect(page).toHaveURL(`/${publicUsername}`);
-    await expect(
-      page.getByRole("heading", { name: updatedDisplayName, exact: true }),
-    ).toBeVisible();
+    await expect(page).toHaveURL("/settings/profile");
+    await expect(page.getByText(/profile changes saved|đã lưu thay đổi hồ sơ/i)).toBeVisible();
   } finally {
     const restored = await page.context().request.patch("/api/users/profile", {
       data: original,
