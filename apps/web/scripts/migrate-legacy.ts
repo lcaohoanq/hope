@@ -10,7 +10,7 @@ import { eq, sql } from "drizzle-orm";
 
 loadEnvConfig(process.cwd());
 
-type SnapshotProfile = Omit<AppUser, "slug" | "clerkUserId" | "avatarPublicId">;
+type SnapshotProfile = Omit<AppUser, "slug" | "clerkUserId" | "avatarPublicId" | "role">;
 type ManifestEntry = { appUserId: string; email: string };
 type MigratedAsset = UploadedAsset & { source: string };
 

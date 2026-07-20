@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { AppClerkProvider } from "@/components/auth/AppClerkProvider";
 import { AppShell } from "@/components/layouts/AppShell";
+import { QueryProvider } from "@/components/providers/QueryProvider";
 import { ErudaInspector } from "@/components/shared/ErudaInspector";
 import "./globals.css";
 
@@ -49,8 +50,10 @@ export default function RootLayout({
     <html lang="vi">
       <body className={`${geistSans.variable} ${geistMono.variable}`} suppressHydrationWarning>
         <AppClerkProvider>
-          <ErudaInspector />
-          <AppShell>{children}</AppShell>
+          <QueryProvider>
+            <ErudaInspector />
+            <AppShell>{children}</AppShell>
+          </QueryProvider>
         </AppClerkProvider>
       </body>
     </html>

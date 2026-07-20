@@ -5,6 +5,7 @@ import type {
   NotificationType,
   UserLocation,
   UserPlan,
+  UserRole,
   UserSettings,
   UserSocialLinks,
 } from "@hope/shared";
@@ -16,6 +17,7 @@ import {
   index,
   integer,
   jsonb,
+  pgEnum,
   pgTable,
   serial,
   text,
@@ -25,12 +27,15 @@ import {
 
 export type { FollowStatus, NotificationType };
 
+export const userRole = pgEnum("user_role", ["user", "admin"]);
+
 export const profiles = pgTable(
   "profiles",
   {
     id: text("id").primaryKey(),
     clerkUserId: text("clerk_user_id").unique(),
     username: text("username").notNull().unique(),
+    role: userRole("role").$type<UserRole>().notNull().default("user"),
     plan: text("plan").$type<UserPlan>().notNull().default("standard"),
     displayName: text("display_name").notNull(),
     birthYear: integer("birth_year").notNull(),

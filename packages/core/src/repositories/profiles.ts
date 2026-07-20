@@ -1,6 +1,6 @@
 import { getDatabase } from "@hope/db";
 import { type ProfileRow, profiles } from "@hope/db/schema";
-import type { AppTheme, AppUser, UserPlan, ValidatedProfileUpdate } from "@hope/shared";
+import type { AppTheme, AppUser, UserPlan, UserRole, ValidatedProfileUpdate } from "@hope/shared";
 import { getDefaultUserSettings, normalizeUsername } from "@hope/shared";
 import { and, asc, eq, ilike, isNotNull, isNull, or, sql } from "drizzle-orm";
 
@@ -10,6 +10,7 @@ export function toAppUser(row: ProfileRow): AppUser {
     clerkUserId: row.clerkUserId,
     username: row.username,
     slug: `@${row.username}`,
+    role: row.role,
     plan: row.plan,
     displayName: row.displayName,
     birthYear: row.birthYear,
@@ -144,6 +145,15 @@ export async function updateProfilePlan(clerkUserId: string, plan: UserPlan) {
     .update(profiles)
     .set({ plan, updatedAt: new Date() })
     .where(eq(profiles.clerkUserId, clerkUserId))
+    .returning();
+  return row ? toAppUser(row) : undefined;
+}
+
+export async function updateProfileRole(profileId: string, role: UserRole) {
+  const [row] = await getDatabase()
+    .update(profiles)
+    .set({ role, updatedAt: new Date() })
+    .where(eq(profiles.id, profileId))
     .returning();
   return row ? toAppUser(row) : undefined;
 }

@@ -9,6 +9,8 @@ const clerkRoutes = [
   /^\/pricing(?:\/|$)/,
   /^\/workouts\/[^/]+\/?$/,
   /^\/(?:login|sign-up)(?:\/|$)/,
+  /^\/admin(?:\/|$)/,
+  /^\/api\/admin(?:\/|$)/,
   /^\/auth\/(?:continue|resolve)\/?$/,
   /^\/settings\/profile\/?$/,
   /^\/__clerk(?:\/|$)/,

@@ -26,6 +26,8 @@ export type UserSocialLinks = {
 export type AppTheme = "light" | "dark";
 /** Account plan tier. */
 export type UserPlan = "standard" | "pro";
+/** Application authorization level, assigned only by trusted server-side tooling. */
+export type UserRole = "user" | "admin";
 
 /** Persisted UI and workout preferences. */
 export type UserSettings = {
@@ -40,6 +42,7 @@ export type AppUser = UserProfile & {
   clerkUserId?: string | null;
   username: string;
   slug: string;
+  role: UserRole;
   plan: UserPlan;
   avatarUrl?: string;
   avatarPublicId?: string | null;
@@ -55,10 +58,15 @@ export type AppUser = UserProfile & {
 };
 
 /** Public-safe user shape (omits clerk id, avatar public id, reminder flag). */
-export type PublicAppUser = Omit<AppUser, "clerkUserId" | "avatarPublicId" | "reminderEnabled">;
+export type PublicAppUser = Omit<
+  AppUser,
+  "clerkUserId" | "avatarPublicId" | "reminderEnabled" | "role"
+>;
 
 /** Default plan for new users. */
 export const DEFAULT_USER_PLAN: UserPlan = "standard";
+/** Default authorization level for newly created accounts. */
+export const DEFAULT_USER_ROLE: UserRole = "user";
 
 /**
  * Build default {@link UserSettings} for a new or reset profile.
