@@ -1,4 +1,3 @@
-import Spline from "@splinetool/react-spline/next";
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -6,6 +5,8 @@ import { Suspense } from "react";
 import { FaArrowRight, FaChartLine, FaDumbbell, FaLeaf } from "react-icons/fa";
 import BlurText from "@/components/home/BlurText";
 import { FocusableSplineScene } from "@/components/home/FocusableSplineScene";
+import { HeroSplineScene } from "@/components/home/HeroSplineScene";
+import { HomeGallery } from "@/components/home/HomeGallery";
 import { HomeScroll } from "@/components/home/HomeScroll";
 import { ScrollToHomeSection } from "@/components/home/ScrollToHomeSection";
 import TextType from "@/components/home/TextType";
@@ -37,22 +38,8 @@ export const metadata = {
     "A calm workout journal for logging movement, seeing your rhythm, and beginning the next session.",
 };
 
-function SceneFallback() {
-  return (
-    <div
-      aria-label="Loading interactive movement scene"
-      className="absolute inset-0 grid place-items-center bg-panel-muted"
-      role="status"
-    >
-      <div className="flex items-center gap-3 text-sm font-medium text-muted">
-        <span
-          aria-hidden="true"
-          className="h-2.5 w-2.5 rounded-full bg-accent motion-safe:animate-pulse"
-        />
-        Preparing the scene
-      </div>
-    </div>
-  );
+function GalleryFallback() {
+  return <div aria-hidden="true" className="min-h-dvh bg-panel/[0.36]" />;
 }
 
 export default async function Home() {
@@ -70,25 +57,13 @@ export default async function Home() {
   const primaryHref = "/login";
   const primaryLabel = "Start your journal";
 
-  const galleryRes = await client.public.gallery.$get({
-    query: { limit: "12" },
-  });
-  const galleryPayload = galleryRes.ok
-    ? ((await galleryRes.json()) as {
-        success: true;
-        profile: { username: string; displayName: string };
-        items: Array<{ image: string; text: string }>;
-      })
-    : null;
-  const galleryItems = galleryPayload?.items ?? [];
-  const galleryProfileLabel = galleryPayload
-    ? galleryPayload.profile.displayName || `@${galleryPayload.profile.username}`
-    : undefined;
-
   return (
     <HomeScroll
-      galleryItems={galleryItems}
-      galleryProfileLabel={galleryProfileLabel}
+      gallery={
+        <Suspense fallback={<GalleryFallback />}>
+          <HomeGallery />
+        </Suspense>
+      }
       hero={
         <>
           <div
@@ -175,12 +150,7 @@ export default async function Home() {
               </div>
 
               <FocusableSplineScene className="h-[52dvh] min-h-[390px] sm:h-[58dvh] lg:h-[min(72dvh,760px)] lg:min-h-[560px]">
-                <Suspense fallback={<SceneFallback />}>
-                  <Spline
-                    className="absolute inset-0 h-full w-full [&_canvas]:!h-full [&_canvas]:!w-full [&_canvas]:touch-pan-y"
-                    scene={SCENE_URL}
-                  />
-                </Suspense>
+                <HeroSplineScene scene={SCENE_URL} />
               </FocusableSplineScene>
             </div>
           </div>
