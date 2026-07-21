@@ -6,7 +6,7 @@ import { WorkoutDayDetailModal } from "@/components/WorkoutDayDetailModal";
 import { WorkoutTooltip } from "@/components/WorkoutTooltip";
 import { resolveWorkoutIntensity } from "@/lib/heatmap-intensity";
 import type { AppCopy, Language } from "@/lib/i18n";
-import type { HeatmapView } from "@/lib/users";
+import type { HeatmapView, PublicAppUser } from "@/lib/users";
 import type { HeatmapDay, Workout, WorkoutUpdateInput } from "@/lib/workout-types";
 import { createHeatmapYears, createLifetimeHeatmapYears } from "@/lib/workout-utils";
 
@@ -15,6 +15,7 @@ type ContributionHeatmapProps = {
   canEditWorkouts: boolean;
   copy: AppCopy;
   language: Language;
+  profile: Pick<PublicAppUser, "displayName" | "username">;
   workouts: Workout[];
   todayDateKey: string;
   birthYear: number;
@@ -57,6 +58,7 @@ export function ContributionHeatmap({
   canEditWorkouts,
   copy,
   language,
+  profile,
   workouts,
   todayDateKey,
   birthYear,
@@ -255,17 +257,57 @@ export function ContributionHeatmap({
               </div>
             ) : null}
           </div>
-          <div className="flex flex-wrap items-center gap-2 text-xs text-muted">
-            <span>{copy.heatmap.less}</span>
-            <span aria-hidden="true" className="h-3 w-3 rounded-[3px] bg-[#151B23]" />
+          <div className="group relative flex flex-wrap items-center gap-2 text-xs text-muted">
+            <span
+              className="cursor-help underline decoration-dotted decoration-muted/70 underline-offset-2"
+              title={copy.heatmap.intensityScaleHint}
+            >
+              {copy.heatmap.less}
+            </span>
+            <span
+              className="h-3 w-3 rounded-[3px] bg-[#151B23]"
+              title={copy.heatmap.intensityEmpty}
+            />
             {[1, 2, 3, 4].map((workoutCount) => (
               <span
-                aria-hidden="true"
                 className={`h-3 w-3 rounded-[3px] ${heatmapIntensityClasses[workoutCount]}`}
                 key={workoutCount}
+                title={copy.heatmap.intensityLevel(workoutCount)}
               />
             ))}
-            <span>{copy.heatmap.more}</span>
+            <button
+              className="cursor-help rounded-sm underline decoration-dotted decoration-muted/70 underline-offset-2 outline-none transition focus-visible:ring-2 focus-visible:ring-accent"
+              title={copy.heatmap.intensityScaleHint}
+              type="button"
+            >
+              {copy.heatmap.more}
+            </button>
+            <div
+              className="pointer-events-none absolute bottom-full right-0 z-20 mb-2 w-56 rounded-md border border-border bg-panel p-3 text-left opacity-0 shadow-[0_12px_28px_rgba(28,25,23,0.18)] transition duration-150 group-hover:opacity-100 group-focus-within:opacity-100"
+              role="tooltip"
+            >
+              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
+                {copy.heatmap.intensityLegend}
+              </p>
+              <p className="mt-1.5 text-xs leading-5 text-text">
+                {copy.heatmap.intensityScaleHint}
+              </p>
+              <ul className="mt-2.5 grid gap-1.5">
+                <li className="flex items-center gap-2 text-xs text-text">
+                  <span aria-hidden="true" className="h-3 w-3 rounded-[3px] bg-[#151B23]" />
+                  {copy.heatmap.intensityEmpty}
+                </li>
+                {[1, 2, 3, 4].map((workoutCount) => (
+                  <li className="flex items-center gap-2 text-xs text-text" key={workoutCount}>
+                    <span
+                      aria-hidden="true"
+                      className={`h-3 w-3 rounded-[3px] ${heatmapIntensityClasses[workoutCount]}`}
+                    />
+                    {copy.heatmap.intensityLevel(workoutCount)}
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </div>
       </div>
@@ -399,6 +441,7 @@ export function ContributionHeatmap({
             onClose={() => setSelectedDay(null)}
             onUpdateWorkout={handleSelectedDayWorkoutUpdate}
             origin={selectedDay.origin}
+            profile={profile}
             todayDateKey={todayDateKey}
             workouts={selectedDay.workouts}
           />

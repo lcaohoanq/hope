@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect } from "react";
 import { WorkoutForm } from "@/components/WorkoutForm";
-import type { AppCopy } from "@/lib/i18n";
+import type { AppCopy, Language } from "@/lib/i18n";
 import type { WorkoutInput } from "@/lib/workout-types";
 
 type WorkoutDialogProps = {
@@ -11,6 +11,7 @@ type WorkoutDialogProps = {
   defaultDate: string;
   isOpen: boolean;
   isSubmitting: boolean;
+  language?: Language;
   onClose: () => void;
   onSubmitWorkout: (input: WorkoutInput) => Promise<void>;
 };
@@ -51,6 +52,7 @@ export function WorkoutDialog({
   defaultDate,
   isOpen,
   isSubmitting,
+  language = "en",
   onClose,
   onSubmitWorkout,
 }: WorkoutDialogProps) {
@@ -102,6 +104,7 @@ export function WorkoutDialog({
               copy={copy}
               defaultDate={defaultDate}
               isSubmitting={isSubmitting}
+              language={language}
               onSubmitWorkout={onSubmitWorkout}
             />
           </motion.div>

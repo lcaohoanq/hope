@@ -3,7 +3,15 @@
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { FaChevronDown, FaCog, FaSignInAlt, FaSignOutAlt, FaUser, FaUsers } from "react-icons/fa";
+import {
+  FaChevronDown,
+  FaCog,
+  FaSignInAlt,
+  FaSignOutAlt,
+  FaTrophy,
+  FaUser,
+  FaUsers,
+} from "react-icons/fa";
 import { UserSearch } from "@/components/shared/UserSearch";
 import { NotificationBell } from "@/components/social/NotificationBell";
 import type { AppCopy, Language } from "@/lib/i18n";
@@ -102,6 +110,16 @@ export function TopHeader({
               >
                 <FaUsers aria-hidden="true" className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">{socialCopy.feed}</span>
+              </Link>
+            ) : null}
+            {showNotifications ? (
+              <Link
+                aria-label={socialCopy.leaderboard}
+                className="inline-flex h-10 items-center gap-2 rounded-md border border-transparent px-3 text-sm font-semibold text-muted transition hover:bg-panel-muted hover:text-text focus:outline-none focus-visible:ring-2 focus-visible:ring-accent active:scale-[0.98]"
+                href="/leaderboard"
+              >
+                <FaTrophy aria-hidden="true" className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">{socialCopy.leaderboard}</span>
               </Link>
             ) : null}
             {showNotifications ? <NotificationBell language={language} /> : null}

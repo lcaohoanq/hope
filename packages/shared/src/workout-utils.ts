@@ -1,8 +1,11 @@
 import {
+  addDays,
   getCurrentTimeInTimezone,
   getDaysInRange,
   getLastNDays,
   getTodayInTimezone,
+  parseDateKey,
+  toDateKey,
 } from "./date-utils";
 import type {
   CreateWorkoutRequest,
@@ -326,6 +329,7 @@ export function createWorkoutRecord(
     durationMinutes: number;
     note: string;
     isPublic: boolean;
+    points?: number;
     images?: WorkoutImage[];
   },
   now = new Date(),
@@ -339,6 +343,7 @@ export function createWorkoutRecord(
     endTime: input.endTime,
     durationMinutes: input.durationMinutes,
     note: input.note,
+    points: input.points ?? 0,
     isPublic: input.isPublic,
     ...(input.images && input.images.length > 0 ? { images: input.images } : {}),
     createdAt: now.toISOString(),
@@ -399,20 +404,64 @@ export function replaceWorkout(data: WorkoutData, workout: Workout): WorkoutData
   };
 }
 
+export type ActivityMixKey = "workout" | "study" | "other";
+
+export type WorkoutDayCount = {
+  date: string;
+  count: number;
+  types: ActivityMixKey[];
+};
+
+export type WorkoutStats = {
+  activeDays: number;
+  totalSessions: number;
+  last30ActiveDays: number;
+  last30Consistency: number;
+  last30Series: WorkoutDayCount[];
+  thisWeekActiveDays: number;
+  thisWeekSeries: WorkoutDayCount[];
+  streak: number;
+  longestStreak: number;
+  /** Days since the most recent active day; `null` when never active. */
+  daysSinceLastActive: number | null;
+  activityMix: Array<{ key: ActivityMixKey; count: number }>;
+};
+
 /**
  * Aggregate streak and activity stats from tracked workouts.
  *
  * @param workouts - Workout list.
  * @param todayDateKey - Today for streak / last-30 windows.
- * @returns `{ activeDays, totalMinutes, last30ActiveDays, streak }`.
+ * @returns Chart-ready consistency stats for the dashboard.
  */
-export function getWorkoutStats(workouts: Workout[], todayDateKey: string) {
+export function getWorkoutStats(workouts: Workout[], todayDateKey: string): WorkoutStats {
   const trackedWorkouts = workouts.filter((workout) => workout.date >= TRACKING_START_DATE);
   const workoutsByDate = groupWorkoutsByDate(trackedWorkouts);
   const activeDays = workoutsByDate.size;
-  const totalMinutes = trackedWorkouts.reduce((sum, workout) => sum + workout.durationMinutes, 0);
+  const totalSessions = trackedWorkouts.length;
   const last30Days = getLastNDays(todayDateKey, 30);
-  const last30ActiveDays = last30Days.filter((day) => workoutsByDate.has(day)).length;
+  const thisWeekDays = getLastNDays(todayDateKey, 7);
+  const last30Series = last30Days.map((date) => {
+    const dayWorkouts = workoutsByDate.get(date) ?? [];
+
+    return {
+      date,
+      count: dayWorkouts.length,
+      types: getUniqueActivityTypes(dayWorkouts),
+    };
+  });
+  const thisWeekSeries = thisWeekDays.map((date) => {
+    const dayWorkouts = workoutsByDate.get(date) ?? [];
+
+    return {
+      date,
+      count: dayWorkouts.length,
+      types: getUniqueActivityTypes(dayWorkouts),
+    };
+  });
+  const last30ActiveDays = last30Series.filter((day) => day.count > 0).length;
+  const thisWeekActiveDays = thisWeekSeries.filter((day) => day.count > 0).length;
+  const last30Consistency = Math.round((last30ActiveDays / 30) * 100);
   let streak = 0;
 
   for (const day of getLastNDays(todayDateKey, 365).reverse()) {
@@ -425,10 +474,116 @@ export function getWorkoutStats(workouts: Workout[], todayDateKey: string) {
 
   return {
     activeDays,
-    totalMinutes,
+    totalSessions,
     last30ActiveDays,
+    last30Consistency,
+    last30Series,
+    thisWeekActiveDays,
+    thisWeekSeries,
     streak,
+    longestStreak: getLongestStreak([...workoutsByDate.keys()]),
+    daysSinceLastActive: getDaysSinceLastActive(workoutsByDate, todayDateKey),
+    activityMix: getActivityMix(trackedWorkouts),
   };
+}
+
+function getDaysSinceLastActive(workoutsByDate: Map<string, Workout[]>, todayDateKey: string) {
+  if (workoutsByDate.size === 0) {
+    return null;
+  }
+
+  const today = parseDateKey(todayDateKey);
+
+  for (let offset = 0; offset < 3650; offset += 1) {
+    const dateKey = toDateKey(addDays(today, -offset));
+
+    if (dateKey < TRACKING_START_DATE) {
+      break;
+    }
+
+    if (workoutsByDate.has(dateKey)) {
+      return offset;
+    }
+  }
+
+  return null;
+}
+
+function getLongestStreak(activeDateKeys: string[]) {
+  if (activeDateKeys.length === 0) {
+    return 0;
+  }
+
+  const sorted = [...activeDateKeys].sort((a, b) => a.localeCompare(b));
+  let longest = 1;
+  let current = 1;
+
+  for (let index = 1; index < sorted.length; index += 1) {
+    const previousKey = sorted[index - 1];
+    const nextKey = sorted[index];
+
+    if (!previousKey || !nextKey) {
+      continue;
+    }
+
+    const previous = parseDateKey(previousKey);
+    const next = parseDateKey(nextKey);
+    const dayDiff = Math.round((next.getTime() - previous.getTime()) / 86_400_000);
+
+    if (dayDiff === 1) {
+      current += 1;
+      longest = Math.max(longest, current);
+      continue;
+    }
+
+    current = 1;
+  }
+
+  return longest;
+}
+
+function getUniqueActivityTypes(workouts: Workout[]) {
+  const seen = new Set<ActivityMixKey>();
+  const types: ActivityMixKey[] = [];
+
+  for (const workout of workouts) {
+    const key = normalizeActivityMixKey(workout.type);
+
+    if (seen.has(key)) {
+      continue;
+    }
+
+    seen.add(key);
+    types.push(key);
+  }
+
+  return types;
+}
+
+function getActivityMix(workouts: Workout[]) {
+  const counts: Record<ActivityMixKey, number> = {
+    workout: 0,
+    study: 0,
+    other: 0,
+  };
+
+  for (const workout of workouts) {
+    counts[normalizeActivityMixKey(workout.type)] += 1;
+  }
+
+  return (Object.entries(counts) as Array<[ActivityMixKey, number]>)
+    .map(([key, count]) => ({ key, count }))
+    .filter((entry) => entry.count > 0);
+}
+
+function normalizeActivityMixKey(type: string): ActivityMixKey {
+  const normalized = type.trim().toLowerCase();
+
+  if (normalized === "study" || normalized === "other") {
+    return normalized;
+  }
+
+  return "workout";
 }
 
 /** Demo workouts used in local previews / fixtures. */

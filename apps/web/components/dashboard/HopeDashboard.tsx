@@ -231,11 +231,7 @@ export function HopeDashboard({
   return (
     <main className="min-h-[100dvh] bg-app text-text">
       {isSubmittingWorkout || isUploadingWorkoutImages ? (
-        <Loading
-          message={
-            isUploadingWorkoutImages ? copy.dashboard.loadingImages : copy.dashboard.savingWorkout
-          }
-        />
+        <Loading messages={copy.dashboard.loadingJokes} />
       ) : null}
       <TopHeader
         avatarUrl={headerAvatarUrl}
@@ -305,6 +301,7 @@ export function HopeDashboard({
                   ) : (
                     <StatsCards
                       copy={copy}
+                      language={language}
                       todayDateKey={todayDateKey}
                       view={selectedHeatmapView}
                       workouts={visibleWorkouts}
@@ -323,6 +320,7 @@ export function HopeDashboard({
                         language={language}
                         onUpdateWorkout={handleUpdateWorkout}
                         onViewChange={setSelectedHeatmapView}
+                        profile={user}
                         view={selectedHeatmapView}
                         workouts={workouts}
                         todayDateKey={todayDateKey}
@@ -354,6 +352,7 @@ export function HopeDashboard({
         defaultDate={todayDateKey}
         isOpen={isEditable && isWorkoutDialogOpen}
         isSubmitting={isSubmittingWorkout}
+        language={language}
         onClose={closeWorkoutDialog}
         onSubmitWorkout={handleSubmitWorkout}
       />

@@ -11,10 +11,12 @@ import {
   openApiDocumentation,
   publicSecurity,
 } from "./openapi";
+import { activityTypeRoutes } from "./routes/activity-types";
 import { commentRoutes } from "./routes/comments";
 import { feedRoutes } from "./routes/feed";
 import { followRequestRoutes } from "./routes/follow-requests";
 import { galleryRoutes } from "./routes/gallery";
+import { leaderboardRoutes } from "./routes/leaderboard";
 import { notificationRoutes } from "./routes/notifications";
 import { profileRoutes } from "./routes/profiles";
 import { storageRoutes } from "./routes/storage";
@@ -101,6 +103,8 @@ const routes = app
   .route("/", notificationRoutes)
   .route("/", workoutRoutes)
   .route("/", workoutImageRoutes)
+  .route("/", activityTypeRoutes)
+  .route("/", leaderboardRoutes)
   .route("/", userRoutes)
   .route("/", profileRoutes)
   .route("/", commentRoutes)

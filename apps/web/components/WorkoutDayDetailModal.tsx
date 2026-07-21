@@ -8,14 +8,18 @@ import {
   FaPen,
   FaSearchMinus,
   FaSearchPlus,
+  FaShareAlt,
   FaTrash,
 } from "react-icons/fa";
 import { ActivityTypeSelector } from "@/components/ActivityTypeSelector";
+import { SocialStoryDialog } from "@/components/social/SocialStoryDialog";
 import { WorkoutImageThumbnail } from "@/components/WorkoutImageThumbnail";
 import { appendCaptionPill, hasCaptionPill } from "@/lib/caption-utils";
 import { formatDisplayDate } from "@/lib/date-utils";
 import type { AppCopy, Language } from "@/lib/i18n";
 import { createImagePreviewUrls, revokeImagePreviewUrls } from "@/lib/image-previews";
+import { getSocialStoryCopy } from "@/lib/social-story";
+import type { PublicAppUser } from "@/lib/users";
 import type { Workout, WorkoutUpdateInput } from "@/lib/workout-types";
 
 type WorkoutDayDetailModalProps = {
@@ -25,6 +29,7 @@ type WorkoutDayDetailModalProps = {
   date: string;
   todayDateKey: string;
   language: Language;
+  profile: Pick<PublicAppUser, "displayName" | "username">;
   workouts: Workout[];
   isTrackable: boolean;
   origin?: {
@@ -68,12 +73,14 @@ export function WorkoutDayDetailModal({
   date,
   todayDateKey,
   language,
+  profile,
   workouts,
   isTrackable,
   origin,
   onClose,
   onUpdateWorkout,
 }: WorkoutDayDetailModalProps) {
+  const storyCopy = getSocialStoryCopy(language);
   const galleryImages = useMemo(
     () =>
       workouts.flatMap((workout) =>
@@ -102,6 +109,7 @@ export function WorkoutDayDetailModal({
   const [editError, setEditError] = useState("");
   const [editSuccess, setEditSuccess] = useState("");
   const [isSavingEdit, setIsSavingEdit] = useState(false);
+  const [isStoryOpen, setIsStoryOpen] = useState(false);
   const selectedEditableWorkout =
     selectedImage?.workout &&
     canEditWorkoutDate(selectedImage.workout.date, todayDateKey, allowPastWorkoutEdits)
@@ -168,6 +176,10 @@ export function WorkoutDayDetailModal({
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
+        if (isStoryOpen) {
+          return;
+        }
+
         if (editingWorkoutId) {
           cancelEditing();
           return;
@@ -201,6 +213,7 @@ export function WorkoutDayDetailModal({
   }, [
     cancelEditing,
     editingWorkoutId,
+    isStoryOpen,
     onClose,
     showNextImage,
     showPreviousImage,
@@ -337,7 +350,11 @@ export function WorkoutDayDetailModal({
       exit={{ opacity: 0 }}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      onClick={onClose}
+      onClick={(event) => {
+        if (event.currentTarget.contains(event.target as Node)) {
+          onClose();
+        }
+      }}
       role="dialog"
       transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
     >
@@ -410,17 +427,32 @@ export function WorkoutDayDetailModal({
                 <FaChevronLeft aria-hidden="true" className="h-3 w-3" />
                 <span className="hidden sm:inline">{copy.modal.backToWorkoutDetail}</span>
               </button>
-            ) : canEditWorkouts && selectedEditableWorkout ? (
-              <button
-                aria-label={copy.form.editWorkout}
-                className="inline-flex h-9 items-center gap-2 rounded-md border border-border bg-panel px-3 text-sm font-semibold text-muted transition hover:bg-panel-muted hover:text-text active:scale-[0.98]"
-                onClick={() => startEditing(selectedEditableWorkout)}
-                type="button"
-              >
-                <FaPen aria-hidden="true" className="h-3 w-3" />
-                <span className="hidden sm:inline">{copy.form.editWorkout}</span>
-              </button>
-            ) : null}
+            ) : (
+              <>
+                {canEditWorkouts && selectedImage ? (
+                  <button
+                    aria-label={storyCopy.create}
+                    className="inline-flex h-9 items-center gap-2 rounded-md bg-accent px-3 text-sm font-semibold text-accent-contrast transition hover:bg-accent/90 active:scale-[0.98]"
+                    onClick={() => setIsStoryOpen(true)}
+                    type="button"
+                  >
+                    <FaShareAlt aria-hidden="true" className="h-3 w-3" />
+                    <span className="hidden sm:inline">{storyCopy.create}</span>
+                  </button>
+                ) : null}
+                {canEditWorkouts && selectedEditableWorkout ? (
+                  <button
+                    aria-label={copy.form.editWorkout}
+                    className="inline-flex h-9 items-center gap-2 rounded-md border border-border bg-panel px-3 text-sm font-semibold text-muted transition hover:bg-panel-muted hover:text-text active:scale-[0.98]"
+                    onClick={() => startEditing(selectedEditableWorkout)}
+                    type="button"
+                  >
+                    <FaPen aria-hidden="true" className="h-3 w-3" />
+                    <span className="hidden sm:inline">{copy.form.editWorkout}</span>
+                  </button>
+                ) : null}
+              </>
+            )}
             <button
               aria-label={copy.modal.closeWorkoutDetail}
               className="h-9 w-9 rounded-md border border-border bg-panel text-xl leading-none text-muted transition hover:bg-panel-muted hover:text-text"
@@ -454,6 +486,7 @@ export function WorkoutDayDetailModal({
                 editPreviewUrls={editPreviewUrls}
                 editSuccess={editSuccess}
                 isSavingEdit={isSavingEdit}
+                language={language}
                 onCancel={cancelEditing}
                 onRemoveExistingImage={removeExistingImage}
                 onSubmit={() => void submitEdit(editingWorkout)}
@@ -567,6 +600,18 @@ export function WorkoutDayDetailModal({
             </div>
           )}
         </div>
+        {selectedImage ? (
+          <SocialStoryDialog
+            input={{
+              image: selectedImage.image,
+              language,
+              profile,
+              workout: selectedImage.workout,
+            }}
+            isOpen={isStoryOpen}
+            onClose={() => setIsStoryOpen(false)}
+          />
+        ) : null}
       </motion.div>
     </motion.div>
   );
@@ -580,6 +625,7 @@ function EditWorkoutPanel({
   editPreviewUrls,
   editSuccess,
   isSavingEdit,
+  language,
   onCancel,
   onRemoveExistingImage,
   onSubmit,
@@ -593,6 +639,7 @@ function EditWorkoutPanel({
   editPreviewUrls: string[];
   editSuccess: string;
   isSavingEdit: boolean;
+  language: Language;
   onCancel: () => void;
   onRemoveExistingImage: (src: string) => void;
   onSubmit: () => void;
@@ -762,6 +809,7 @@ function EditWorkoutPanel({
               copy={copy}
               disabled={isSavingEdit}
               label={copy.form.type}
+              language={language}
               onChange={(value) => onUpdateField("type", value)}
               value={editForm.type}
               variant="compact"

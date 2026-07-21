@@ -1,5 +1,6 @@
 @import "swiper/css";
 @import "swiper/css/effect-creative";
+@import "swiper/css/pagination";
 @import "react-easy-crop/react-easy-crop.css";
 
 @tailwind base;
@@ -56,6 +57,14 @@ body {
   font-family: var(--font-geist-sans), system-ui, sans-serif;
 }
 
+.social-story-swiper {
+  --swiper-pagination-bottom: 0;
+  --swiper-pagination-bullet-horizontal-gap: 5px;
+  --swiper-pagination-color: #56d364;
+  --swiper-pagination-bullet-inactive-color: rgb(255 255 255 / 0.75);
+  --swiper-pagination-bullet-inactive-opacity: 0.48;
+}
+
 ::selection {
   background: oklch(var(--color-accent) / 0.22);
   color: oklch(var(--color-text));
@@ -87,4 +96,58 @@ body {
 
 .onboarding-orbit-delay {
   animation-delay: -7s;
+}
+
+@keyframes streak-sheen {
+  0% {
+    transform: translateX(-120%) skewX(-18deg);
+  }
+  100% {
+    transform: translateX(220%) skewX(-18deg);
+  }
+}
+
+@keyframes streak-twinkle {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.85);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+}
+
+.streak-active-card {
+  position: relative;
+  overflow: hidden;
+  border-color: transparent;
+  background: linear-gradient(135deg, #56d364 0%, #2ea043 42%, #196c2e 100%);
+  box-shadow:
+    0 14px 36px rgb(46 160 67 / 0.28),
+    inset 0 1px 0 rgb(255 255 255 / 0.28);
+  color: white;
+}
+
+.streak-active-card::before {
+  content: "";
+  position: absolute;
+  inset: -40% -20%;
+  background: linear-gradient(
+    105deg,
+    transparent 35%,
+    rgb(255 255 255 / 0.38) 48%,
+    transparent 62%
+  );
+  animation: streak-sheen 2.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.streak-active-sparkle {
+  animation: streak-twinkle 2.2s ease-in-out infinite;
+}
+
+.streak-active-sparkle-delay {
+  animation-delay: 0.7s;
 }

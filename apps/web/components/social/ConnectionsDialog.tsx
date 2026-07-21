@@ -137,20 +137,21 @@ export function ConnectionsDialog({
     <>
       <div className="grid grid-cols-2 gap-2">
         <button
-          className="rounded-md border border-border bg-panel px-3 py-2 text-left text-xs text-muted hover:bg-panel-muted"
+          className="flex items-center gap-1 rounded-md text-sm text-muted hover:text-accent"
           onClick={() => setType("followers")}
           type="button"
         >
-          <strong className="block text-base text-text">{followersCount}</strong>
-          {copy.followers}
+          <strong className="min-w-[40px] text-base text-text">{followersCount}</strong>
+          <span>{copy.followers}</span>
         </button>
+
         <button
-          className="rounded-md border border-border bg-panel px-3 py-2 text-left text-xs text-muted hover:bg-panel-muted"
+          className="flex items-center gap-1 rounded-md text-sm text-muted hover:text-accent"
           onClick={() => setType("following")}
           type="button"
         >
-          <strong className="block text-base text-text">{followingCount}</strong>
-          {copy.following}
+          <strong className="min-w-[40px] text-base text-text">{followingCount}</strong>
+          <span>{copy.following}</span>
         </button>
       </div>
       {dialog ? createPortal(dialog, document.body) : null}

@@ -1,8 +1,6 @@
 "use client";
 
 import { type ReactNode, useEffect, useRef, useState } from "react";
-import type { GalleryItem } from "@/components/home/CircularGallery";
-import { HomeGallerySection } from "@/components/home/HomeGallerySection";
 import ScrollReveal from "@/components/home/ScrollReveal";
 
 const JOKE =
@@ -20,11 +18,10 @@ type SectionId = (typeof SECTIONS)[number]["id"];
 type HomeScrollProps = {
   hero: ReactNode;
   features: ReactNode;
-  galleryItems: GalleryItem[];
-  galleryProfileLabel?: string;
+  gallery: ReactNode;
 };
 
-export function HomeScroll({ hero, features, galleryItems, galleryProfileLabel }: HomeScrollProps) {
+export function HomeScroll({ hero, features, gallery }: HomeScrollProps) {
   const scrollRef = useRef<HTMLElement | null>(null);
   const [activeSection, setActiveSection] = useState<SectionId>("hero");
 
@@ -140,7 +137,7 @@ export function HomeScroll({ hero, features, galleryItems, galleryProfileLabel }
         className="relative min-h-dvh snap-start snap-always border-t border-border"
         id="gallery"
       >
-        <HomeGallerySection items={galleryItems} profileLabel={galleryProfileLabel} />
+        {gallery}
       </section>
 
       <section className="relative min-h-dvh snap-start snap-always" id="features">

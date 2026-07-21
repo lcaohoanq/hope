@@ -71,6 +71,7 @@ export const workoutSchema = z
     endTime: z.string(),
     durationMinutes: z.number(),
     note: z.string().optional(),
+    points: z.number().optional(),
     images: z.array(workoutImageSchema).optional(),
     createdAt: z.string(),
     isPublic: z.boolean(),
