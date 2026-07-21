@@ -37,6 +37,9 @@ export function SocialPageHeader({
               <Link className="text-muted hover:text-text" href="/feed">
                 {copy.feed}
               </Link>
+              <Link className="text-muted hover:text-text" href="/leaderboard">
+                {copy.leaderboard}
+              </Link>
               <Link className="text-muted hover:text-text" href="/notifications">
                 {copy.notifications}
               </Link>

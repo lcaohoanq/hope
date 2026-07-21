@@ -351,6 +351,7 @@ export function HopeDashboard({
         defaultDate={todayDateKey}
         isOpen={isEditable && isWorkoutDialogOpen}
         isSubmitting={isSubmittingWorkout}
+        language={language}
         onClose={closeWorkoutDialog}
         onSubmitWorkout={handleSubmitWorkout}
       />

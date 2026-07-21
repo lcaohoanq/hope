@@ -454,6 +454,7 @@ export function WorkoutDayDetailModal({
                 editPreviewUrls={editPreviewUrls}
                 editSuccess={editSuccess}
                 isSavingEdit={isSavingEdit}
+                language={language}
                 onCancel={cancelEditing}
                 onRemoveExistingImage={removeExistingImage}
                 onSubmit={() => void submitEdit(editingWorkout)}
@@ -580,6 +581,7 @@ function EditWorkoutPanel({
   editPreviewUrls,
   editSuccess,
   isSavingEdit,
+  language,
   onCancel,
   onRemoveExistingImage,
   onSubmit,
@@ -593,6 +595,7 @@ function EditWorkoutPanel({
   editPreviewUrls: string[];
   editSuccess: string;
   isSavingEdit: boolean;
+  language: Language;
   onCancel: () => void;
   onRemoveExistingImage: (src: string) => void;
   onSubmit: () => void;
@@ -762,6 +765,7 @@ function EditWorkoutPanel({
               copy={copy}
               disabled={isSavingEdit}
               label={copy.form.type}
+              language={language}
               onChange={(value) => onUpdateField("type", value)}
               value={editForm.type}
               variant="compact"

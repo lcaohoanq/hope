@@ -1,45 +1,30 @@
 "use client";
 
+import type { ActivityTypeSummary, Language } from "@hope/shared";
 import { AnimatePresence, motion } from "framer-motion";
-import { type ReactNode, useEffect, useId, useState } from "react";
+import { type ReactNode, useEffect, useId, useMemo, useState } from "react";
 import type { IconType } from "react-icons";
-import { FaBicycle, FaBook, FaEllipsisH } from "react-icons/fa";
+import { FaBicycle, FaBook, FaEllipsisH, FaStar } from "react-icons/fa";
+import { getClientApiClient, parseApiJson } from "@/lib/http";
 import type { AppCopy } from "@/lib/i18n";
 
 type ActivityTypeSelectorProps = {
   copy: AppCopy;
   disabled?: boolean;
   label: ReactNode;
+  language?: Language;
   onChange: (value: string) => void;
+  types?: ActivityTypeSummary[];
   value: string;
   variant?: "default" | "compact";
 };
 
-type ActivityTypeOption = {
-  Icon: IconType;
-  hasCustomTooltip?: boolean;
-  key: "workout" | "study" | "other";
-  labelKey: keyof AppCopy["activity"]["labels"];
+const ICON_BY_SLUG: Record<string, IconType> = {
+  workout: FaBicycle,
+  study: FaBook,
+  other: FaEllipsisH,
 };
 
-const activityTypeOptions: ActivityTypeOption[] = [
-  {
-    Icon: FaBicycle,
-    key: "workout",
-    labelKey: "workout",
-  },
-  {
-    Icon: FaBook,
-    key: "study",
-    labelKey: "study",
-  },
-  {
-    Icon: FaEllipsisH,
-    hasCustomTooltip: true,
-    key: "other",
-    labelKey: "other",
-  },
-];
 const ACTIVITY_MODAL_BACKDROP_TRANSITION = {
   duration: 0.22,
   ease: [0.16, 1, 0.3, 1],
@@ -71,22 +56,81 @@ const ACTIVITY_MODAL_PANEL_VARIANTS = {
   },
 };
 
+const FALLBACK_TYPES: ActivityTypeSummary[] = [
+  {
+    id: "activity-type-workout",
+    slug: "workout",
+    label: { en: "Workout", vi: "Tập luyện" },
+    weight: 3,
+    sortOrder: 0,
+    isActive: true,
+  },
+  {
+    id: "activity-type-study",
+    slug: "study",
+    label: { en: "Study", vi: "Học tập" },
+    weight: 2,
+    sortOrder: 1,
+    isActive: true,
+  },
+  {
+    id: "activity-type-other",
+    slug: "other",
+    label: { en: "Other", vi: "Hoạt động khác" },
+    weight: 1,
+    sortOrder: 2,
+    isActive: true,
+  },
+];
+
 export function ActivityTypeSelector({
   copy,
   disabled = false,
   label,
+  language = "en",
   onChange,
+  types: typesProp,
   value,
   variant = "default",
 }: ActivityTypeSelectorProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [fetchedTypes, setFetchedTypes] = useState<ActivityTypeSummary[] | null>(null);
   const titleId = useId();
-  const selectedOption = getActivityTypeOption(value);
-  const selectedLabel = formatActivityType(value, copy);
+  const types = useMemo(
+    () => (typesProp && typesProp.length > 0 ? typesProp : (fetchedTypes ?? FALLBACK_TYPES)),
+    [fetchedTypes, typesProp],
+  );
+  const selectedOption = types.find((option) => option.slug === value.trim());
+  const selectedLabel = formatActivityType(value, copy, types, language);
   const buttonHeightClass = variant === "compact" ? "h-10" : "h-11";
   const textSizeClass = variant === "compact" ? "text-sm" : "text-base";
   const fieldGapClass = variant === "compact" ? "gap-1.5" : "gap-2";
   const fieldBackgroundClass = variant === "compact" ? "bg-panel" : "bg-panel-muted";
+  const SelectedIcon = selectedOption ? (ICON_BY_SLUG[selectedOption.slug] ?? FaStar) : null;
+
+  useEffect(() => {
+    if (typesProp && typesProp.length > 0) return;
+
+    let cancelled = false;
+    void (async () => {
+      try {
+        const client = getClientApiClient();
+        const res = await client["activity-types"].$get({ query: {} });
+        const payload = await parseApiJson<{
+          success: true;
+          activityTypes: ActivityTypeSummary[];
+        }>(res);
+        if (!res.ok || cancelled) return;
+        setFetchedTypes(payload.activityTypes.filter((type) => type.isActive));
+      } catch {
+        // Keep fallback seed types when the catalog cannot be loaded.
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [typesProp]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -128,8 +172,8 @@ export function ActivityTypeSelector({
         type="button"
       >
         <span className="inline-flex min-w-0 items-center gap-2">
-          {selectedOption ? (
-            <selectedOption.Icon aria-hidden="true" className="h-4 w-4 shrink-0 text-muted" />
+          {SelectedIcon ? (
+            <SelectedIcon aria-hidden="true" className="h-4 w-4 shrink-0 text-muted" />
           ) : null}
           <span className={selectedLabel ? "truncate text-text" : "truncate text-muted"}>
             {selectedLabel || copy.activity.selectActivity}
@@ -175,9 +219,11 @@ export function ActivityTypeSelector({
               </div>
 
               <div className="grid grid-cols-2 gap-3 p-4 sm:grid-cols-3 sm:p-5">
-                {activityTypeOptions.map((option) => {
-                  const isSelected = option.key === value;
-                  const optionLabel = copy.activity.labels[option.labelKey];
+                {types.map((option) => {
+                  const isSelected = option.slug === value;
+                  const optionLabel = option.label[language] || option.label.en;
+                  const OptionIcon = ICON_BY_SLUG[option.slug] ?? FaStar;
+                  const showOtherTooltip = option.slug === "other";
 
                   return (
                     <button
@@ -185,11 +231,11 @@ export function ActivityTypeSelector({
                       className={`group relative flex min-h-28 flex-col items-center justify-center gap-3 rounded-md border bg-panel p-4 text-center shadow-[0_10px_30px_rgba(28,25,23,0.08)] transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:border-border hover:shadow-[0_18px_38px_rgba(28,25,23,0.14)] focus:outline-none focus:ring-2 focus:ring-accent/20 active:translate-y-0 ${
                         isSelected ? "border-accent ring-2 ring-accent/20" : "border-border"
                       }`}
-                      key={option.key}
-                      onClick={() => selectActivity(option.key)}
+                      key={option.id}
+                      onClick={() => selectActivity(option.slug)}
                       type="button"
                     >
-                      {option.hasCustomTooltip ? (
+                      {showOtherTooltip ? (
                         <span className="absolute right-2 top-2 inline-flex h-6 w-6 items-center justify-center rounded-full border border-border bg-panel-muted text-xs font-semibold text-muted">
                           ?
                           <span className="pointer-events-none absolute right-0 top-8 z-10 w-40 rounded-md border border-border bg-text px-2.5 py-2 text-left text-xs font-medium leading-4 text-white opacity-0 shadow-[0_12px_28px_rgba(28,25,23,0.22)] transition duration-150 group-hover:opacity-100 group-focus-visible:opacity-100">
@@ -197,7 +243,7 @@ export function ActivityTypeSelector({
                           </span>
                         </span>
                       ) : null}
-                      <option.Icon aria-hidden="true" className="h-7 w-7 text-text" />
+                      <OptionIcon aria-hidden="true" className="h-7 w-7 text-text" />
                       <span className="text-sm font-semibold text-text">{optionLabel}</span>
                     </button>
                   );
@@ -211,16 +257,22 @@ export function ActivityTypeSelector({
   );
 }
 
-export function formatActivityType(value: string, copy: AppCopy) {
-  const option = getActivityTypeOption(value);
-
-  if (!option) {
-    return value.trim();
+export function formatActivityType(
+  value: string,
+  copy: AppCopy,
+  types?: ActivityTypeSummary[],
+  language: Language = "en",
+) {
+  const trimmed = value.trim();
+  const fromCatalog = types?.find((option) => option.slug === trimmed);
+  if (fromCatalog) {
+    return fromCatalog.label[language] || fromCatalog.label.en;
   }
 
-  return copy.activity.labels[option.labelKey];
-}
+  const legacyKey = trimmed as keyof AppCopy["activity"]["labels"];
+  if (legacyKey in copy.activity.labels) {
+    return copy.activity.labels[legacyKey];
+  }
 
-function getActivityTypeOption(value: string) {
-  return activityTypeOptions.find((option) => option.key === value.trim());
+  return trimmed;
 }

@@ -5,7 +5,7 @@ import { FaCamera, FaImages, FaTimes } from "react-icons/fa";
 import { ActivityTypeSelector } from "@/components/ActivityTypeSelector";
 import { WebcamCaptureDialog } from "@/components/WebcamCaptureDialog";
 import { appendCaptionPill, hasCaptionPill } from "@/lib/caption-utils";
-import type { AppCopy } from "@/lib/i18n";
+import type { AppCopy, Language } from "@/lib/i18n";
 import { createImagePreviewUrls, revokeImagePreviewUrls } from "@/lib/image-previews";
 import type { WorkoutInput } from "@/lib/workout-types";
 
@@ -13,6 +13,7 @@ type WorkoutFormProps = {
   copy: AppCopy;
   defaultDate: string;
   isSubmitting: boolean;
+  language?: Language;
   onSubmitWorkout: (input: WorkoutInput) => Promise<void>;
 };
 
@@ -54,6 +55,7 @@ export function WorkoutForm({
   copy,
   defaultDate,
   isSubmitting,
+  language = "en",
   onSubmitWorkout,
 }: WorkoutFormProps) {
   const [form, setForm] = useState<WorkoutInput>(() => initialForm(defaultDate));
@@ -235,6 +237,7 @@ export function WorkoutForm({
               {copy.form.workoutType}
             </FieldLabel>
           }
+          language={language}
           onChange={(value) => updateField("type", value)}
           value={form.type}
         />

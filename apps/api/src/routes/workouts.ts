@@ -13,6 +13,7 @@ import {
   listWorkoutComments,
   listWorkoutsByProfile,
   resolveProfileAccess,
+  resolveWorkoutPoints,
   type StoredWorkout,
   type StoredWorkoutImage,
   type UploadedAsset,
@@ -68,6 +69,7 @@ function publicWorkout(workout: StoredWorkout): Workout {
     endTime: workout.endTime,
     durationMinutes: workout.durationMinutes,
     note: workout.note,
+    points: workout.points ?? 0,
     images: workout.images,
     createdAt: workout.createdAt,
     isPublic: workout.isPublic,
@@ -321,6 +323,12 @@ export const workoutRoutes = new Hono<AppEnv>()
         return jsonError(c, validation.error, 400);
       }
 
+      const scored = await resolveWorkoutPoints(validation.workoutInput.type);
+      if (!scored.success) {
+        await safeCleanupNewAssets(owner.profile.id, imagePublicIds.publicIds);
+        return jsonError(c, scored.error, 400);
+      }
+
       let assets: UploadedAsset[];
       try {
         assets = await prepareWorkoutImageAssets(owner.profile.id, imagePublicIds.publicIds);
@@ -330,7 +338,12 @@ export const workoutRoutes = new Hono<AppEnv>()
         return jsonError(c, message, status);
       }
 
-      const workout = createWorkoutRecord({ ...validation.workoutInput, userId: owner.profile.id });
+      const workout = createWorkoutRecord({
+        ...validation.workoutInput,
+        type: scored.type,
+        points: scored.points,
+        userId: owner.profile.id,
+      });
       try {
         const saved = await insertWorkout({ workout, assets });
         return c.json({ success: true as const, workout: publicWorkout(saved) });
@@ -400,9 +413,17 @@ export const workoutRoutes = new Hono<AppEnv>()
         return jsonError(c, message, status);
       }
 
+      const scored = await resolveWorkoutPoints(validation.workoutInput.type);
+      if (!scored.success) {
+        await safeCleanupNewAssets(owner.profile.id, imagePublicIds.publicIds);
+        return jsonError(c, scored.error, 400);
+      }
+
       const nextWorkout: Workout = {
         ...existing,
         ...validation.workoutInput,
+        type: scored.type,
+        points: scored.points,
         userId: owner.profile.id,
       };
       try {
