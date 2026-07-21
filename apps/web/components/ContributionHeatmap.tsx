@@ -6,7 +6,7 @@ import { WorkoutDayDetailModal } from "@/components/WorkoutDayDetailModal";
 import { WorkoutTooltip } from "@/components/WorkoutTooltip";
 import { resolveWorkoutIntensity } from "@/lib/heatmap-intensity";
 import type { AppCopy, Language } from "@/lib/i18n";
-import type { HeatmapView } from "@/lib/users";
+import type { HeatmapView, PublicAppUser } from "@/lib/users";
 import type { HeatmapDay, Workout, WorkoutUpdateInput } from "@/lib/workout-types";
 import { createHeatmapYears, createLifetimeHeatmapYears } from "@/lib/workout-utils";
 
@@ -15,6 +15,7 @@ type ContributionHeatmapProps = {
   canEditWorkouts: boolean;
   copy: AppCopy;
   language: Language;
+  profile: Pick<PublicAppUser, "displayName" | "username">;
   workouts: Workout[];
   todayDateKey: string;
   birthYear: number;
@@ -57,6 +58,7 @@ export function ContributionHeatmap({
   canEditWorkouts,
   copy,
   language,
+  profile,
   workouts,
   todayDateKey,
   birthYear,
@@ -439,6 +441,7 @@ export function ContributionHeatmap({
             onClose={() => setSelectedDay(null)}
             onUpdateWorkout={handleSelectedDayWorkoutUpdate}
             origin={selectedDay.origin}
+            profile={profile}
             todayDateKey={todayDateKey}
             workouts={selectedDay.workouts}
           />

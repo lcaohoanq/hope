@@ -3,12 +3,22 @@
 import { useAuth } from "@clerk/nextjs";
 import Link from "next/link";
 import { type FormEvent, useState } from "react";
-import { FaHeart, FaPaperPlane, FaPen, FaRegComment, FaRegHeart, FaTrash } from "react-icons/fa";
+import {
+  FaHeart,
+  FaPaperPlane,
+  FaPen,
+  FaRegComment,
+  FaRegHeart,
+  FaShareAlt,
+  FaTrash,
+} from "react-icons/fa";
 import { AvatarImage } from "@/components/dashboard/AvatarImage";
+import { SocialStoryDialog } from "@/components/social/SocialStoryDialog";
 import { getApiErrorMessage, getClientApiClient } from "@/lib/http";
 import type { Language } from "@/lib/i18n";
 import { getAvatarUrl } from "@/lib/profile-utils";
 import { getSocialCopy } from "@/lib/social-copy";
+import { getSocialStoryCopy } from "@/lib/social-story";
 import type { FeedItem, WorkoutComment } from "@/lib/social-types";
 import type { PublicAppUser } from "@/lib/users";
 import { WorkoutImageGallery } from "./WorkoutImageGallery";
@@ -31,6 +41,7 @@ export function WorkoutSocialCard({
   initialCommentsCursor = null,
 }: WorkoutSocialCardProps) {
   const copy = getSocialCopy(language);
+  const storyCopy = getSocialStoryCopy(language);
   const { getToken } = useAuth();
   const [liked, setLiked] = useState(item.viewerHasLiked);
   const [likeCount, setLikeCount] = useState(item.likeCount);
@@ -41,8 +52,11 @@ export function WorkoutSocialCard({
   const [likePending, setLikePending] = useState(false);
   const [commentPending, setCommentPending] = useState(false);
   const [commentsLoading, setCommentsLoading] = useState(false);
+  const [isStoryOpen, setIsStoryOpen] = useState(false);
   const [error, setError] = useState("");
   const workoutUrl = `/workouts/${item.workout.id}`;
+  const storyImage = item.workout.images?.[0];
+  const canCreateStory = detail && viewer?.id === item.profile.id && Boolean(storyImage);
 
   async function toggleLike() {
     if (!viewer || likePending) return;
@@ -260,6 +274,16 @@ export function WorkoutSocialCard({
               <p className="mt-1 text-sm text-muted">{item.workout.durationMinutes} min</p>
             ) : null}
           </div>
+          {canCreateStory ? (
+            <button
+              className="inline-flex h-10 items-center gap-2 rounded-md bg-accent px-3 text-sm font-semibold text-accent-contrast transition hover:bg-accent/90 active:scale-[0.98]"
+              onClick={() => setIsStoryOpen(true)}
+              type="button"
+            >
+              <FaShareAlt aria-hidden="true" className="h-3.5 w-3.5" />
+              {storyCopy.create}
+            </button>
+          ) : null}
         </div>
         {item.workout.note ? (
           <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-text">
@@ -366,6 +390,18 @@ export function WorkoutSocialCard({
           ) : null}
         </section>
       </div>
+      {canCreateStory && storyImage ? (
+        <SocialStoryDialog
+          input={{
+            image: storyImage,
+            language,
+            profile: item.profile,
+            workout: item.workout,
+          }}
+          isOpen={isStoryOpen}
+          onClose={() => setIsStoryOpen(false)}
+        />
+      ) : null}
     </article>
   );
 }
