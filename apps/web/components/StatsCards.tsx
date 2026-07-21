@@ -211,17 +211,18 @@ function ActivityDayStrip({
 
   return (
     <div className="relative">
-      <div
+      <fieldset
         aria-label={
           isLarge
             ? copy.stats.last7DaysDetail
             : copy.stats.last30PaceDetail(days.filter((day) => day.count > 0).length)
         }
         className={
-          isLarge ? "grid grid-cols-7 gap-2" : "grid grid-cols-[repeat(30,minmax(0,1fr))] gap-[3px]"
+          isLarge
+            ? "m-0 min-w-0 border-0 p-0 grid grid-cols-7 gap-2"
+            : "m-0 min-w-0 border-0 p-0 grid grid-cols-[repeat(30,minmax(0,1fr))] gap-[3px]"
         }
         onMouseLeave={() => setTooltip(null)}
-        role="img"
       >
         {days.map((day, index) => {
           const isActive = day.count > 0;
@@ -257,7 +258,7 @@ function ActivityDayStrip({
             </div>
           );
         })}
-      </div>
+      </fieldset>
       {tooltip ? (
         <div
           className="pointer-events-none absolute bottom-full z-20 mb-2 w-max max-w-[220px] -translate-x-1/2 rounded-md border border-border bg-panel px-3 py-2 text-left shadow-[0_12px_28px_rgba(28,25,23,0.18)]"
@@ -283,7 +284,7 @@ function ActivityDayStrip({
 }
 
 function getDayTooltipPosition(cell: HTMLElement, day: WorkoutDayCount) {
-  const strip = cell.closest('[role="img"]');
+  const strip = cell.closest('[role="group"]');
 
   if (!(strip instanceof HTMLElement)) {
     return { day, left: 0 };
