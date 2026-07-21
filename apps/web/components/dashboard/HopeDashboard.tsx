@@ -320,6 +320,7 @@ export function HopeDashboard({
                         language={language}
                         onUpdateWorkout={handleUpdateWorkout}
                         onViewChange={setSelectedHeatmapView}
+                        profile={user}
                         view={selectedHeatmapView}
                         workouts={workouts}
                         todayDateKey={todayDateKey}

@@ -6,11 +6,11 @@ Hope is a public workout consistency tracker built with Next.js 16, Clerk, Supab
 
 **Public overview**
 
-![Hope home page and feature overview](docs/assets/hope-demo.gif)
+Hope home page and feature overview
 
 **Authenticated workout flow**
 
-![Hope authenticated dashboard and workout detail flow](docs/assets/hope-workout-demo.gif)
+Hope authenticated dashboard and workout detail flow
 
 ## Architecture
 
@@ -31,7 +31,7 @@ pnpm docs:build   # static build → apps/docs/build
 
 > Do not use bare `pnpm docs` — that is an npm/pnpm built-in that opens the package page in your browser, not this site.
 
-Hosted on GitHub Pages at [https://lcaohoanq.github.io/hope/](https://lcaohoanq.github.io/hope/) (Docusaurus + TypeDoc). Deploy runs via [`.github/workflows/docs.yml`](.github/workflows/docs.yml) on pushes to `develop`.
+Hosted on GitHub Pages at [https://lcaohoanq.github.io/hope/](https://lcaohoanq.github.io/hope/) (Docusaurus + TypeDoc). Deploy runs via `[.github/workflows/docs.yml](.github/workflows/docs.yml)` on pushes to `develop`.
 
 One-time repo setup: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
 
@@ -109,7 +109,7 @@ The initial migration creates `profiles`, `workouts`, and `workout_images`, thei
 pnpm migrate:legacy -- --dry-run
 ```
 
-5. Run the idempotent migration:
+1. Run the idempotent migration:
 
 ```bash
 pnpm migrate:legacy

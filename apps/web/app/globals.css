@@ -1,5 +1,6 @@
 @import "swiper/css";
 @import "swiper/css/effect-creative";
+@import "swiper/css/pagination";
 @import "react-easy-crop/react-easy-crop.css";
 
 @tailwind base;
@@ -54,6 +55,14 @@ body {
   background: oklch(var(--color-app));
   color: oklch(var(--color-text));
   font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+.social-story-swiper {
+  --swiper-pagination-bottom: 0;
+  --swiper-pagination-bullet-horizontal-gap: 5px;
+  --swiper-pagination-color: #56d364;
+  --swiper-pagination-bullet-inactive-color: rgb(255 255 255 / 0.75);
+  --swiper-pagination-bullet-inactive-opacity: 0.48;
 }
 
 ::selection {
