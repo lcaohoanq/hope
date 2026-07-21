@@ -6,11 +6,11 @@ Hope is a public workout consistency tracker built with Next.js 16, Clerk, Supab
 
 **Public overview**
 
-Hope home page and feature overview
+![Hope home page and feature overview](docs/assets/hope-demo.gif)
 
 **Authenticated workout flow**
 
-Hope authenticated dashboard and workout detail flow
+![Hope authenticated dashboard and workout detail flow](docs/assets/hope-workout-demo.gif)
 
 ## Architecture
 
