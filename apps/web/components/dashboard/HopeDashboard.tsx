@@ -231,11 +231,7 @@ export function HopeDashboard({
   return (
     <main className="min-h-[100dvh] bg-app text-text">
       {isSubmittingWorkout || isUploadingWorkoutImages ? (
-        <Loading
-          message={
-            isUploadingWorkoutImages ? copy.dashboard.loadingImages : copy.dashboard.savingWorkout
-          }
-        />
+        <Loading messages={copy.dashboard.loadingJokes} />
       ) : null}
       <TopHeader
         avatarUrl={headerAvatarUrl}
@@ -305,6 +301,7 @@ export function HopeDashboard({
                   ) : (
                     <StatsCards
                       copy={copy}
+                      language={language}
                       todayDateKey={todayDateKey}
                       view={selectedHeatmapView}
                       workouts={visibleWorkouts}

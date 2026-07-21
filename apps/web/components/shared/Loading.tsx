@@ -1,10 +1,28 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 type LoadingProps = {
   message?: string;
+  messages?: readonly string[];
 };
 
-export function Loading({ message = "Uploading images..." }: LoadingProps) {
+export function Loading({ message, messages = [] }: LoadingProps) {
+  const jokes = messages.length > 0 ? messages : message ? [message] : ["Almost there..."];
+  const [index, setIndex] = useState(() => Math.floor(Math.random() * jokes.length));
+
+  useEffect(() => {
+    if (jokes.length < 2) {
+      return;
+    }
+
+    const timer = window.setInterval(() => {
+      setIndex((current) => (current + 1) % jokes.length);
+    }, 2400);
+
+    return () => window.clearInterval(timer);
+  }, [jokes]);
+
   return (
     <div aria-live="polite" className="overlay" role="status">
       <div className="main">
@@ -41,7 +59,7 @@ export function Loading({ message = "Uploading images..." }: LoadingProps) {
           </div>
         </div>
       </div>
-      <p className="message">{message}</p>
+      <p className="message">{jokes[index % jokes.length]}</p>
 
       <style jsx>{`
         .overlay {
