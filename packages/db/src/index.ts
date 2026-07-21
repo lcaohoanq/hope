@@ -33,14 +33,20 @@ function resolveConnectionString(): string {
   return url;
 }
 
-function createDatabase(url: string): DatabaseConnection {
+function createDatabase(
+  url: string,
+  options: { maxConnections?: number } = {},
+): DatabaseConnection {
   const client = postgres(url, {
-    // Hyperdrive pools at the edge — keep the Worker-side pool minimal.
-    max: 1,
+    max: options.maxConnections ?? 5,
     // Required for transaction-mode poolers (e.g. Supabase :6543) and Hyperdrive.
     prepare: false,
     // Avoid an extra pg_type round-trip on cold queries through Hyperdrive.
     fetch_types: false,
+    // Recycle idle/stale sockets and bound connection establishment.
+    idle_timeout: 20,
+    connect_timeout: 10,
+    max_lifetime: 60 * 30,
   });
   return { url, client, database: drizzle(client, { schema }) };
 }
@@ -56,7 +62,8 @@ export async function runWithDatabase<T>(
   options?: { retryTransient?: boolean },
 ): Promise<T> {
   const attempt = async (attemptNo: number) => {
-    const connection = createDatabase(url);
+    // Hyperdrive pools at the edge — keep the request-side pool minimal.
+    const connection = createDatabase(url, { maxConnections: 1 });
     // #region agent log
     console.log(
       JSON.stringify({
@@ -76,7 +83,15 @@ export async function runWithDatabase<T>(
       }),
     );
     // #endregion
-    return databaseContext.run(connection, fn);
+    try {
+      return await databaseContext.run(connection, fn);
+    } finally {
+      // Node dev is long-lived, so request-scoped clients must be explicitly
+      // closed. This is also safe for short-lived Workers/Hyperdrive requests.
+      await connection.client.end({ timeout: 5 }).catch((error: unknown) => {
+        console.warn("Could not close request-scoped database client", error);
+      });
+    }
   };
 
   try {
