@@ -8,9 +8,23 @@ import type { AdminOverview } from "@/lib/admin";
 import { getClientApiClient, parseApiJson } from "@/lib/http";
 
 async function fetchOverview(): Promise<AdminOverview> {
-  const response = await fetch("/api/admin/overview");
-  if (!response.ok) throw new Error("Could not load the admin overview.");
-  return response.json() as Promise<AdminOverview>;
+  try {
+    const response = await fetch("/api/admin/overview", {
+      signal: AbortSignal.timeout(15_000),
+    });
+    const payload = (await response.json().catch(() => null)) as
+      | (AdminOverview & { error?: string })
+      | null;
+    if (!response.ok || !payload) {
+      throw new Error(payload?.error ?? "Could not load the admin overview.");
+    }
+    return payload;
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "TimeoutError") {
+      throw new Error("The admin overview took too long to load. Please retry.");
+    }
+    throw error;
+  }
 }
 
 type ActivityTypeForm = {
@@ -149,7 +163,21 @@ export function AdminDashboard() {
   });
 
   if (overview.isPending) return <p className="text-sm text-muted">Loading admin overview…</p>;
-  if (overview.isError) return <p className="text-sm text-red-600">{overview.error.message}</p>;
+  if (overview.isError) {
+    return (
+      <div className="space-y-3">
+        <p className="text-sm text-red-600">{overview.error.message}</p>
+        <button
+          className="h-9 rounded-md border border-border px-4 text-sm font-semibold text-muted disabled:opacity-60"
+          disabled={overview.isFetching}
+          onClick={() => overview.refetch()}
+          type="button"
+        >
+          {overview.isFetching ? "Retrying…" : "Retry"}
+        </button>
+      </div>
+    );
+  }
 
   const data = overview.data;
   return (
