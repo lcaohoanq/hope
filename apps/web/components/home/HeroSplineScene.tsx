@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
+import { useHomeSectionInView } from "@/components/home/useHomeSectionInView";
 
 const Spline = dynamic(() => import("@splinetool/react-spline"), { ssr: false });
 
@@ -28,20 +29,27 @@ function ScenePoster() {
 }
 
 export function HeroSplineScene({ scene }: HeroSplineSceneProps) {
+  const [sceneRef, isInView] = useHomeSectionInView<HTMLDivElement>();
   const [shouldLoad, setShouldLoad] = useState(false);
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
+    if (!isInView) {
+      setShouldLoad(false);
+      setIsReady(false);
+      return;
+    }
+
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (prefersReducedMotion) return;
 
     // Let the browser paint and hydrate the primary CTA before starting the 3D download.
     const timeout = window.setTimeout(() => setShouldLoad(true), 600);
     return () => window.clearTimeout(timeout);
-  }, []);
+  }, [isInView]);
 
   return (
-    <div className="absolute inset-0">
+    <div className="absolute inset-0" ref={sceneRef}>
       <ScenePoster />
       {shouldLoad ? (
         <Spline

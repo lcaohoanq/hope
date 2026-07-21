@@ -10,6 +10,7 @@ const SECTIONS = [
   { id: "hero", label: "Home" },
   { id: "joke", label: "Joke" },
   { id: "gallery", label: "Gallery" },
+  { id: "story", label: "Story" },
   { id: "features", label: "Features" },
 ] as const;
 
@@ -19,9 +20,10 @@ type HomeScrollProps = {
   hero: ReactNode;
   features: ReactNode;
   gallery: ReactNode;
+  story: ReactNode;
 };
 
-export function HomeScroll({ hero, features, gallery }: HomeScrollProps) {
+export function HomeScroll({ hero, features, gallery, story }: HomeScrollProps) {
   const scrollRef = useRef<HTMLElement | null>(null);
   const [activeSection, setActiveSection] = useState<SectionId>("hero");
 
@@ -138,6 +140,13 @@ export function HomeScroll({ hero, features, gallery }: HomeScrollProps) {
         id="gallery"
       >
         {gallery}
+      </section>
+
+      <section
+        className="relative min-h-dvh snap-start snap-always border-t border-border"
+        id="story"
+      >
+        {story}
       </section>
 
       <section className="relative min-h-dvh snap-start snap-always" id="features">

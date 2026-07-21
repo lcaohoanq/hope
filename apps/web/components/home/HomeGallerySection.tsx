@@ -1,6 +1,7 @@
 "use client";
 
 import CircularGallery, { type GalleryItem } from "@/components/home/CircularGallery";
+import { useHomeSectionInView } from "@/components/home/useHomeSectionInView";
 
 type HomeGallerySectionProps = {
   items: GalleryItem[];
@@ -8,9 +9,14 @@ type HomeGallerySectionProps = {
 };
 
 export function HomeGallerySection({ items, profileLabel }: HomeGallerySectionProps) {
+  const [sectionRef, isInView] = useHomeSectionInView<HTMLDivElement>();
+
   if (items.length === 0) {
     return (
-      <div className="mx-auto flex min-h-dvh w-full max-w-[1440px] items-center px-4 py-16 sm:px-6 lg:px-8">
+      <div
+        className="mx-auto flex min-h-dvh w-full max-w-[1440px] items-center px-4 py-16 sm:px-6 lg:px-8"
+        ref={sectionRef}
+      >
         <div className="max-w-xl">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">In motion</p>
           <h2 className="mt-4 text-4xl font-semibold tracking-[-0.045em] text-text sm:text-5xl">
@@ -25,7 +31,10 @@ export function HomeGallerySection({ items, profileLabel }: HomeGallerySectionPr
   }
 
   return (
-    <div className="relative flex min-h-dvh flex-col justify-center overflow-hidden">
+    <div
+      className="relative flex min-h-dvh flex-col justify-center overflow-hidden"
+      ref={sectionRef}
+    >
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0"
@@ -51,15 +60,17 @@ export function HomeGallerySection({ items, profileLabel }: HomeGallerySectionPr
       </div>
 
       <div className="relative mt-4 h-[min(52dvh,520px)] w-full sm:h-[min(56dvh,560px)]">
-        <CircularGallery
-          items={items}
-          bend={3}
-          textColor="#1c1917"
-          borderRadius={0.06}
-          scrollSpeed={2}
-          scrollEase={0.04}
-          font="bold 28px Figtree"
-        />
+        {isInView ? (
+          <CircularGallery
+            items={items}
+            bend={3}
+            textColor="#1c1917"
+            borderRadius={0.06}
+            scrollSpeed={2}
+            scrollEase={0.04}
+            font="bold 28px Figtree"
+          />
+        ) : null}
       </div>
     </div>
   );

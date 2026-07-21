@@ -8,6 +8,7 @@ import { FocusableSplineScene } from "@/components/home/FocusableSplineScene";
 import { HeroSplineScene } from "@/components/home/HeroSplineScene";
 import { HomeGallery } from "@/components/home/HomeGallery";
 import { HomeScroll } from "@/components/home/HomeScroll";
+import { HomeStoryLanyard } from "@/components/home/HomeStoryLanyard";
 import { ScrollToHomeSection } from "@/components/home/ScrollToHomeSection";
 import TextType from "@/components/home/TextType";
 import { getServerApiClient } from "@/lib/api";
@@ -63,6 +64,42 @@ export default async function Home() {
         <Suspense fallback={<GalleryFallback />}>
           <HomeGallery />
         </Suspense>
+      }
+      story={
+        <div className="relative flex min-h-dvh items-center overflow-hidden bg-panel/[0.36]">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0"
+            style={{
+              background:
+                "radial-gradient(circle at 22% 34%, oklch(var(--color-accent) / 0.15), transparent 30%), radial-gradient(circle at 86% 68%, oklch(var(--color-panel-muted) / 0.9), transparent 38%)",
+            }}
+          />
+          <div className="absolute inset-0">
+            <HomeStoryLanyard />
+          </div>
+          <div className="pointer-events-none relative z-10 mx-auto flex min-h-dvh w-full max-w-[1440px] items-center px-4 py-20 sm:px-6 md:py-24 lg:px-8 lg:py-28">
+            <div className="max-w-xl">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">
+                Made for the moments in between
+              </p>
+              <TextType
+                as="h2"
+                text="A place for every kind of progress."
+                typingSpeed={42}
+                initialDelay={180}
+                loop={false}
+                startOnVisible
+                cursorCharacter="|"
+                className="mt-5 text-4xl font-semibold leading-[0.98] tracking-[-0.05em] text-text sm:text-5xl lg:text-[3.4rem]"
+              />
+              <p className="mt-6 max-w-lg text-base leading-7 text-muted sm:text-lg sm:leading-8">
+                A workout can be a training session, a walk, or the long stretch of focus it takes
+                to build something with people you care about. Hope gives it a place in your story.
+              </p>
+            </div>
+          </div>
+        </div>
       }
       hero={
         <>
