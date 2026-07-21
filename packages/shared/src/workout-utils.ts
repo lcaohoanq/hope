@@ -329,6 +329,7 @@ export function createWorkoutRecord(
     durationMinutes: number;
     note: string;
     isPublic: boolean;
+    points?: number;
     images?: WorkoutImage[];
   },
   now = new Date(),
@@ -342,6 +343,7 @@ export function createWorkoutRecord(
     endTime: input.endTime,
     durationMinutes: input.durationMinutes,
     note: input.note,
+    points: input.points ?? 0,
     isPublic: input.isPublic,
     ...(input.images && input.images.length > 0 ? { images: input.images } : {}),
     createdAt: now.toISOString(),

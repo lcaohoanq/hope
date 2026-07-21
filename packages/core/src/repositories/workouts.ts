@@ -53,6 +53,7 @@ function toWorkout(row: WorkoutRow, images: WorkoutImageRow[]): StoredWorkout {
     endTime: row.endTime,
     durationMinutes: row.durationMinutes,
     note: row.note ?? undefined,
+    points: row.points,
     images: storedImages.length > 0 ? storedImages : undefined,
     storedImages,
     createdAt: row.createdAt.toISOString(),
@@ -623,6 +624,7 @@ export async function insertWorkout(input: { workout: Workout; assets: UploadedA
         endTime: input.workout.endTime,
         durationMinutes: input.workout.durationMinutes,
         note: input.workout.note || null,
+        points: input.workout.points ?? 0,
         createdAt: new Date(input.workout.createdAt),
         isPublic: input.workout.isPublic,
       })
@@ -667,6 +669,7 @@ export async function updateWorkout(input: {
         endTime: input.workout.endTime,
         durationMinutes: input.workout.durationMinutes,
         note: input.workout.note || null,
+        points: input.workout.points ?? input.existing.points ?? 0,
         isPublic: input.workout.isPublic,
       })
       .where(eq(workouts.id, input.existing.id))

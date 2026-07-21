@@ -12,6 +12,8 @@ export const openApiDocumentation = {
     { name: "Health", description: "Liveness probes" },
     { name: "Feed", description: "Social workout feed" },
     { name: "Workouts", description: "Workout CRUD, activity, likes, comments" },
+    { name: "ActivityTypes", description: "Activity type catalog and scoring weights" },
+    { name: "Leaderboard", description: "Mutual-friends points leaderboard" },
     { name: "Users", description: "Current user, profile, settings, search, avatar" },
     { name: "Profiles", description: "Public profiles, follow graph, connections" },
     { name: "Comments", description: "Edit/delete workout comments" },

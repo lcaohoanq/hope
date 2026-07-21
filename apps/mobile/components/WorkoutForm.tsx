@@ -9,7 +9,11 @@ import type { PickedImage } from "@/lib/workout-images";
 import { MAX_WORKOUT_IMAGES } from "@/lib/workout-images";
 import type { MobileWorkoutInput } from "@/lib/workouts";
 
-const WORKOUT_TYPES = ["Gym", "Run", "Walk", "Cycle", "Swim", "Yoga", "Other"];
+const ACTIVITY_TYPES = [
+  { slug: "workout", label: "Workout" },
+  { slug: "study", label: "Study" },
+  { slug: "other", label: "Other" },
+] as const;
 
 type Props = {
   initial?: Partial<MobileWorkoutInput> & { id?: string; existingImageSrcs?: string[] };
@@ -22,7 +26,7 @@ export function WorkoutForm({ initial, submitLabel, onSubmit }: Props) {
   const { colors } = useTheme();
   const today = getTodayInTimezone();
   const [date, setDate] = useState(initial?.date ?? today);
-  const [type, setType] = useState(initial?.type ?? "Gym");
+  const [type, setType] = useState(initial?.type ?? "workout");
   const [note, setNote] = useState(initial?.note ?? "");
   const [isPublic, setIsPublic] = useState(initial?.isPublic ?? true);
   const [images, setImages] = useState<PickedImage[]>([]);
@@ -89,20 +93,22 @@ export function WorkoutForm({ initial, submitLabel, onSubmit }: Props) {
       <Field label="Date (YYYY-MM-DD)" value={date} onChangeText={setDate} autoCapitalize="none" />
       <Muted>Type</Muted>
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-        {WORKOUT_TYPES.map((option) => (
+        {ACTIVITY_TYPES.map((option) => (
           <Pressable
-            key={option}
-            onPress={() => setType(option)}
+            key={option.slug}
+            onPress={() => setType(option.slug)}
             style={{
               borderWidth: 1,
-              borderColor: type === option ? colors.accent : colors.border,
-              backgroundColor: type === option ? colors.accent : colors.panel,
+              borderColor: type === option.slug ? colors.accent : colors.border,
+              backgroundColor: type === option.slug ? colors.accent : colors.panel,
               borderRadius: 999,
               paddingHorizontal: 12,
               paddingVertical: 8,
             }}
           >
-            <Text style={{ color: type === option ? "#fff" : colors.text }}>{option}</Text>
+            <Text style={{ color: type === option.slug ? "#fff" : colors.text }}>
+              {option.label}
+            </Text>
           </Pressable>
         ))}
       </View>

@@ -57,6 +57,25 @@ export const profiles = pgTable(
   (table) => [uniqueIndex("profiles_username_normalized_idx").on(table.username)],
 );
 
+export const activityTypes = pgTable(
+  "activity_types",
+  {
+    id: text("id").primaryKey(),
+    slug: text("slug").notNull().unique(),
+    label: jsonb("label").$type<LocalizedText>().notNull(),
+    weight: integer("weight").notNull(),
+    sortOrder: integer("sort_order").notNull().default(0),
+    isActive: boolean("is_active").notNull().default(true),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("activity_types_active_sort_idx").on(table.isActive, table.sortOrder, table.slug),
+    check("activity_types_weight_positive_check", sql`${table.weight} > 0`),
+    check("activity_types_slug_format_check", sql`${table.slug} ~ '^[a-z][a-z0-9_-]*$'`),
+  ],
+);
+
 export const workouts = pgTable(
   "workouts",
   {
@@ -65,17 +84,21 @@ export const workouts = pgTable(
       .notNull()
       .references(() => profiles.id, { onDelete: "cascade" }),
     date: date("date", { mode: "string" }).notNull(),
-    type: text("type").notNull(),
+    type: text("type")
+      .notNull()
+      .references(() => activityTypes.slug),
     startTime: text("start_time").notNull(),
     endTime: text("end_time").notNull(),
     durationMinutes: integer("duration_minutes").notNull(),
     note: text("note"),
+    points: integer("points").notNull().default(0),
     isPublic: boolean("is_public").notNull().default(true),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
     index("workouts_profile_date_idx").on(table.profileId, table.date),
     index("workouts_profile_created_idx").on(table.profileId, table.createdAt, table.id),
+    index("workouts_profile_date_points_idx").on(table.profileId, table.date, table.points),
   ],
 );
 
@@ -195,6 +218,7 @@ export const notifications = pgTable(
 );
 
 export type ProfileRow = typeof profiles.$inferSelect;
+export type ActivityTypeRow = typeof activityTypes.$inferSelect;
 export type WorkoutRow = typeof workouts.$inferSelect;
 export type WorkoutImageRow = typeof workoutImages.$inferSelect;
 export type ProfileFollowRow = typeof profileFollows.$inferSelect;

@@ -228,17 +228,22 @@ async function migrate() {
       }
 
       for (const workout of workoutData.workouts) {
+        const type = ["workout", "study", "other"].includes(workout.type.trim().toLowerCase())
+          ? workout.type.trim().toLowerCase()
+          : "other";
+        const points = type === "workout" ? 3 : type === "study" ? 2 : 1;
         await tx
           .insert(workouts)
           .values({
             id: workout.id,
             profileId: workout.userId!,
             date: workout.date,
-            type: workout.type,
+            type,
             startTime: workout.startTime,
             endTime: workout.endTime,
             durationMinutes: workout.durationMinutes,
             note: workout.note,
+            points,
             createdAt: new Date(workout.createdAt),
           })
           .onConflictDoUpdate({
@@ -246,11 +251,12 @@ async function migrate() {
             set: {
               profileId: workout.userId!,
               date: workout.date,
-              type: workout.type,
+              type,
               startTime: workout.startTime,
               endTime: workout.endTime,
               durationMinutes: workout.durationMinutes,
               note: workout.note,
+              points,
             },
           });
         await tx.delete(workoutImages).where(eq(workoutImages.workoutId, workout.id));

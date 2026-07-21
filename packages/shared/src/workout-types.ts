@@ -17,6 +17,8 @@ export type Workout = {
   endTime: string;
   durationMinutes: number;
   note?: string;
+  /** Snapshot score from activity type weight at create/update time. */
+  points?: number;
   images?: WorkoutImage[];
   createdAt: string;
   isPublic: boolean;
