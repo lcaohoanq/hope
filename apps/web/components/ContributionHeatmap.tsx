@@ -273,12 +273,13 @@ export function ContributionHeatmap({
                 title={copy.heatmap.intensityLevel(workoutCount)}
               />
             ))}
-            <span
-              className="cursor-help underline decoration-dotted decoration-muted/70 underline-offset-2"
+            <button
+              className="cursor-help rounded-sm underline decoration-dotted decoration-muted/70 underline-offset-2 outline-none transition focus-visible:ring-2 focus-visible:ring-accent"
               title={copy.heatmap.intensityScaleHint}
+              type="button"
             >
               {copy.heatmap.more}
-            </span>
+            </button>
             <div
               className="pointer-events-none absolute bottom-full right-0 z-20 mb-2 w-56 rounded-md border border-border bg-panel p-3 text-left opacity-0 shadow-[0_12px_28px_rgba(28,25,23,0.18)] transition duration-150 group-hover:opacity-100 group-focus-within:opacity-100"
               role="tooltip"
