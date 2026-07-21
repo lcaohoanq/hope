@@ -3,3 +3,4 @@
 
 # clerk configuration (can include secrets)
 /.clerk/
+next-env.d.ts
