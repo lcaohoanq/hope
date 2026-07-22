@@ -207,35 +207,6 @@ export function UserProfileSidebar({
           </div>
         </div>
       ) : null}
-
-      {canViewDetails && user.location ? (
-        <div className="mt-5 border-t border-border pt-5">
-          <div className="flex items-start justify-between gap-3 text-sm">
-            <div>
-              <p className="text-muted">{copy.dashboard.location}</p>
-              <p className="mt-1 font-medium text-text">{user.location.label[language]}</p>
-            </div>
-            <a
-              className="shrink-0 rounded-md border border-border px-3 py-2 text-xs font-semibold text-muted transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-border hover:bg-panel-muted hover:text-text"
-              href={getGoogleMaps3dUrl(user.location)}
-              rel="noreferrer"
-              target="_blank"
-            >
-              {copy.dashboard.open3dMap}
-            </a>
-          </div>
-          <div className="mt-3 overflow-hidden rounded-md border border-border bg-panel-muted">
-            <iframe
-              allowFullScreen
-              className="block h-48 w-full border-0"
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-              src={getGoogleMapsEmbedUrl(user.location)}
-              title={`${copy.dashboard.location}: ${user.location.label[language]}`}
-            />
-          </div>
-        </div>
-      ) : null}
     </aside>
   );
 }
