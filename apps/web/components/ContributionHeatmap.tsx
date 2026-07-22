@@ -358,11 +358,7 @@ export function ContributionHeatmap({
                         <button
                           aria-label={`${day.date}: ${label}`}
                           className={`relative h-2.5 w-2.5 rounded-[2px] outline-none ring-offset-2 ring-offset-panel transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:ring-2 hover:ring-text/20 focus-visible:ring-2 focus-visible:ring-accent ${
-                            hasWorkout
-                              ? intensityClass
-                              : isTrackable
-                                ? "bg-[#151B23] hover:bg-[#196C2E]"
-                                : "border border-border bg-panel-muted"
+                            hasWorkout ? intensityClass : "bg-[#151B23]"
                           }`}
                           onBlur={() => setActiveTooltip(null)}
                           onFocus={(event) =>
