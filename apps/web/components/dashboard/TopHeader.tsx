@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import {
   FaChevronDown,
@@ -44,9 +45,18 @@ export function TopHeader({
   showSettings,
 }: TopHeaderProps) {
   const profilePath = `/${user.username}`;
+  const router = useRouter();
   const socialCopy = getSocialCopy(language);
   const profileMenuRef = useRef<HTMLDivElement>(null);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    if (!showSignOut) return;
+    router.prefetch(profilePath);
+    router.prefetch("/feed");
+    router.prefetch("/leaderboard");
+    if (showSettings) router.prefetch("/settings/profile");
+  }, [profilePath, router, showSettings, showSignOut]);
 
   useEffect(() => {
     if (!isProfileMenuOpen) {
@@ -77,7 +87,7 @@ export function TopHeader({
     <header className="flex w-full flex-wrap items-center justify-between gap-3 border-b border-border bg-app px-4 py-3 sm:px-6 lg:flex-nowrap lg:px-8">
       <Link
         className="inline-flex h-10 shrink-0 items-center gap-2 rounded-md px-3 text-sm font-semibold text-muted transition hover:bg-panel-muted hover:text-text"
-        href="/"
+        href={showSignOut ? profilePath : "/"}
       >
         <AppLogo />
         {copy.common.home}

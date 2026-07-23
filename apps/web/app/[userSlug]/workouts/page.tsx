@@ -1,8 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { HopeDashboard } from "@/components/dashboard/HopeDashboard";
-import { resolveOwner } from "@/lib/auth";
 import { getCanonicalUserPath } from "@/lib/users";
-import { getProfile, getWorkoutCount } from "../profile-page";
+import { getProfile } from "../profile-page";
 
 type WorkoutsPageProps = { params: Promise<{ userSlug: string }> };
 
@@ -27,20 +26,18 @@ export default async function UserWorkoutsPage({ params }: WorkoutsPageProps) {
   const canonicalPath = getCanonicalUserPath(data.profile);
   if (`/${userSlug}` !== canonicalPath) redirect(`${canonicalPath}/workouts`);
 
-  const owner = await resolveOwner();
-  const viewer = owner.status === "ready" ? owner.user : undefined;
-  const workoutCount = data.social.canViewWorkouts ? await getWorkoutCount(data.profile.id) : 0;
+  const viewer = data.viewerStatus === "ready" ? (data.viewer ?? undefined) : undefined;
 
   return (
     <HopeDashboard
       currentTab="workouts"
-      isAuthenticated={owner.status !== "signed-out"}
+      isAuthenticated={data.viewerStatus !== "signed-out"}
       isEditable={viewer?.id === data.profile.id}
       key={`${data.profile.id}-workouts`}
       socialSummary={data.social}
       user={data.profile}
       viewer={viewer}
-      workoutCount={workoutCount}
+      workoutCount={data.workoutCount}
     />
   );
 }

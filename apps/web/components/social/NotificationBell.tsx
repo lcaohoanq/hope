@@ -24,6 +24,7 @@ export function NotificationBell({ language }: { language: Language }) {
   const { getToken } = useAuth();
   const router = useRouter();
   const rootRef = useRef<HTMLDivElement>(null);
+  const hasLoadedRelationshipsRef = useRef(false);
   const lastRelationshipEventRef = useRef("");
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<AppNotification[]>([]);
@@ -40,9 +41,16 @@ export function NotificationBell({ language }: { language: Language }) {
       const relationshipEvent = payload.items.find(
         (item) => item.type === "follow_accepted" || item.type === "new_follower",
       );
-      if (relationshipEvent && relationshipEvent.id !== lastRelationshipEventRef.current) {
+      if (
+        hasLoadedRelationshipsRef.current &&
+        relationshipEvent &&
+        relationshipEvent.id !== lastRelationshipEventRef.current
+      ) {
         lastRelationshipEventRef.current = relationshipEvent.id;
         router.refresh();
+      } else {
+        lastRelationshipEventRef.current = relationshipEvent?.id ?? "";
+        hasLoadedRelationshipsRef.current = true;
       }
       setItems(payload.items);
       setUnreadCount(payload.unreadCount);

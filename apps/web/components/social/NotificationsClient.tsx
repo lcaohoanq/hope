@@ -1,8 +1,9 @@
 "use client";
 
 import { useAuth } from "@clerk/nextjs";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { getApiErrorMessage, getClientApiClient } from "@/lib/http";
 import type { Language } from "@/lib/i18n";
 import { getSocialCopy } from "@/lib/social-copy";
@@ -18,37 +19,32 @@ function notificationHref(item: AppNotification) {
 export function NotificationsClient({ language }: { language: Language }) {
   const copy = getSocialCopy(language);
   const { getToken } = useAuth();
-  const [items, setItems] = useState<AppNotification[]>([]);
-  const [cursor, setCursor] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const queryKey = ["notifications-page"] as const;
   const [error, setError] = useState("");
-  const load = useCallback(
-    async (next?: string) => {
-      try {
-        const token = await getToken();
-        const client = getClientApiClient(token);
-        const res = await client.notifications.$get({ query: { cursor: next } });
-        const payload = await res.json();
-        if (!res.ok) return;
-        setItems((current) =>
-          next
-            ? [...current, ...("items" in payload ? (payload.items ?? []) : [])]
-            : "items" in payload
-              ? (payload.items ?? [])
-              : [],
-        );
-        setCursor("nextCursor" in payload ? (payload.nextCursor ?? null) : null);
-      } catch {
-        // Keep the current notification list when a background refresh fails.
-      }
-    },
-    [getToken],
-  );
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      void load();
-    }, 0);
-    return () => window.clearTimeout(timer);
-  }, [load]);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const notificationsQuery = useQuery({
+    queryKey,
+    queryFn: async () => fetchNotifications(await getToken()),
+  });
+  const items = notificationsQuery.data?.items ?? [];
+  const cursor = notificationsQuery.data?.nextCursor ?? null;
+
+  async function loadMore(next: string) {
+    setLoadingMore(true);
+    try {
+      const nextPage = await fetchNotifications(await getToken(), next);
+      queryClient.setQueryData<NotificationsPageData>(queryKey, (current) => ({
+        items: [...(current?.items ?? []), ...nextPage.items],
+        nextCursor: nextPage.nextCursor,
+      }));
+    } catch {
+      // Keep the current notification list when loading another page fails.
+    } finally {
+      setLoadingMore(false);
+    }
+  }
+
   async function markAll() {
     setError("");
     try {
@@ -59,7 +55,7 @@ export function NotificationsClient({ language }: { language: Language }) {
         const data = await res.json();
         throw new Error(("error" in data && data.error) || "Unable to update notifications.");
       }
-      await load();
+      await notificationsQuery.refetch();
     } catch (caught) {
       setError(getApiErrorMessage(caught, "Unable to update notifications."));
     }
@@ -77,7 +73,7 @@ export function NotificationsClient({ language }: { language: Language }) {
         const data = await res.json();
         throw new Error(("error" in data && data.error) || "Unable to update follow request.");
       }
-      await load();
+      await notificationsQuery.refetch();
     } catch (caught) {
       setError(getApiErrorMessage(caught, "Unable to update follow request."));
     }
@@ -101,7 +97,11 @@ export function NotificationsClient({ language }: { language: Language }) {
           {error}
         </p>
       ) : null}
-      {items.length === 0 ? (
+      {notificationsQuery.isPending ? (
+        <p className="p-10 text-center text-muted">
+          {language === "vi" ? "Đang tải thông báo..." : "Loading notifications..."}
+        </p>
+      ) : items.length === 0 ? (
         <p className="p-10 text-center text-muted">{copy.noNotifications}</p>
       ) : (
         <div className="divide-y divide-border">
@@ -146,14 +146,34 @@ export function NotificationsClient({ language }: { language: Language }) {
       {cursor ? (
         <div className="border-t border-border p-3">
           <button
+            disabled={loadingMore}
             className="w-full text-sm font-semibold text-accent"
-            onClick={() => void load(cursor)}
+            onClick={() => void loadMore(cursor)}
             type="button"
           >
-            {copy.loadMore}
+            {loadingMore ? `${copy.loadMore}...` : copy.loadMore}
           </button>
         </div>
       ) : null}
     </section>
   );
+}
+
+type NotificationsPageData = {
+  items: AppNotification[];
+  nextCursor: string | null;
+};
+
+async function fetchNotifications(
+  token: string | null,
+  cursor?: string,
+): Promise<NotificationsPageData> {
+  const client = getClientApiClient(token);
+  const res = await client.notifications.$get({ query: { cursor } });
+  const payload = await res.json();
+  if (!res.ok) throw new Error("Unable to load notifications.");
+  return {
+    items: "items" in payload ? (payload.items ?? []) : [],
+    nextCursor: "nextCursor" in payload ? (payload.nextCursor ?? null) : null,
+  };
 }

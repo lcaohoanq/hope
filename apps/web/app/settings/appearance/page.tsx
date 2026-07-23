@@ -1,21 +1,14 @@
+import { auth } from "@clerk/nextjs/server";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { AppearanceSettings } from "@/components/settings/AppearanceSettings";
-import { SettingsShell } from "@/components/settings/SettingsShell";
-import { resolveOwner } from "@/lib/auth";
+import { SettingsPageContent } from "@/components/settings/SettingsPageContent";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = { title: "Appearance settings - Hope" };
 
 export default async function AppearanceSettingsPage() {
-  const owner = await resolveOwner();
-  if (owner.status === "signed-out")
-    redirect(`/login?next=${encodeURIComponent("/settings/appearance")}`);
-  if (owner.status === "onboarding") redirect("/onboarding");
-  return (
-    <SettingsShell section="appearance" user={owner.user}>
-      <AppearanceSettings user={owner.user} />
-    </SettingsShell>
-  );
+  const { userId } = await auth();
+  if (!userId) redirect(`/login?next=${encodeURIComponent("/settings/appearance")}`);
+  return <SettingsPageContent section="appearance" />;
 }

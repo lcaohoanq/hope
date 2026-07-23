@@ -1,7 +1,8 @@
 "use client";
 
 import { useAuth } from "@clerk/nextjs";
-import { useCallback, useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import { WorkoutSocialCard } from "@/components/social/WorkoutSocialCard";
 import { getApiErrorMessage, getClientApiClient } from "@/lib/http";
 import type { Language } from "@/lib/i18n";
@@ -12,55 +13,45 @@ import type { PublicAppUser } from "@/lib/users";
 export function FeedClient({ language, viewer }: { language: Language; viewer: PublicAppUser }) {
   const copy = getSocialCopy(language);
   const { getToken } = useAuth();
-  const [items, setItems] = useState<FeedItem[]>([]);
-  const [cursor, setCursor] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const queryClient = useQueryClient();
+  const queryKey = ["social-feed", viewer.id] as const;
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [loadMoreError, setLoadMoreError] = useState("");
+  const feedQuery = useQuery({
+    queryKey,
+    queryFn: async () => fetchFeedPage(await getToken()),
+  });
+  const items = feedQuery.data?.items ?? [];
+  const cursor = feedQuery.data?.nextCursor ?? null;
+  const error = feedQuery.error
+    ? getApiErrorMessage(feedQuery.error, copy.interactionFailed)
+    : loadMoreError;
 
-  const load = useCallback(
-    async (nextCursor?: string) => {
-      setLoading(true);
-      setError("");
-      try {
-        const token = await getToken();
-        const client = getClientApiClient(token);
-        const res = await client.feed.$get({ query: { cursor: nextCursor } });
-        const payload = await res.json();
-        if (!res.ok)
-          throw new Error(("error" in payload && payload.error) || copy.interactionFailed);
-        setItems((current) =>
-          nextCursor
-            ? [...current, ...("items" in payload ? (payload.items ?? []) : [])]
-            : "items" in payload
-              ? (payload.items ?? [])
-              : [],
-        );
-        setCursor("nextCursor" in payload ? (payload.nextCursor ?? null) : null);
-      } catch (caught) {
-        setError(getApiErrorMessage(caught, copy.interactionFailed));
-      } finally {
-        setLoading(false);
-      }
-    },
-    [copy.interactionFailed, getToken],
-  );
+  async function loadMore(nextCursor: string) {
+    setLoadingMore(true);
+    setLoadMoreError("");
+    try {
+      const nextPage = await fetchFeedPage(await getToken(), nextCursor);
+      queryClient.setQueryData<FeedPageData>(queryKey, (current) => ({
+        items: [...(current?.items ?? []), ...nextPage.items],
+        nextCursor: nextPage.nextCursor,
+      }));
+    } catch (caught) {
+      setLoadMoreError(getApiErrorMessage(caught, copy.interactionFailed));
+    } finally {
+      setLoadingMore(false);
+    }
+  }
 
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      void load();
-    }, 0);
-    return () => window.clearTimeout(timer);
-  }, [load]);
-
-  if (loading && items.length === 0) return <FeedSkeleton />;
-  if (!loading && items.length === 0) {
+  if (feedQuery.isPending && items.length === 0) return <FeedSkeleton />;
+  if (!feedQuery.isPending && items.length === 0) {
     return (
       <section className="rounded-lg border border-border bg-panel p-10 text-center shadow-[var(--shadow-panel)]">
         <p className="text-muted">{error || copy.emptyFeed}</p>
         {error ? (
           <button
             className="mt-4 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-contrast"
-            onClick={() => void load()}
+            onClick={() => void feedQuery.refetch()}
             type="button"
           >
             {copy.loadMore}
@@ -83,15 +74,33 @@ export function FeedClient({ language, viewer }: { language: Language; viewer: P
       {cursor ? (
         <button
           className="h-11 rounded-md border border-border bg-panel text-sm font-semibold text-text transition hover:bg-panel-muted active:scale-[0.99] disabled:opacity-50"
-          disabled={loading}
-          onClick={() => void load(cursor)}
+          disabled={loadingMore}
+          onClick={() => void loadMore(cursor)}
           type="button"
         >
-          {loading ? `${copy.loadMore}...` : copy.loadMore}
+          {loadingMore ? `${copy.loadMore}...` : copy.loadMore}
         </button>
       ) : null}
     </div>
   );
+}
+
+type FeedPageData = {
+  items: FeedItem[];
+  nextCursor: string | null;
+};
+
+async function fetchFeedPage(token: string | null, cursor?: string): Promise<FeedPageData> {
+  const client = getClientApiClient(token);
+  const res = await client.feed.$get({ query: { cursor } });
+  const payload = await res.json();
+  if (!res.ok) {
+    throw new Error(("error" in payload && payload.error) || "Unable to load the social feed.");
+  }
+  return {
+    items: "items" in payload ? (payload.items ?? []) : [],
+    nextCursor: "nextCursor" in payload ? (payload.nextCursor ?? null) : null,
+  };
 }
 
 function FeedSkeleton() {

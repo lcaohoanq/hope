@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { AppFooter } from "@/components/layouts/AppFooter";
+import { NavigationProgress } from "@/components/shared/NavigationProgress";
 
 type AppShellProps = {
   children: React.ReactNode;
@@ -17,6 +18,7 @@ export function AppShell({ children }: AppShellProps) {
 
   return (
     <>
+      <NavigationProgress />
       {children}
       {shouldShowFooter ? <AppFooter /> : null}
     </>

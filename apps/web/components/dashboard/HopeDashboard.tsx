@@ -1,8 +1,8 @@
 "use client";
 
 import { useAuth, useClerk } from "@clerk/nextjs";
+import dynamic from "next/dynamic";
 import { useCallback, useEffect, useState } from "react";
-import { ContributionHeatmap } from "@/components/ContributionHeatmap";
 import {
   filterWorkoutsForHeatmapView,
   getInitialTheme,
@@ -13,7 +13,6 @@ import { ProfileNavigationTabs } from "@/components/dashboard/ProfileNavigationT
 import { TopHeader } from "@/components/dashboard/TopHeader";
 import { UserProfileSidebar } from "@/components/dashboard/UserProfileSidebar";
 import { WorkoutActivityTimeline } from "@/components/dashboard/WorkoutActivityTimeline";
-import { WorkoutDialog } from "@/components/dashboard/WorkoutDialog";
 import { WorkoutLoadingState } from "@/components/dashboard/WorkoutLoadingState";
 import {
   type CreateWorkoutResponse,
@@ -37,6 +36,13 @@ import {
 } from "@/lib/users";
 import { cleanupWorkoutImageUploads } from "@/lib/workout-image-upload";
 import type { Workout, WorkoutInput, WorkoutUpdateInput } from "@/lib/workout-types";
+
+const ContributionHeatmap = dynamic(() =>
+  import("@/components/ContributionHeatmap").then((module) => module.ContributionHeatmap),
+);
+const WorkoutDialog = dynamic(() =>
+  import("@/components/dashboard/WorkoutDialog").then((module) => module.WorkoutDialog),
+);
 
 type HopeDashboardProps = {
   currentTab?: "overview" | "workouts";
@@ -347,15 +353,17 @@ export function HopeDashboard({
           )}
         </div>
       </div>
-      <WorkoutDialog
-        copy={copy}
-        defaultDate={todayDateKey}
-        isOpen={isEditable && isWorkoutDialogOpen}
-        isSubmitting={isSubmittingWorkout}
-        language={language}
-        onClose={closeWorkoutDialog}
-        onSubmitWorkout={handleSubmitWorkout}
-      />
+      {isEditable && isWorkoutDialogOpen ? (
+        <WorkoutDialog
+          copy={copy}
+          defaultDate={todayDateKey}
+          isOpen
+          isSubmitting={isSubmittingWorkout}
+          language={language}
+          onClose={closeWorkoutDialog}
+          onSubmitWorkout={handleSubmitWorkout}
+        />
+      ) : null}
     </main>
   );
 }

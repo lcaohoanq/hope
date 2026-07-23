@@ -2,8 +2,9 @@
 
 import { useAuth } from "@clerk/nextjs";
 import type { LeaderboardEntry, LeaderboardPeriod } from "@hope/shared";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { AvatarImage } from "@/components/dashboard/AvatarImage";
 import { getApiErrorMessage, getClientApiClient, parseApiJson } from "@/lib/http";
 import type { Language } from "@/lib/i18n";
@@ -22,41 +23,27 @@ export function LeaderboardClient({ language }: { language: Language }) {
   const copy = getSocialCopy(language);
   const { getToken } = useAuth();
   const [period, setPeriod] = useState<LeaderboardPeriod>("weekly");
-  const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
-  const [range, setRange] = useState<{ start: string | null; end: string } | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  const load = useCallback(
-    async (nextPeriod: LeaderboardPeriod) => {
-      setLoading(true);
-      setError("");
-      try {
-        const token = await getToken();
-        const client = getClientApiClient(token);
-        const res = await client.leaderboard.$get({ query: { period: nextPeriod } });
-        const payload = await parseApiJson<LeaderboardResponse | { success: false; error: string }>(
-          res,
-        );
-        if (!res.ok || !("entries" in payload)) {
-          throw new Error(("error" in payload && payload.error) || copy.leaderboardLoadError);
-        }
-        setEntries(payload.entries);
-        setRange(payload.range);
-      } catch (caught) {
-        setError(getApiErrorMessage(caught, copy.leaderboardLoadError));
-        setEntries([]);
-        setRange(null);
-      } finally {
-        setLoading(false);
+  const leaderboardQuery = useQuery({
+    queryKey: ["leaderboard", period],
+    queryFn: async () => {
+      const client = getClientApiClient(await getToken());
+      const res = await client.leaderboard.$get({ query: { period } });
+      const payload = await parseApiJson<LeaderboardResponse | { success: false; error: string }>(
+        res,
+      );
+      if (!res.ok || !("entries" in payload)) {
+        throw new Error(("error" in payload && payload.error) || copy.leaderboardLoadError);
       }
+      return payload;
     },
-    [copy.leaderboardLoadError, getToken],
-  );
-
-  useEffect(() => {
-    void load(period);
-  }, [load, period]);
+    placeholderData: keepPreviousData,
+  });
+  const entries = leaderboardQuery.data?.entries ?? [];
+  const range = leaderboardQuery.data?.range ?? null;
+  const loading = leaderboardQuery.isFetching;
+  const error = leaderboardQuery.error
+    ? getApiErrorMessage(leaderboardQuery.error, copy.leaderboardLoadError)
+    : "";
 
   const periodLabel = {
     weekly: copy.leaderboardWeekly,
