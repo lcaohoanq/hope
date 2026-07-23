@@ -16,7 +16,10 @@ export function SocialPageHeader({
   return (
     <header className="border-b border-border bg-app">
       <div className="mx-auto flex min-h-16 max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:flex-nowrap">
-        <Link className="font-semibold text-text flex items-center gap-2" href="/">
+        <Link
+          className="font-semibold text-text flex items-center gap-2"
+          href={user ? `/${user.username}` : "/"}
+        >
           <AppLogo />
           Hope
         </Link>

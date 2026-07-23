@@ -27,7 +27,6 @@ export function OnboardingClient() {
         throw new Error(payload.error ?? fallbackMessage);
       }
       router.replace(`/${payload.user.username}`);
-      router.refresh();
     } catch (error) {
       throw new Error(getApiErrorMessage(error, fallbackMessage));
     }

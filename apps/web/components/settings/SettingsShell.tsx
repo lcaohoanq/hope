@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { FaArrowLeft, FaPalette, FaUserCircle, FaUserEdit } from "react-icons/fa";
 import { AvatarImage } from "@/components/dashboard/AvatarImage";
 import { translations } from "@/lib/i18n";
@@ -17,13 +18,17 @@ const sectionPaths: Record<SettingsSection, string> = {
 
 export function SettingsShell({
   children,
-  section,
   user,
 }: {
   children: React.ReactNode;
-  section: SettingsSection;
   user: PublicAppUser;
 }) {
+  const pathname = usePathname();
+  const section: SettingsSection = pathname.startsWith("/settings/account")
+    ? "account"
+    : pathname.startsWith("/settings/appearance")
+      ? "appearance"
+      : "profile";
   const copy = translations[user.preferredLanguage];
   const items: Array<{ icon: typeof FaUserEdit; id: SettingsSection; label: string }> = [
     { icon: FaUserEdit, id: "profile", label: copy.settings.profile },

@@ -1,8 +1,7 @@
+import { auth } from "@clerk/nextjs/server";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { ProfileSettingsForm } from "@/components/profile/ProfileSettingsForm";
-import { SettingsShell } from "@/components/settings/SettingsShell";
-import { resolveOwner } from "@/lib/auth";
+import { SettingsPageContent } from "@/components/settings/SettingsPageContent";
 
 export const dynamic = "force-dynamic";
 
@@ -11,16 +10,9 @@ export const metadata: Metadata = {
 };
 
 export default async function ProfileSettingsPage() {
-  const owner = await resolveOwner();
-  if (owner.status === "signed-out") {
+  const { userId } = await auth();
+  if (!userId) {
     redirect(`/login?next=${encodeURIComponent("/settings/profile")}`);
   }
-  if (owner.status === "onboarding") {
-    redirect("/onboarding");
-  }
-  return (
-    <SettingsShell section="profile" user={owner.user}>
-      <ProfileSettingsForm user={owner.user} />
-    </SettingsShell>
-  );
+  return <SettingsPageContent section="profile" />;
 }

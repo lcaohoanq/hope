@@ -2,6 +2,7 @@ import {
   followProfile,
   getProfileById,
   getProfileByUsername,
+  getWorkoutCountByProfile,
   listConnections,
   removeFollower,
   resolveProfileAccess,
@@ -30,6 +31,9 @@ const profileByUsernameResponseSchema = z.object({
   success: z.literal(true),
   profile: publicUserSchema,
   social: socialSummarySchema,
+  viewerStatus: z.enum(["signed-out", "onboarding", "ready"]),
+  viewer: publicUserSchema.nullable(),
+  workoutCount: z.number(),
 });
 
 const connectionsResponseSchema = z.object({
@@ -66,11 +70,22 @@ export const profileRoutes = new Hono<AppEnv>()
 
       const owner = await resolveOwner(c);
       const viewer = owner.status === "ready" ? owner.profile : undefined;
-      const social = await resolveProfileAccess(profile, viewer);
+      const [social, visibleWorkoutCount] = await Promise.all([
+        resolveProfileAccess(profile, viewer),
+        getWorkoutCountByProfile(profile.id, viewer?.id === profile.id ? "all" : "public"),
+      ]);
+      const publicViewer = viewer ? toPublicUser(viewer) : null;
+      const socialProfile = social.canViewWorkouts
+        ? toPublicUser(profile)
+        : toPrivateProfileShell(profile);
+
       return c.json({
         success: true as const,
-        profile: social.canViewWorkouts ? toPublicUser(profile) : toPrivateProfileShell(profile),
+        profile: socialProfile,
         social,
+        viewerStatus: owner.status,
+        viewer: publicViewer,
+        workoutCount: social.canViewWorkouts ? visibleWorkoutCount : 0,
       });
     },
   )

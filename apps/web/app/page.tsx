@@ -48,7 +48,7 @@ export default async function Home() {
   const me = (await res.json()) as { status: string; user: { username: string } | null };
 
   if (me.status === "ready" && me.user) {
-    redirect(`/@${me.user.username}`);
+    redirect(`/${me.user.username}`);
   }
   if (me.status !== "signed-out") {
     redirect("/auth/continue");

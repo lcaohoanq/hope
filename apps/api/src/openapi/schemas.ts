@@ -334,6 +334,9 @@ export const profileByUsernameResponseSchema = z.object({
   success: z.literal(true),
   profile: publicUserSchema,
   social: socialSummarySchema,
+  viewerStatus: z.enum(["signed-out", "onboarding", "ready"]),
+  viewer: publicUserSchema.nullable(),
+  workoutCount: z.number(),
 });
 
 export const connectionsResponseSchema = z.object({

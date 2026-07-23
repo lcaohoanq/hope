@@ -1,45 +1,8 @@
 import { clerkMiddleware } from "@clerk/nextjs/server";
 import { type NextFetchEvent, type NextRequest, NextResponse } from "next/server";
-
-const API_URL = process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8787";
-
-const clerkRoutes = [
-  /^\/$/,
-  /^\/(?:feed|notifications|leaderboard|onboarding)\/?$/,
-  /^\/pricing(?:\/|$)/,
-  /^\/workouts\/[^/]+\/?$/,
-  /^\/(?:login|sign-up)(?:\/|$)/,
-  /^\/admin(?:\/|$)/,
-  /^\/api\/admin(?:\/|$)/,
-  /^\/auth\/(?:continue|resolve)\/?$/,
-  /^\/settings\/profile\/?$/,
-  /^\/__clerk(?:\/|$)/,
-];
+import { requiresClerk } from "@/lib/route-access";
 
 const withClerk = clerkMiddleware();
-
-async function isExistingProfileRoute(pathname: string) {
-  const segments = pathname.split("/").filter(Boolean);
-  const isProfilePage = segments.length === 1;
-  const isProfileSubpage =
-    segments.length === 2 &&
-    (segments[1] === "followers" || segments[1] === "following" || segments[1] === "workouts");
-
-  if (!isProfilePage && !isProfileSubpage) return false;
-
-  try {
-    const res = await fetch(`${API_URL}/profiles/by-username/${encodeURIComponent(segments[0])}`);
-    return res.ok;
-  } catch {
-    return true;
-  }
-}
-
-async function requiresClerk(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-  if (clerkRoutes.some((route) => route.test(pathname))) return true;
-  return isExistingProfileRoute(pathname);
-}
 
 export default async function proxy(request: NextRequest, event: NextFetchEvent) {
   const legacyProfile = request.nextUrl.pathname.match(/^\/(?:@|%40)([^/]+)\/?$/i);
@@ -49,7 +12,7 @@ export default async function proxy(request: NextRequest, event: NextFetchEvent)
     return NextResponse.redirect(canonicalUrl, 308);
   }
 
-  if (!(await requiresClerk(request))) return NextResponse.next();
+  if (!requiresClerk(request.nextUrl.pathname)) return NextResponse.next();
   return withClerk(request, event);
 }
 

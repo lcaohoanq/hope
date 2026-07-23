@@ -10,18 +10,4 @@ async function fetchProfile(username: string) {
   return data;
 }
 
-async function fetchWorkoutCount(userId: string) {
-  try {
-    const client = await getServerApiClient();
-    const res = await client.workouts.count.$get({ query: { userId } });
-    if (!res.ok) return 0;
-    const data = await res.json();
-    return "count" in data ? data.count : 0;
-  } catch (error) {
-    console.error("Unable to fetch workout count:", error);
-    return 0;
-  }
-}
-
 export const getProfile = cache(fetchProfile);
-export const getWorkoutCount = cache(fetchWorkoutCount);

@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getServerApiClient } from "@/lib/api";
-import { resolveOwner } from "@/lib/auth";
 import { getSocialCopy } from "@/lib/social-copy";
 import { ConnectionsPageClient } from "./ConnectionsPageClient";
 
@@ -20,8 +19,7 @@ export async function ConnectionsPage({
   const data = await res.json();
   if (!data.success) notFound();
 
-  const owner = await resolveOwner();
-  const viewer = owner.status === "ready" ? owner.user : undefined;
+  const viewer = data.viewerStatus === "ready" ? (data.viewer ?? undefined) : undefined;
   const copy = getSocialCopy(viewer?.preferredLanguage ?? data.profile.preferredLanguage);
   return (
     <main className="min-h-dvh bg-app text-text">
