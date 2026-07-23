@@ -144,7 +144,7 @@ export function ContributionHeatmap({
       <div className="relative z-0 mb-0 max-h-[620px] overflow-auto pr-1">
         <div className="grid min-w-[900px] gap-5">
           {descendingHeatmapYears.map(({ year, weeks }) => (
-            <div className="grid grid-cols-[44px_32px_1fr] items-start gap-x-3" key={year}>
+            <div className="grid grid-cols-[44px_1fr] items-start gap-x-3" key={year}>
               <div className="mt-5 grid grid-rows-7 gap-1 text-[9px] text-text">
                 {copy.heatmap.weekdays.map((label, labelIndex) => (
                   <span key={label} className="flex h-2.5 items-center">
@@ -155,7 +155,7 @@ export function ContributionHeatmap({
               <div>
                 <div
                   aria-hidden="true"
-                  className="mb-2 grid h-3 auto-cols-[10px] grid-flow-col gap-1 text-[9px] leading-none text-text"
+                  className="mb-2 grid h-3 w-full auto-cols-[10px] grid-flow-col justify-between gap-1 text-[9px] leading-none text-text"
                 >
                   {getMonthMarkers(weeks, copy).map((marker) => (
                     <span className="w-2.5" key={`${year}-${marker.id}`}>
@@ -165,7 +165,7 @@ export function ContributionHeatmap({
                 </div>
                 <section
                   aria-label={`${year} workout heatmap`}
-                  className="relative isolate grid auto-cols-[10px] grid-flow-col grid-rows-7 gap-1"
+                  className="relative isolate grid w-full auto-cols-[10px] grid-flow-col grid-rows-7 justify-between gap-1"
                 >
                   {createKeyedHeatmapWeeks(year, weeks).map((week) =>
                     week.map(({ day, key }) => {
