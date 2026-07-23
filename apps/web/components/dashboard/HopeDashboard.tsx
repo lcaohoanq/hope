@@ -74,11 +74,12 @@ export function HopeDashboard({
   const language = user.preferredLanguage;
   const copy = translations[language];
   const socialCopy = getSocialCopy(language);
-  const themeStorageKey = `hope:theme:${user.id}`;
+  const themeUser = viewer ?? user;
+  const themeStorageKey = `hope:theme:${themeUser.id}`;
   const [theme] = useState<AppTheme>(() =>
     getInitialTheme({
-      fallbackTheme: user.settings.theme,
-      isEditable,
+      fallbackTheme: themeUser.settings.theme,
+      isEditable: Boolean(viewer),
       storageKey: themeStorageKey,
     }),
   );
