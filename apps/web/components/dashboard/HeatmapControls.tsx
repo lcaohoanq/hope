@@ -149,14 +149,10 @@ export function HeatmapControls({
             {copy.heatmap.more}
           </button>
           <div
-            className="pointer-events-none absolute bottom-full right-0 z-20 mb-2 w-56 rounded-md border border-border bg-panel p-3 text-left opacity-0 shadow-[0_12px_28px_rgba(28,25,23,0.18)] transition duration-150 group-hover:opacity-100 group-focus-within:opacity-100"
+            className="pointer-events-none absolute bottom-full right-0 z-20 mb-2 w-40 rounded-md border border-border bg-panel p-3 text-left opacity-0 shadow-[0_12px_28px_rgba(28,25,23,0.18)] transition duration-150 group-hover:opacity-100 group-focus-within:opacity-100"
             role="tooltip"
           >
-            <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
-              {copy.heatmap.intensityLegend}
-            </p>
-            <p className="mt-1.5 text-xs leading-5 text-text">{copy.heatmap.intensityScaleHint}</p>
-            <ul className="mt-2.5 grid gap-1.5">
+            <ul className="grid gap-1.5">
               <li className="flex items-center gap-2 text-xs text-text">
                 <span aria-hidden="true" className="h-3 w-3 rounded-[3px] bg-[#151B23]" />
                 {copy.heatmap.intensityEmpty}
