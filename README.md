@@ -1,6 +1,6 @@
 # Hope
 
-Hope is a public workout consistency tracker built with Next.js 16, Clerk, Supabase Postgres, Drizzle, Cloudinary, Appwrite image processing, Sharp, Resend, and Playwright.
+Hope is a public workout consistency tracker built with Next.js 16, Clerk, Supabase Postgres, Drizzle, Cloudinary, Sharp, Resend, and Playwright.
 
 ## Preview
 

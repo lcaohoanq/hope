@@ -17,8 +17,9 @@ import {
 import { getInitialTheme } from "@/components/dashboard/dashboard-utils";
 import type { UpdateSettingsResponse } from "@/components/dashboard/workout-api";
 import { AvatarSettingsCard } from "@/components/settings/AvatarSettingsCard";
+import { LanguagePicker } from "@/components/settings/LanguagePicker";
 import { getApiErrorMessage, getClientApiClient } from "@/lib/http";
-import { type Language, languageOptions, translations } from "@/lib/i18n";
+import { type Language, translations } from "@/lib/i18n";
 import { type AppTheme, isProPlan, type PublicAppUser } from "@/lib/users";
 
 type SettingsClientProps = {
@@ -186,24 +187,14 @@ export function SettingsClient({ user }: SettingsClientProps) {
               <h2>{copy.common.language}</h2>
             </div>
             <div className="mt-4">
-              <label className="block">
-                <span className="sr-only">{copy.common.language}</span>
-                <select
-                  className="h-12 w-full rounded-md border border-border bg-panel px-4 text-sm font-semibold text-text outline-none transition focus:border-accent"
-                  onChange={(event) => {
-                    const newLang = event.target.value as Language;
-                    setLanguage(newLang);
-                    router.refresh();
-                  }}
-                  value={language}
-                >
-                  {languageOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.value === "vi" ? copy.header.vietnamese : copy.header.english}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <LanguagePicker
+                ariaLabel={copy.common.language}
+                onChange={(nextLanguage) => {
+                  setLanguage(nextLanguage);
+                  router.refresh();
+                }}
+                value={language}
+              />
             </div>
           </section>
 

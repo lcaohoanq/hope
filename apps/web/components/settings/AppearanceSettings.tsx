@@ -6,8 +6,9 @@ import { useEffect, useState } from "react";
 import { FaLanguage, FaMoon, FaSun } from "react-icons/fa";
 import { getInitialTheme } from "@/components/dashboard/dashboard-utils";
 import type { UpdateSettingsResponse } from "@/components/dashboard/workout-api";
+import { LanguagePicker } from "@/components/settings/LanguagePicker";
 import { getApiErrorMessage, getClientApiClient } from "@/lib/http";
-import { type Language, languageOptions, translations } from "@/lib/i18n";
+import { type Language, translations } from "@/lib/i18n";
 import type { AppTheme, PublicAppUser } from "@/lib/users";
 
 export function AppearanceSettings({ user }: { user: PublicAppUser }) {
@@ -92,23 +93,16 @@ export function AppearanceSettings({ user }: { user: PublicAppUser }) {
           <FaLanguage aria-hidden="true" />
           <h3>{copy.common.language}</h3>
         </div>
-        <label className="mt-4 block">
-          <span className="sr-only">{copy.common.language}</span>
-          <select
-            className="h-12 w-full rounded-md border border-border bg-panel px-4 text-sm font-semibold text-text outline-none transition focus:border-accent"
-            onChange={(event) => {
-              setLanguage(event.target.value as Language);
+        <div className="mt-4">
+          <LanguagePicker
+            ariaLabel={copy.common.language}
+            onChange={(nextLanguage) => {
+              setLanguage(nextLanguage);
               router.refresh();
             }}
             value={language}
-          >
-            {languageOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.value === "vi" ? copy.header.vietnamese : copy.header.english}
-              </option>
-            ))}
-          </select>
-        </label>
+          />
+        </div>
       </section>
     </div>
   );

@@ -148,7 +148,7 @@ export function WorkoutActivityTimeline({
           ) : null}
           {nextCursor ? (
             <button
-              className="h-10 justify-self-start rounded-md bg-text px-4 text-sm font-semibold text-white transition hover:bg-text/90 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
+              className="h-10 justify-self-start rounded-md bg-accent px-4 text-sm font-semibold text-accent-contrast transition hover:bg-accent/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-panel active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
               disabled={isLoadingMore}
               onClick={() => void loadActivity({ append: true, cursor: nextCursor })}
               type="button"
