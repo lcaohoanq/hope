@@ -12,12 +12,12 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "hono": "^4.12.30"
+    "hono": "^4.12.32"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20260724.1",
     "@hope/api": "workspace:*",
-    "@types/node": "^26.1.0",
+    "@types/node": "^26.1.1",
     "typescript": "^6.0.3"
   }
 }
