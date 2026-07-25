@@ -18,6 +18,7 @@ export function WorkoutMusicPlayer({
     if ("previewUrl" in music && typeof music.previewUrl === "string" && music.previewUrl) {
       return music.previewUrl;
     }
+    if (!music.trackId) return null;
     return getDeezerTrackPreviewUrl(music.trackId);
   }
 
