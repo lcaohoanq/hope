@@ -77,7 +77,7 @@ export function normalizeDeezerTrack(value: unknown): DeezerTrack | undefined {
  * Deezer search is geo-restricted by caller IP and blocks CORS, so Workers
  * (cloud IPs) often get empty results while the user's browser works.
  */
-type JsonpWindow = Window & Record<string, ((payload: unknown) => void) | undefined>;
+type JsonpCallbackMap = Record<string, ((payload: unknown) => void) | undefined>;
 
 function requestDeezerJsonp(path: string, signal?: AbortSignal): Promise<unknown> {
   return new Promise((resolve, reject) => {
@@ -88,7 +88,8 @@ function requestDeezerJsonp(path: string, signal?: AbortSignal): Promise<unknown
 
     const callbackName = `__hopeDz_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 9)}`;
     const script = document.createElement("script");
-    const target = window as JsonpWindow;
+    // Window has no string index signature; go through unknown for dynamic JSONP callbacks.
+    const target = window as unknown as JsonpCallbackMap;
     let settled = false;
 
     const cleanup = () => {
