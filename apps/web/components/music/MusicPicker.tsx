@@ -1,15 +1,15 @@
 "use client";
 
-import { useAuth } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
 import { FaSearch, FaTimes } from "react-icons/fa";
+import {
+  type DeezerTrack,
+  getDeezerTrackPreviewUrl,
+  searchDeezerTracks,
+} from "@/lib/deezer-client";
 import type { Language } from "@/lib/i18n";
 import type { WorkoutMusic } from "@/lib/workout-types";
 import { MusicPlayer } from "./MusicPlayer";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8787";
-
-type SearchTrack = WorkoutMusic & { previewUrl?: string };
 
 const pickerCopy = {
   vi: {
@@ -43,18 +43,17 @@ export function MusicPicker({
   language,
   onChange,
   selected,
-  workoutId,
 }: {
   disabled?: boolean;
   language: Language;
   onChange: (track: WorkoutMusic | null) => void;
   selected: WorkoutMusic | null;
+  /** Kept for call-site compatibility; preview is resolved client-side from trackId. */
   workoutId?: string;
 }) {
   const copy = pickerCopy[language];
-  const { getToken } = useAuth();
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<SearchTrack[]>([]);
+  const [results, setResults] = useState<DeezerTrack[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const trimmedQuery = query.trim();
@@ -68,18 +67,8 @@ export function MusicPicker({
     ) {
       return selected.previewUrl;
     }
-    if (!workoutId) return null;
-    const token = await getToken();
-    const response = await fetch(
-      `${API_URL}/workouts/${encodeURIComponent(workoutId)}/music-preview`,
-      {
-        cache: "no-store",
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-      },
-    );
-    const payload = (await response.json()) as { previewUrl?: string | null; error?: string };
-    if (!response.ok) throw new Error(payload.error ?? copy.error);
-    return payload.previewUrl ?? null;
+    if (!selected?.trackId) return null;
+    return getDeezerTrackPreviewUrl(selected.trackId);
   }
 
   useEffect(() => {
@@ -95,19 +84,9 @@ export function MusicPicker({
       setIsLoading(true);
       setError("");
       try {
-        const token = await getToken();
-        const response = await fetch(
-          `${API_URL}/music/deezer/search?q=${encodeURIComponent(trimmedQuery)}`,
-          {
-            cache: "no-store",
-            headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-            signal: controller.signal,
-          },
-        );
-        const payload = (await response.json()) as { tracks?: SearchTrack[]; error?: string };
+        const tracks = await searchDeezerTracks(trimmedQuery, controller.signal);
         if (controller.signal.aborted) return;
-        if (!response.ok) throw new Error(payload.error ?? copy.error);
-        setResults(payload.tracks ?? []);
+        setResults(tracks);
       } catch (caught) {
         if (caught instanceof DOMException && caught.name === "AbortError") return;
         setResults([]);
@@ -121,7 +100,7 @@ export function MusicPicker({
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [copy.error, getToken, trimmedQuery]);
+  }, [copy.error, trimmedQuery]);
 
   return (
     <section className="grid gap-2" data-testid="music-picker">
@@ -190,6 +169,7 @@ export function MusicPicker({
                 className="flex w-full min-w-0 items-center gap-3 rounded-md border border-transparent p-2 text-left transition hover:border-border hover:bg-panel-muted disabled:opacity-60"
                 disabled={disabled}
                 onClick={() => {
+                  // Keep previewUrl in memory for instant play; only trackId is persisted.
                   onChange(track);
                   setQuery("");
                   setResults([]);
