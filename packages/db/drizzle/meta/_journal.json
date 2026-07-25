@@ -43,6 +43,13 @@
       "when": 1784621450659,
       "tag": "0005_strange_captain_cross",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1784948191149,
+      "tag": "0006_complex_the_enforcers",
+      "breakpoints": true
     }
   ]
 }

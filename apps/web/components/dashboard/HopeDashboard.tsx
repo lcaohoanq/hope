@@ -9,6 +9,7 @@ import {
   hasWorkoutImages,
   resolveDefaultHeatmapView,
 } from "@/components/dashboard/dashboard-utils";
+import { HeatmapControls } from "@/components/dashboard/HeatmapControls";
 import { ProfileNavigationTabs } from "@/components/dashboard/ProfileNavigationTabs";
 import { TopHeader } from "@/components/dashboard/TopHeader";
 import { UserProfileSidebar } from "@/components/dashboard/UserProfileSidebar";
@@ -326,11 +327,17 @@ export function HopeDashboard({
                         copy={copy}
                         language={language}
                         onUpdateWorkout={handleUpdateWorkout}
-                        onViewChange={setSelectedHeatmapView}
                         profile={user}
                         view={selectedHeatmapView}
                         workouts={workouts}
                         todayDateKey={todayDateKey}
+                      />
+                      <HeatmapControls
+                        birthYear={birthYear}
+                        copy={copy}
+                        onViewChange={setSelectedHeatmapView}
+                        todayDateKey={todayDateKey}
+                        view={selectedHeatmapView}
                       />
                       <WorkoutActivityTimeline
                         copy={copy}

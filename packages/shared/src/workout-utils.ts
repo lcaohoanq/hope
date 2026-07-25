@@ -220,6 +220,11 @@ function validateWorkoutRequestDetails(
   const date = typeof body.date === "string" && body.date ? body.date : todayDateKey;
   const note = typeof body.note === "string" ? body.note.trim() : "";
   const isPublic = typeof body.isPublic === "undefined" ? true : body.isPublic;
+  const deezerTrackId = parseDeezerTrackId(body.deezerTrackId);
+
+  if (!deezerTrackId.success) {
+    return deezerTrackId;
+  }
 
   if (typeof isPublic !== "boolean") {
     return {
@@ -263,8 +268,30 @@ function validateWorkoutRequestDetails(
       type,
       note,
       isPublic,
+      ...(deezerTrackId.value !== undefined ? { deezerTrackId: deezerTrackId.value } : {}),
     },
   };
+}
+
+/**
+ * Validate an optional Deezer track id without accepting arbitrary provider URLs.
+ * `null` is preserved so update requests can explicitly remove attached music.
+ */
+export function parseDeezerTrackId(value: unknown) {
+  if (typeof value === "undefined" || value === null) {
+    return { success: true as const, value: value as undefined | null };
+  }
+
+  if (typeof value !== "string") {
+    return { success: false as const, error: "Deezer track id must be a string." };
+  }
+
+  const trackId = value.trim();
+  if (!/^[1-9]\d{0,19}$/.test(trackId)) {
+    return { success: false as const, error: "Deezer track id is invalid." };
+  }
+
+  return { success: true as const, value: trackId };
 }
 
 /**
@@ -331,6 +358,7 @@ export function createWorkoutRecord(
     isPublic: boolean;
     points?: number;
     images?: WorkoutImage[];
+    music?: Workout["music"];
   },
   now = new Date(),
 ): Workout {
@@ -346,6 +374,7 @@ export function createWorkoutRecord(
     points: input.points ?? 0,
     isPublic: input.isPublic,
     ...(input.images && input.images.length > 0 ? { images: input.images } : {}),
+    ...(input.music ? { music: input.music } : {}),
     createdAt: now.toISOString(),
   };
 }

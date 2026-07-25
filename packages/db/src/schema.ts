@@ -102,6 +102,31 @@ export const workouts = pgTable(
   ],
 );
 
+export const workoutMusic = pgTable(
+  "workout_music",
+  {
+    workoutId: text("workout_id")
+      .primaryKey()
+      .references(() => workouts.id, { onDelete: "cascade" }),
+    provider: text("provider").$type<"deezer">().notNull().default("deezer"),
+    trackId: text("track_id").notNull(),
+    title: text("title").notNull(),
+    artistName: text("artist_name").notNull(),
+    albumTitle: text("album_title"),
+    coverUrl: text("cover_url"),
+    providerUrl: text("provider_url").notNull(),
+    durationSeconds: integer("duration_seconds"),
+  },
+  (table) => [
+    index("workout_music_track_idx").on(table.provider, table.trackId),
+    check("workout_music_provider_check", sql`${table.provider} = 'deezer'`),
+    check(
+      "workout_music_duration_nonnegative_check",
+      sql`${table.durationSeconds} is null or ${table.durationSeconds} >= 0`,
+    ),
+  ],
+);
+
 export const workoutImages = pgTable(
   "workout_images",
   {
@@ -220,6 +245,7 @@ export const notifications = pgTable(
 export type ProfileRow = typeof profiles.$inferSelect;
 export type ActivityTypeRow = typeof activityTypes.$inferSelect;
 export type WorkoutRow = typeof workouts.$inferSelect;
+export type WorkoutMusicRow = typeof workoutMusic.$inferSelect;
 export type WorkoutImageRow = typeof workoutImages.$inferSelect;
 export type ProfileFollowRow = typeof profileFollows.$inferSelect;
 export type WorkoutLikeRow = typeof workoutLikes.$inferSelect;

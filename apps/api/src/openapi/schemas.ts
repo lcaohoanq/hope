@@ -61,6 +61,17 @@ export const workoutImageSchema = z.object({
   sizeBytes: z.number(),
 });
 
+export const workoutMusicSchema = z.object({
+  provider: z.literal("deezer"),
+  trackId: z.string(),
+  title: z.string(),
+  artistName: z.string(),
+  albumTitle: z.string().optional(),
+  coverUrl: z.string().optional(),
+  providerUrl: z.string(),
+  durationSeconds: z.number().optional(),
+});
+
 export const workoutSchema = z
   .object({
     id: z.string(),
@@ -73,6 +84,7 @@ export const workoutSchema = z
     note: z.string().optional(),
     points: z.number().optional(),
     images: z.array(workoutImageSchema).optional(),
+    music: workoutMusicSchema.optional(),
     createdAt: z.string(),
     isPublic: z.boolean(),
   })
@@ -160,6 +172,11 @@ export const createWorkoutBodySchema = z.object({
   note: z.string().optional(),
   isPublic: z.boolean().optional(),
   imagePublicIds: z.array(z.string().min(1)).max(MAX_WORKOUT_IMAGES).optional(),
+  deezerTrackId: z
+    .string()
+    .regex(/^[1-9]\d{0,19}$/, "Deezer track id is invalid.")
+    .nullable()
+    .optional(),
 });
 
 export const updateWorkoutBodySchema = createWorkoutBodySchema.extend({

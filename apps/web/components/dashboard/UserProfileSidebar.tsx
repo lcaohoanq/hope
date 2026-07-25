@@ -181,7 +181,7 @@ export function UserProfileSidebar({
       </div> */}
 
       {canViewDetails && profileLinks.length > 0 ? (
-        <div className="mt-5 grid gap-3 border-t border-border pt-5 text-sm text-muted">
+        <div className="grid gap-3 pt-5 text-sm text-muted">
           <div className="grid gap-2">
             {profileLinks.map(({ href, Icon, label }) => (
               <a
@@ -198,10 +198,6 @@ export function UserProfileSidebar({
                   />
                   <span className="truncate font-medium">{label}</span>
                 </span>
-                <FaExternalLinkAlt
-                  aria-hidden="true"
-                  className="h-3 w-3 shrink-0 text-muted transition group-hover:text-muted"
-                />
               </a>
             ))}
           </div>

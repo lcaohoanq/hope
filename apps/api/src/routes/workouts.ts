@@ -38,6 +38,7 @@ import type { ContentfulStatusCode } from "hono/utils/http-status";
 import { describeRoute } from "hono-openapi";
 import { z } from "zod";
 import type { AppEnv } from "../env";
+import { DeezerServiceError, getDeezerTrack, musicSnapshot } from "../lib/deezer";
 import { jsonError, onboardingRequired, unauthorized } from "../lib/responses";
 import { validated } from "../lib/validate";
 import { resolveOwner } from "../middleware/auth";
@@ -71,6 +72,7 @@ function publicWorkout(workout: StoredWorkout): Workout {
     note: workout.note,
     points: workout.points ?? 0,
     images: workout.images,
+    music: workout.music,
     createdAt: workout.createdAt,
     isPublic: workout.isPublic,
   };
@@ -323,6 +325,24 @@ export const workoutRoutes = new Hono<AppEnv>()
         return jsonError(c, validation.error, 400);
       }
 
+      let music: Workout["music"];
+      const deezerTrackId = validation.workoutInput.deezerTrackId;
+      if (typeof deezerTrackId === "string") {
+        try {
+          music = musicSnapshot(await getDeezerTrack(deezerTrackId));
+        } catch (error) {
+          await safeCleanupNewAssets(owner.profile.id, imagePublicIds.publicIds);
+          const notFound = error instanceof DeezerServiceError && error.kind === "not-found";
+          return jsonError(
+            c,
+            notFound
+              ? "The selected Deezer track was not found."
+              : "Deezer is temporarily unavailable. Retry or remove the track.",
+            notFound ? 400 : 503,
+          );
+        }
+      }
+
       const scored = await resolveWorkoutPoints(validation.workoutInput.type);
       if (!scored.success) {
         await safeCleanupNewAssets(owner.profile.id, imagePublicIds.publicIds);
@@ -345,7 +365,7 @@ export const workoutRoutes = new Hono<AppEnv>()
         userId: owner.profile.id,
       });
       try {
-        const saved = await insertWorkout({ workout, assets });
+        const saved = await insertWorkout({ workout, assets, music });
         return c.json({ success: true as const, workout: publicWorkout(saved) });
       } catch (error) {
         await safeCleanupNewAssets(owner.profile.id, imagePublicIds.publicIds);
@@ -399,6 +419,26 @@ export const workoutRoutes = new Hono<AppEnv>()
         return jsonError(c, "Editing past workouts is not enabled for this user.", 403);
       }
 
+      let music: Workout["music"] | null | undefined;
+      const deezerTrackId = validation.workoutInput.deezerTrackId;
+      if (deezerTrackId === null) {
+        music = null;
+      } else if (typeof deezerTrackId === "string") {
+        try {
+          music = musicSnapshot(await getDeezerTrack(deezerTrackId));
+        } catch (error) {
+          await safeCleanupNewAssets(owner.profile.id, imagePublicIds.publicIds);
+          const notFound = error instanceof DeezerServiceError && error.kind === "not-found";
+          return jsonError(
+            c,
+            notFound
+              ? "The selected Deezer track was not found."
+              : "Deezer is temporarily unavailable. Retry or remove the track.",
+            notFound ? 400 : 503,
+          );
+        }
+      }
+
       const retained = getRetainedImages(existing, validation.imageSrcs);
       let newAssets: UploadedAsset[];
       try {
@@ -432,6 +472,7 @@ export const workoutRoutes = new Hono<AppEnv>()
           workout: nextWorkout,
           retainedImages: retained,
           newAssets,
+          music,
         });
         const retainedIds = new Set(retained.map((image) => image.publicId));
         const removedIds = existing.storedImages

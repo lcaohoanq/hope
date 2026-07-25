@@ -3,11 +3,12 @@
 import { type DragEvent, type ReactNode, useEffect, useRef, useState } from "react";
 import { FaCamera, FaImages, FaTimes } from "react-icons/fa";
 import { ActivityTypeSelector } from "@/components/ActivityTypeSelector";
+import { MusicPicker } from "@/components/music/MusicPicker";
 import { WebcamCaptureDialog } from "@/components/WebcamCaptureDialog";
 import { appendCaptionPill, hasCaptionPill } from "@/lib/caption-utils";
 import type { AppCopy, Language } from "@/lib/i18n";
 import { createImagePreviewUrls, revokeImagePreviewUrls } from "@/lib/image-previews";
-import type { WorkoutInput } from "@/lib/workout-types";
+import type { WorkoutInput, WorkoutMusic } from "@/lib/workout-types";
 
 type WorkoutFormProps = {
   copy: AppCopy;
@@ -70,6 +71,7 @@ export function WorkoutForm({
   const imageInputRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [selectedMusic, setSelectedMusic] = useState<WorkoutMusic | null>(null);
 
   const canSubmit = Boolean(form.type.trim()) && Boolean(form.date);
 
@@ -206,9 +208,11 @@ export function WorkoutForm({
         note,
         isPublic: form.isPublic,
         images: selectedImages,
+        deezerTrackId: selectedMusic?.trackId,
       });
 
       setForm(initialForm(defaultDate));
+      setSelectedMusic(null);
       void setImageSelection([]);
       setImageInputKey((current) => current + 1);
       setSuccess(copy.form.success);
@@ -304,6 +308,17 @@ export function WorkoutForm({
             })}
           </div>
         </div>
+
+        <MusicPicker
+          disabled={isSubmitting}
+          language={language}
+          onChange={(music) => {
+            setSelectedMusic(music);
+            setError("");
+            setSuccess("");
+          }}
+          selected={selectedMusic}
+        />
 
         <div className="grid gap-2">
           <p className="text-sm font-medium text-text">{copy.form.images}</p>

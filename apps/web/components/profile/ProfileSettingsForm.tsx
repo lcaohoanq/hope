@@ -139,15 +139,6 @@ export function ProfileSettingsForm({ user }: ProfileSettingsFormProps) {
     <div className="grid gap-6">
       <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
         <AvatarSettingsCard user={user} />
-        <div>
-          <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted">
-            @{user.username}
-          </p>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
-            {copy.profileSettings.description}
-          </p>
-          <p className="mt-2 text-sm text-muted">{copy.profileSettings.usernameLocked}</p>
-        </div>
       </div>
       <PrivacySettingsCard user={user} />
       <form className="grid gap-6" noValidate onSubmit={handleSubmit}>
@@ -306,7 +297,7 @@ export function ProfileSettingsForm({ user }: ProfileSettingsFormProps) {
           </div>
         </FormSection>
 
-        <div className="sticky bottom-4 z-10 flex flex-col-reverse gap-3 rounded-lg border border-border bg-panel/95 p-4 shadow-[var(--shadow-panel)] backdrop-blur sm:flex-row sm:items-center sm:justify-between">
+        <div className="sticky bottom-4 z-10 flex flex-col-reverse gap-3 rounded-lg p-4 shadow-[var(--shadow-panel)] backdrop-blur sm:flex-row sm:items-center sm:justify-between">
           <div
             aria-live="polite"
             className={`min-h-5 text-sm font-medium ${submitError ? "text-danger" : "text-accent"}`}

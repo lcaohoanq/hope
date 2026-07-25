@@ -4,13 +4,15 @@ import {
   profileFollows,
   profiles,
   type WorkoutImageRow,
+  type WorkoutMusicRow,
   type WorkoutRow,
   workoutComments,
   workoutImages,
   workoutLikes,
+  workoutMusic,
   workouts,
 } from "@hope/db/schema";
-import type { FeedItem, Workout, WorkoutComment, WorkoutImage } from "@hope/shared";
+import type { FeedItem, Workout, WorkoutComment, WorkoutImage, WorkoutMusic } from "@hope/shared";
 import { getActivityYearRange, toPublicUser } from "@hope/shared";
 import { and, asc, count, desc, eq, gte, inArray, lt, lte, or, sql } from "drizzle-orm";
 import type { UploadedAsset } from "../cloudinary";
@@ -31,6 +33,19 @@ function toWorkoutImage(row: WorkoutImageRow): StoredWorkoutImage {
   };
 }
 
+function toWorkoutMusic(row: WorkoutMusicRow): WorkoutMusic {
+  return {
+    provider: "deezer",
+    trackId: row.trackId,
+    title: row.title,
+    artistName: row.artistName,
+    albumTitle: row.albumTitle ?? undefined,
+    coverUrl: row.coverUrl ?? undefined,
+    providerUrl: row.providerUrl,
+    durationSeconds: row.durationSeconds ?? undefined,
+  };
+}
+
 export async function listAttachedWorkoutImagePublicIds(publicIds: string[]) {
   if (publicIds.length === 0) return [];
 
@@ -42,7 +57,11 @@ export async function listAttachedWorkoutImagePublicIds(publicIds: string[]) {
   return rows.map((row) => row.publicId);
 }
 
-function toWorkout(row: WorkoutRow, images: WorkoutImageRow[]): StoredWorkout {
+function toWorkout(
+  row: WorkoutRow,
+  images: WorkoutImageRow[],
+  music?: WorkoutMusic,
+): StoredWorkout {
   const storedImages = images.sort((a, b) => a.position - b.position).map(toWorkoutImage);
   return {
     id: row.id,
@@ -55,6 +74,7 @@ function toWorkout(row: WorkoutRow, images: WorkoutImageRow[]): StoredWorkout {
     note: row.note ?? undefined,
     points: row.points,
     images: storedImages.length > 0 ? storedImages : undefined,
+    music,
     storedImages,
     createdAt: row.createdAt.toISOString(),
     isPublic: row.isPublic,
@@ -68,6 +88,20 @@ async function loadImages(workoutIds: string[]) {
     .from(workoutImages)
     .where(inArray(workoutImages.workoutId, workoutIds))
     .orderBy(asc(workoutImages.position));
+}
+
+async function loadMusic(workoutIds: string[]) {
+  if (workoutIds.length === 0) return new Map<string, WorkoutMusic>();
+  const rows = await getDatabase()
+    .select()
+    .from(workoutMusic)
+    .where(inArray(workoutMusic.workoutId, workoutIds));
+  return new Map(rows.map((row) => [row.workoutId, toWorkoutMusic(row)]));
+}
+
+export async function getWorkoutMusicByWorkoutId(workoutId: string) {
+  const music = await loadMusic([workoutId]);
+  return music.get(workoutId);
 }
 
 async function loadEngagement(
@@ -178,11 +212,13 @@ export async function listWorkoutsByProfile(
         : and(eq(workouts.profileId, profileId), eq(workouts.isPublic, true)),
     )
     .orderBy(asc(workouts.date), asc(workouts.startTime));
-  const images = await loadImages(rows.map((row) => row.id));
+  const workoutIds = rows.map((row) => row.id);
+  const [images, music] = await Promise.all([loadImages(workoutIds), loadMusic(workoutIds)]);
   return rows.map((row) =>
     toWorkout(
       row,
       images.filter((image) => image.workoutId === row.id),
+      music.get(row.id),
     ),
   );
 }
@@ -278,7 +314,8 @@ export async function listWorkoutActivityByProfile({
     .orderBy(desc(workouts.createdAt), desc(workouts.id))
     .limit(limit + 1);
   const page = rows.slice(0, limit);
-  const images = await loadImages(page.map((row) => row.id));
+  const workoutIds = page.map((row) => row.id);
+  const [images, music] = await Promise.all([loadImages(workoutIds), loadMusic(workoutIds)]);
   const last = page.at(-1);
 
   return {
@@ -286,6 +323,7 @@ export async function listWorkoutActivityByProfile({
       toWorkout(
         row,
         images.filter((image) => image.workoutId === row.id),
+        music.get(row.id),
       ),
     ),
     nextCursor: rows.length > limit && last ? `${last.createdAt.toISOString()}|${last.id}` : null,
@@ -321,7 +359,8 @@ export async function listFeedWorkouts(profileId: string, cursor?: string, limit
     .orderBy(desc(workouts.createdAt), desc(workouts.id))
     .limit(limit + 1);
   const page = rows.slice(0, limit);
-  const images = await loadImages(page.map((row) => row.id));
+  const workoutIds = page.map((row) => row.id);
+  const [images, music] = await Promise.all([loadImages(workoutIds), loadMusic(workoutIds)]);
   const authorRows = await getDatabase()
     .select()
     .from(profiles)
@@ -338,6 +377,7 @@ export async function listFeedWorkouts(profileId: string, cursor?: string, limit
             workout: toWorkout(
               row,
               images.filter((image) => image.workoutId === row.id),
+              music.get(row.id),
             ),
             ...social,
           },
@@ -351,13 +391,23 @@ export async function listFeedWorkouts(profileId: string, cursor?: string, limit
   };
 }
 
+export function canViewWorkoutVisibility(
+  workout: Pick<WorkoutRow, "isPublic" | "profileId">,
+  viewerProfileId?: string,
+) {
+  return workout.isPublic || workout.profileId === viewerProfileId;
+}
+
 export async function getWorkoutAccess(workoutId: string, viewerProfileId?: string) {
   const [row] = await getDatabase()
     .select()
     .from(workouts)
     .where(eq(workouts.id, workoutId))
     .limit(1);
-  if (!row?.isPublic) return { status: "not-found" as const };
+  if (!row) return { status: "not-found" as const };
+  if (!canViewWorkoutVisibility(row, viewerProfileId)) {
+    return { status: "not-found" as const };
+  }
 
   const [profileRow] = await getDatabase()
     .select()
@@ -378,8 +428,9 @@ export async function getWorkoutAccess(workoutId: string, viewerProfileId?: stri
 export async function getWorkoutPost(workoutId: string, viewerProfileId?: string) {
   const access = await getWorkoutAccess(workoutId, viewerProfileId);
   if (access.status !== "ready") return access;
-  const [images, engagement] = await Promise.all([
+  const [images, music, engagement] = await Promise.all([
     loadImages([workoutId]),
+    loadMusic([workoutId]),
     loadEngagement([access.row], viewerProfileId),
   ]);
   const social = engagement.get(workoutId);
@@ -388,7 +439,7 @@ export async function getWorkoutPost(workoutId: string, viewerProfileId?: string
     status: "ready" as const,
     item: {
       profile: toPublicUser(access.profile),
-      workout: toWorkout(access.row, images),
+      workout: toWorkout(access.row, images, music.get(workoutId)),
       ...social,
     } satisfies FeedItem,
   };
@@ -607,17 +658,25 @@ export async function getOwnedWorkout(workoutId: string, profileId: string) {
     .where(eq(workouts.id, workoutId))
     .limit(1);
   if (!row || row.profileId !== profileId) return undefined;
-  const images = await loadImages([row.id]);
-  return toWorkout(row, images);
+  const [images, music] = await Promise.all([loadImages([row.id]), loadMusic([row.id])]);
+  return toWorkout(row, images, music.get(row.id));
 }
 
-export async function insertWorkout(input: { workout: Workout; assets: UploadedAsset[] }) {
+export async function insertWorkout(input: {
+  workout: Workout;
+  assets: UploadedAsset[];
+  music?: WorkoutMusic;
+}) {
+  if (!input.workout.userId) {
+    throw new Error("Workout owner is required.");
+  }
+  const profileId = input.workout.userId;
   return getDatabase().transaction(async (tx) => {
     const [row] = await tx
       .insert(workouts)
       .values({
         id: input.workout.id,
-        profileId: input.workout.userId!,
+        profileId,
         date: input.workout.date,
         type: input.workout.type,
         startTime: input.workout.startTime,
@@ -649,7 +708,21 @@ export async function insertWorkout(input: { workout: Workout; assets: UploadedA
             .returning()
         : [];
 
-    return toWorkout(row, imageRows);
+    if (input.music) {
+      await tx.insert(workoutMusic).values({
+        workoutId: row.id,
+        provider: input.music.provider,
+        trackId: input.music.trackId,
+        title: input.music.title,
+        artistName: input.music.artistName,
+        albumTitle: input.music.albumTitle ?? null,
+        coverUrl: input.music.coverUrl ?? null,
+        providerUrl: input.music.providerUrl,
+        durationSeconds: input.music.durationSeconds ?? null,
+      });
+    }
+
+    return toWorkout(row, imageRows, input.music);
   });
 }
 
@@ -658,6 +731,8 @@ export async function updateWorkout(input: {
   workout: Workout;
   retainedImages: StoredWorkoutImage[];
   newAssets: UploadedAsset[];
+  /** `undefined` keeps current music, `null` removes it, and a track replaces it. */
+  music?: WorkoutMusic | null;
 }) {
   return getDatabase().transaction(async (tx) => {
     const [row] = await tx
@@ -706,6 +781,40 @@ export async function updateWorkout(input: {
             .returning()
         : [];
 
-    return toWorkout(row, imageRows);
+    let nextMusic = input.existing.music;
+    if (input.music === null) {
+      await tx.delete(workoutMusic).where(eq(workoutMusic.workoutId, input.existing.id));
+      nextMusic = undefined;
+    } else if (input.music) {
+      await tx
+        .insert(workoutMusic)
+        .values({
+          workoutId: row.id,
+          provider: input.music.provider,
+          trackId: input.music.trackId,
+          title: input.music.title,
+          artistName: input.music.artistName,
+          albumTitle: input.music.albumTitle ?? null,
+          coverUrl: input.music.coverUrl ?? null,
+          providerUrl: input.music.providerUrl,
+          durationSeconds: input.music.durationSeconds ?? null,
+        })
+        .onConflictDoUpdate({
+          target: workoutMusic.workoutId,
+          set: {
+            provider: input.music.provider,
+            trackId: input.music.trackId,
+            title: input.music.title,
+            artistName: input.music.artistName,
+            albumTitle: input.music.albumTitle ?? null,
+            coverUrl: input.music.coverUrl ?? null,
+            providerUrl: input.music.providerUrl,
+            durationSeconds: input.music.durationSeconds ?? null,
+          },
+        });
+      nextMusic = input.music;
+    }
+
+    return toWorkout(row, imageRows, nextMusic);
   });
 }

@@ -8,7 +8,6 @@ import { isProPlan, type PublicAppUser } from "@/lib/users";
 
 export function AccountSettings({ user }: { user: PublicAppUser }) {
   const { has } = useAuth();
-  const { signOut } = useClerk();
   const copy = translations[user.preferredLanguage];
   const showPro = isProPlan(user) || Boolean(has?.({ plan: "pro" }));
   return (
@@ -34,16 +33,6 @@ export function AccountSettings({ user }: { user: PublicAppUser }) {
             {showPro ? copy.profileSettings.manageBilling : copy.profileSettings.upgradeToPro}
           </Link>
         </div>
-      </section>
-      <section className="rounded-lg border border-border bg-panel p-5 sm:p-6">
-        <button
-          className="flex h-11 w-full items-center justify-center gap-2 rounded-md bg-danger px-4 text-sm font-semibold text-white transition hover:bg-danger/90"
-          onClick={() => void signOut({ redirectUrl: "/login" })}
-          type="button"
-        >
-          <FaSignOutAlt aria-hidden="true" />
-          {copy.common.signOut}
-        </button>
       </section>
     </div>
   );
