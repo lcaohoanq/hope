@@ -20,10 +20,11 @@ function payload(overrides: Record<string, unknown> = {}) {
 
 test("normalizes Deezer search hits used by the browser client", () => {
   const track = normalizeDeezerTrack(payload());
-  assert.equal(track?.trackId, "132201196");
-  assert.equal(track?.artistName, "Travis Scott");
-  assert.equal(track?.previewUrl, "https://cdnt-preview.dzcdn.net/preview.mp3");
-  assert.equal(musicSnapshot(track!).previewUrl, undefined);
+  assert.ok(track);
+  assert.equal(track.trackId, "132201196");
+  assert.equal(track.artistName, "Travis Scott");
+  assert.equal(track.previewUrl, "https://cdnt-preview.dzcdn.net/preview.mp3");
+  assert.equal("previewUrl" in musicSnapshot(track), false);
 });
 
 test("rejects malformed Deezer payloads", () => {
