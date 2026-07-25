@@ -7,6 +7,7 @@ import { FaLanguage, FaMoon, FaSun } from "react-icons/fa";
 import { getInitialTheme } from "@/components/dashboard/dashboard-utils";
 import type { UpdateSettingsResponse } from "@/components/dashboard/workout-api";
 import { LanguagePicker } from "@/components/settings/LanguagePicker";
+import ThemeToggle from "@/components/ui/ThemeToggle";
 import { getApiErrorMessage, getClientApiClient } from "@/lib/http";
 import { type Language, translations } from "@/lib/i18n";
 import type { AppTheme, PublicAppUser } from "@/lib/users";
@@ -38,7 +39,7 @@ export function AppearanceSettings({ user }: { user: PublicAppUser }) {
     setTheme(nextTheme);
     window.localStorage.setItem(themeStorageKey, nextTheme);
     setError("");
-    setMessage(copy.header.savingTheme);
+    // setMessage(copy.header.savingTheme);
     setIsSaving(true);
     try {
       const client = getClientApiClient(await getToken());
@@ -61,26 +62,19 @@ export function AppearanceSettings({ user }: { user: PublicAppUser }) {
 
   return (
     <div className="grid gap-6">
-      <section className="rounded-lg border border-border bg-panel p-5 sm:p-6">
-        <div className="flex items-center gap-2 text-lg font-semibold">
-          {theme === "light" ? <FaSun aria-hidden="true" /> : <FaMoon aria-hidden="true" />}
-          <h3>{copy.header.theme}</h3>
+      <section>
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2 text-lg font-semibold">
+            {theme === "light" ? <FaSun aria-hidden="true" /> : <FaMoon aria-hidden="true" />}
+            <h3>{copy.header.theme}</h3>
+          </div>
+          <ThemeToggle
+            ariaLabel={copy.header.theme}
+            checked={theme === "dark"}
+            disabled={isSaving}
+            onCheckedChange={(isDark) => void changeTheme(isDark ? "dark" : "light")}
+          />
         </div>
-        <fieldset className="mt-4 inline-flex h-12 w-full items-center rounded-md border border-border bg-panel-muted p-1">
-          <legend className="sr-only">{copy.header.theme}</legend>
-          {(["light", "dark"] as const).map((option) => (
-            <button
-              aria-pressed={theme === option}
-              className={`h-10 flex-1 rounded px-4 text-sm font-semibold transition ${theme === option ? "bg-panel text-text shadow-[0_1px_0_rgb(15_23_42/0.08)]" : "text-muted hover:text-text"}`}
-              disabled={isSaving}
-              key={option}
-              onClick={() => void changeTheme(option)}
-              type="button"
-            >
-              {option === "light" ? copy.header.light : copy.header.dark}
-            </button>
-          ))}
-        </fieldset>
         {message || error ? (
           <p className={`mt-2 text-sm font-medium ${error ? "text-danger" : "text-muted"}`}>
             {error || message}
@@ -88,12 +82,12 @@ export function AppearanceSettings({ user }: { user: PublicAppUser }) {
         ) : null}
       </section>
 
-      <section className="rounded-lg border border-border bg-panel p-5 sm:p-6">
-        <div className="flex items-center gap-2 text-lg font-semibold">
-          <FaLanguage aria-hidden="true" />
-          <h3>{copy.common.language}</h3>
-        </div>
-        <div className="mt-4">
+      <section>
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2 text-lg font-semibold">
+            <FaLanguage aria-hidden="true" />
+            <h3>{copy.common.language}</h3>
+          </div>
           <LanguagePicker
             ariaLabel={copy.common.language}
             onChange={(nextLanguage) => {

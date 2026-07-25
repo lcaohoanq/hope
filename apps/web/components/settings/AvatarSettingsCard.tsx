@@ -85,8 +85,7 @@ export function AvatarSettingsCard({ user }: { user: PublicAppUser }) {
   }
 
   return (
-    <section className="rounded-lg border border-border bg-panel p-6">
-      <h2 className="text-lg font-semibold text-text">{copy.dashboard.uploadAvatar}</h2>
+    <section className="rounded-lg p-6">
       <div className="mt-4 flex flex-wrap items-center gap-4">
         <div className="relative h-20 w-20 overflow-hidden rounded-full border border-border">
           <AvatarImage

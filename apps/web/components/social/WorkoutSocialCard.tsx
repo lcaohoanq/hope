@@ -13,6 +13,7 @@ import {
   FaTrash,
 } from "react-icons/fa";
 import { AvatarImage } from "@/components/dashboard/AvatarImage";
+import { WorkoutMusicPlayer } from "@/components/music/WorkoutMusicPlayer";
 import { SocialStoryDialog } from "@/components/social/SocialStoryDialog";
 import { getApiErrorMessage, getClientApiClient } from "@/lib/http";
 import type { Language } from "@/lib/i18n";
@@ -289,6 +290,15 @@ export function WorkoutSocialCard({
           <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-text">
             {item.workout.note}
           </p>
+        ) : null}
+        {detail && item.workout.music ? (
+          <div className="mt-4">
+            <WorkoutMusicPlayer
+              language={language}
+              music={item.workout.music}
+              workoutId={item.workout.id}
+            />
+          </div>
         ) : null}
 
         <div className="mt-4 flex items-center gap-1 border-t border-border pt-3">

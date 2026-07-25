@@ -7,6 +7,18 @@ export type WorkoutImage = {
   sizeBytes: number;
 };
 
+/** Deezer track metadata snapshotted when music is attached to a workout. */
+export type WorkoutMusic = {
+  provider: "deezer";
+  trackId: string;
+  title: string;
+  artistName: string;
+  albumTitle?: string;
+  coverUrl?: string;
+  providerUrl: string;
+  durationSeconds?: number;
+};
+
 /** Persisted workout record. */
 export type Workout = {
   id: string;
@@ -20,6 +32,7 @@ export type Workout = {
   /** Snapshot score from activity type weight at create/update time. */
   points?: number;
   images?: WorkoutImage[];
+  music?: WorkoutMusic;
   createdAt: string;
   isPublic: boolean;
 };
@@ -40,6 +53,7 @@ export type CreateWorkoutRequest = {
   note?: unknown;
   isPublic?: unknown;
   imagePublicIds?: unknown;
+  deezerTrackId?: unknown;
 };
 
 /** Loose update-workout request body before validation. */
@@ -55,6 +69,7 @@ export type WorkoutInput = {
   note: string;
   isPublic: boolean;
   images?: File[];
+  deezerTrackId?: string | null;
 };
 
 /** Validated client form input for updating a workout. */

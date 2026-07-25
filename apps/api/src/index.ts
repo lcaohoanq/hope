@@ -17,6 +17,7 @@ import { feedRoutes } from "./routes/feed";
 import { followRequestRoutes } from "./routes/follow-requests";
 import { galleryRoutes } from "./routes/gallery";
 import { leaderboardRoutes } from "./routes/leaderboard";
+import { musicRoutes } from "./routes/music";
 import { notificationRoutes } from "./routes/notifications";
 import { profileRoutes } from "./routes/profiles";
 import { storageRoutes } from "./routes/storage";
@@ -102,6 +103,7 @@ const routes = app
   .route("/", galleryRoutes)
   .route("/", notificationRoutes)
   .route("/", workoutRoutes)
+  .route("/", musicRoutes)
   .route("/", workoutImageRoutes)
   .route("/", activityTypeRoutes)
   .route("/", leaderboardRoutes)

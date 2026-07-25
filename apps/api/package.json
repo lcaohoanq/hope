@@ -13,6 +13,7 @@
     "dev:wrangler": "bash scripts/dev.sh",
     "dev:node": "tsx --watch --env-file=../../.env --env-file=../../.env.local src/serve.ts",
     "start": "tsx src/serve.ts",
+    "test": "tsx --test src/**/*.test.ts",
     "deploy": "wrangler deploy",
     "typecheck": "tsc --noEmit",
     "dump-openapi": "tsx scripts/dump-openapi.ts",
