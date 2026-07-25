@@ -15,6 +15,7 @@ import { ActivityTypeSelector } from "@/components/ActivityTypeSelector";
 import { MusicPicker } from "@/components/music/MusicPicker";
 import { WorkoutMusicPlayer } from "@/components/music/WorkoutMusicPlayer";
 import { SocialStoryDialog } from "@/components/social/SocialStoryDialog";
+import PublicPrivateStatusToggle from "@/components/ui/PublicPrivateStatusToggle";
 import { WorkoutImageThumbnail } from "@/components/WorkoutImageThumbnail";
 import { appendCaptionPill, hasCaptionPill } from "@/lib/caption-utils";
 import { formatDisplayDate } from "@/lib/date-utils";
@@ -735,7 +736,7 @@ function EditWorkoutPanel({
         <div>
           <p className="text-base font-semibold text-text">{copy.form.editWorkout}</p>
         </div>
-        <div className="flex shrink-0 flex-wrap gap-2">
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
           <button
             className="h-9 rounded-md bg-accent px-3 text-sm font-semibold text-accent-contrast transition hover:bg-accent/90 disabled:cursor-not-allowed disabled:bg-muted"
             disabled={isSavingEdit}
@@ -743,6 +744,12 @@ function EditWorkoutPanel({
           >
             {isSavingEdit ? copy.common.saving : copy.common.saveChanges}
           </button>
+          <PublicPrivateStatusToggle
+            ariaLabel={copy.form.publicWorkout}
+            checked={editForm.isPublic}
+            disabled={isSavingEdit}
+            onCheckedChange={(isPublic) => onUpdateField("isPublic", isPublic)}
+          />
           <button
             className="h-9 rounded-md border border-border bg-panel px-3 text-sm font-semibold text-muted transition hover:bg-panel-muted"
             disabled={isSavingEdit}
@@ -863,20 +870,6 @@ function EditWorkoutPanel({
               onChange={(event) => onUpdateField("note", event.target.value)}
               placeholder={copy.form.notePlaceholder}
               value={editForm.note}
-            />
-          </label>
-          <label className="flex items-center justify-between gap-4 rounded-md border border-border bg-panel-muted p-3 text-sm">
-            <span>
-              <span className="block font-semibold text-text">{copy.form.publicWorkout}</span>
-              <span className="mt-0.5 block text-xs font-normal text-muted">
-                {copy.form.publicWorkoutHelp}
-              </span>
-            </span>
-            <input
-              checked={editForm.isPublic}
-              className="h-5 w-5 accent-[var(--color-accent)]"
-              onChange={(event) => onUpdateField("isPublic", event.target.checked)}
-              type="checkbox"
             />
           </label>
           <div className="grid gap-2">
