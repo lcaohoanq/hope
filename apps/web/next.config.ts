@@ -8,6 +8,7 @@ loadEnvConfig(monorepoRoot);
 loadEnvConfig(__dirname);
 
 const nextConfig: NextConfig = {
+  allowedDevOrigins: ['*.loca.lt'],
   experimental: {
     // The Fragment-ref scroll handler throws during App Router navigation in this Next preview.
     appNewScrollHandler: false,
