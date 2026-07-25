@@ -497,7 +497,7 @@ export function WorkoutDayDetailModal({
           ) : (
             <div className="grid min-h-0 gap-3">
               {selectedImage ? (
-                <div className="overflow-hidden rounded-lg border border-border bg-text">
+                <div className="overflow-hidden rounded-lg border border-border">
                   <div
                     className="group relative h-[calc(92dvh-12.75rem)] min-h-[20rem] touch-pan-y overflow-hidden"
                     {...gallerySwipeHandlers}
@@ -532,7 +532,7 @@ export function WorkoutDayDetailModal({
                         </button>
                       </>
                     ) : null}
-                    <div className="absolute right-3 top-3 flex items-center overflow-hidden rounded-md border border-white/15 bg-text/70 text-white">
+                    <div className="absolute right-3 top-3 flex items-center overflow-hidden rounded-md border border-white/15 bg-text/70 text-white dark:bg-panel-muted">
                       <button
                         aria-label={copy.modal.zoomOutWorkoutImage}
                         className="flex h-9 w-9 items-center justify-center transition hover:bg-panel/10 disabled:cursor-not-allowed disabled:text-white/35"
@@ -557,7 +557,7 @@ export function WorkoutDayDetailModal({
                     </div>
                     <CaptionPill caption={selectedImage.workout.note} />
                     {galleryImages.length > 1 ? (
-                      <span className="absolute bottom-3 right-3 rounded-full bg-text/70 px-2 py-1 font-mono text-xs text-white">
+                      <span className="absolute bottom-3 right-3 rounded-full bg-text/70 px-2 py-1 font-mono text-xs text-white dark:bg-panel-muted">
                         {clampedSelectedImageIndex + 1}/{galleryImages.length}
                       </span>
                     ) : null}
@@ -780,7 +780,7 @@ function EditWorkoutPanel({
                 <>
                   <button
                     aria-label={copy.modal.previousWorkoutImage}
-                    className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-md border border-white/15 bg-text/70 text-white opacity-100 transition hover:bg-text/90 active:scale-95 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
+                    className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-md border border-white/15 bg-text/70 text-white opacity-100 transition hover:bg-text/90 active:scale-95 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100 dark:bg-panel-muted"
                     onClick={() => updateSelectedEditImage(-1)}
                     type="button"
                   >
