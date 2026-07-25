@@ -92,19 +92,13 @@ export function WorkoutDialog({
             transition={WORKOUT_DIALOG_PANEL_TRANSITION}
             variants={WORKOUT_DIALOG_PANEL_VARIANTS}
           >
-            <button
-              aria-label={copy.dashboard.closeWorkoutForm}
-              className="absolute right-4 top-4 z-10 h-9 w-9 rounded-md border border-border bg-panel text-xl leading-none text-muted transition hover:bg-panel-muted hover:text-text"
-              onClick={onClose}
-              type="button"
-            >
-              x
-            </button>
             <WorkoutForm
+              closeAriaLabel={copy.dashboard.closeWorkoutForm}
               copy={copy}
               defaultDate={defaultDate}
               isSubmitting={isSubmitting}
               language={language}
+              onClose={onClose}
               onSubmitWorkout={onSubmitWorkout}
             />
           </motion.div>

@@ -4,6 +4,7 @@ import { type DragEvent, type ReactNode, useEffect, useRef, useState } from "rea
 import { FaCamera, FaImages, FaTimes } from "react-icons/fa";
 import { ActivityTypeSelector } from "@/components/ActivityTypeSelector";
 import { MusicPicker } from "@/components/music/MusicPicker";
+import PublicPrivateStatusToggle from "@/components/ui/PublicPrivateStatusToggle";
 import { WebcamCaptureDialog } from "@/components/WebcamCaptureDialog";
 import { appendCaptionPill, hasCaptionPill } from "@/lib/caption-utils";
 import type { AppCopy, Language } from "@/lib/i18n";
@@ -11,10 +12,12 @@ import { createImagePreviewUrls, revokeImagePreviewUrls } from "@/lib/image-prev
 import type { WorkoutInput, WorkoutMusic } from "@/lib/workout-types";
 
 type WorkoutFormProps = {
+  closeAriaLabel?: string;
   copy: AppCopy;
   defaultDate: string;
   isSubmitting: boolean;
   language?: Language;
+  onClose?: () => void;
   onSubmitWorkout: (input: WorkoutInput) => Promise<void>;
 };
 
@@ -26,7 +29,7 @@ const initialForm = (defaultDate: string): WorkoutInput => ({
   date: defaultDate,
   type: "",
   note: "",
-  isPublic: true,
+  isPublic: false,
 });
 
 const MAX_SELECTED_IMAGES = 3;
@@ -53,10 +56,12 @@ function FieldLabel({ children, required }: { children: ReactNode; required?: bo
 }
 
 export function WorkoutForm({
+  closeAriaLabel,
   copy,
   defaultDate,
   isSubmitting,
   language = "en",
+  onClose,
   onSubmitWorkout,
 }: WorkoutFormProps) {
   const [form, setForm] = useState<WorkoutInput>(() => initialForm(defaultDate));
@@ -223,13 +228,33 @@ export function WorkoutForm({
 
   return (
     <form className="rounded-lg border border-border bg-panel p-5 sm:p-6" onSubmit={handleSubmit}>
-      <div className="border-b border-border pb-5">
-        <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted">
-          {copy.form.todayEntry}
-        </p>
-        <h2 className="mt-2 text-xl font-semibold tracking-[-0.02em] text-text">
-          {copy.form.logWorkout}
-        </h2>
+      <div className="flex items-start justify-between gap-3 border-b border-border pb-5">
+        <div className="min-w-0">
+          <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted">
+            {copy.form.todayEntry}
+          </p>
+          <h2 className="mt-2 text-xl font-semibold tracking-[-0.02em] text-text">
+            {copy.form.logWorkout}
+          </h2>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <PublicPrivateStatusToggle
+            ariaLabel={copy.form.publicWorkout}
+            checked={form.isPublic}
+            disabled={isSubmitting}
+            onCheckedChange={(isPublic) => setForm((current) => ({ ...current, isPublic }))}
+          />
+          {onClose ? (
+            <button
+              aria-label={closeAriaLabel ?? copy.common.close}
+              className="h-9 w-9 rounded-md border border-border bg-panel text-xl leading-none text-muted transition hover:bg-panel-muted hover:text-text"
+              onClick={onClose}
+              type="button"
+            >
+              x
+            </button>
+          ) : null}
+        </div>
       </div>
 
       <fieldset className="mt-6 grid gap-4" disabled={isSubmitting}>
@@ -253,23 +278,6 @@ export function WorkoutForm({
             onChange={(event) => updateField("date", event.target.value)}
             type="date"
             value={form.date}
-          />
-        </label>
-
-        <label className="flex items-center justify-between gap-4 rounded-md border border-border bg-panel-muted p-3 text-sm">
-          <span>
-            <span className="block font-semibold text-text">{copy.form.publicWorkout}</span>
-            <span className="mt-0.5 block text-xs font-normal text-muted">
-              {copy.form.publicWorkoutHelp}
-            </span>
-          </span>
-          <input
-            checked={form.isPublic}
-            className="h-5 w-5 accent-[var(--color-accent)]"
-            onChange={(event) =>
-              setForm((current) => ({ ...current, isPublic: event.target.checked }))
-            }
-            type="checkbox"
           />
         </label>
 

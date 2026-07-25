@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import { Languages } from "lucide-react"
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
+import { Languages } from "lucide-react";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,10 +11,10 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 
 const Example = () => {
-  const [language, setLanguage] = useState("en")
+  const [language, setLanguage] = useState("en");
 
   return (
     <DropdownMenu>
@@ -67,7 +67,7 @@ const Example = () => {
         </DropdownMenuRadioGroup>
       </DropdownMenuContent>
     </DropdownMenu>
-  )
-}
+  );
+};
 
-export default Example
+export default Example;

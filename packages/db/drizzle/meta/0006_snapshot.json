@@ -96,9 +96,7 @@
         "activity_types_slug_unique": {
           "name": "activity_types_slug_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "slug"
-          ]
+          "columns": ["slug"]
         }
       },
       "policies": {},
@@ -245,12 +243,8 @@
           "name": "notifications_recipient_profile_id_profiles_id_fk",
           "tableFrom": "notifications",
           "tableTo": "profiles",
-          "columnsFrom": [
-            "recipient_profile_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["recipient_profile_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -258,12 +252,8 @@
           "name": "notifications_actor_profile_id_profiles_id_fk",
           "tableFrom": "notifications",
           "tableTo": "profiles",
-          "columnsFrom": [
-            "actor_profile_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["actor_profile_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -271,12 +261,8 @@
           "name": "notifications_workout_id_workouts_id_fk",
           "tableFrom": "notifications",
           "tableTo": "workouts",
-          "columnsFrom": [
-            "workout_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["workout_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -284,12 +270,8 @@
           "name": "notifications_comment_id_workout_comments_id_fk",
           "tableFrom": "notifications",
           "tableTo": "workout_comments",
-          "columnsFrom": [
-            "comment_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["comment_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -417,12 +399,8 @@
           "name": "profile_follows_follower_profile_id_profiles_id_fk",
           "tableFrom": "profile_follows",
           "tableTo": "profiles",
-          "columnsFrom": [
-            "follower_profile_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["follower_profile_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -430,12 +408,8 @@
           "name": "profile_follows_following_profile_id_profiles_id_fk",
           "tableFrom": "profile_follows",
           "tableTo": "profiles",
-          "columnsFrom": [
-            "following_profile_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["following_profile_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -617,23 +591,17 @@
         "profiles_clerk_user_id_unique": {
           "name": "profiles_clerk_user_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "clerk_user_id"
-          ]
+          "columns": ["clerk_user_id"]
         },
         "profiles_username_unique": {
           "name": "profiles_username_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "username"
-          ]
+          "columns": ["username"]
         },
         "profiles_avatar_public_id_unique": {
           "name": "profiles_avatar_public_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "avatar_public_id"
-          ]
+          "columns": ["avatar_public_id"]
         }
       },
       "policies": {},
@@ -732,12 +700,8 @@
           "name": "workout_comments_workout_id_workouts_id_fk",
           "tableFrom": "workout_comments",
           "tableTo": "workouts",
-          "columnsFrom": [
-            "workout_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["workout_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -745,12 +709,8 @@
           "name": "workout_comments_author_profile_id_profiles_id_fk",
           "tableFrom": "workout_comments",
           "tableTo": "profiles",
-          "columnsFrom": [
-            "author_profile_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["author_profile_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -853,12 +813,8 @@
           "name": "workout_images_workout_id_workouts_id_fk",
           "tableFrom": "workout_images",
           "tableTo": "workouts",
-          "columnsFrom": [
-            "workout_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["workout_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -868,9 +824,7 @@
         "workout_images_public_id_unique": {
           "name": "workout_images_public_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "public_id"
-          ]
+          "columns": ["public_id"]
         }
       },
       "policies": {},
@@ -956,12 +910,8 @@
           "name": "workout_likes_workout_id_workouts_id_fk",
           "tableFrom": "workout_likes",
           "tableTo": "workouts",
-          "columnsFrom": [
-            "workout_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["workout_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -969,12 +919,8 @@
           "name": "workout_likes_profile_id_profiles_id_fk",
           "tableFrom": "workout_likes",
           "tableTo": "profiles",
-          "columnsFrom": [
-            "profile_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["profile_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1073,12 +1019,8 @@
           "name": "workout_music_workout_id_workouts_id_fk",
           "tableFrom": "workout_music",
           "tableTo": "workouts",
-          "columnsFrom": [
-            "workout_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["workout_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1254,12 +1196,8 @@
           "name": "workouts_profile_id_profiles_id_fk",
           "tableFrom": "workouts",
           "tableTo": "profiles",
-          "columnsFrom": [
-            "profile_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["profile_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1267,12 +1205,8 @@
           "name": "workouts_type_activity_types_slug_fk",
           "tableFrom": "workouts",
           "tableTo": "activity_types",
-          "columnsFrom": [
-            "type"
-          ],
-          "columnsTo": [
-            "slug"
-          ],
+          "columnsFrom": ["type"],
+          "columnsTo": ["slug"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1288,10 +1222,7 @@
     "public.user_role": {
       "name": "user_role",
       "schema": "public",
-      "values": [
-        "user",
-        "admin"
-      ]
+      "values": ["user", "admin"]
     }
   },
   "schemas": {},
