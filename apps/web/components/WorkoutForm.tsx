@@ -271,25 +271,26 @@ export function WorkoutForm({
           value={form.type}
         />
 
-        <label className="grid gap-2 text-sm font-medium text-text">
-          <FieldLabel required={isRequiredWorkoutField("date")}>{copy.form.date}</FieldLabel>
-          <input
-            className="h-11 rounded-md border border-border bg-panel-muted px-3 text-base font-normal text-text outline-none transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] focus:border-accent focus:bg-panel focus:ring-2 focus:ring-accent/15 disabled:cursor-not-allowed disabled:opacity-60"
-            onChange={(event) => updateField("date", event.target.value)}
-            type="date"
-            value={form.date}
-          />
-        </label>
-
-        <label className="grid gap-2 text-sm font-medium text-text">
-          {copy.form.note}
-          <textarea
-            className="min-h-24 resize-y rounded-md border border-border bg-panel-muted px-3 py-3 text-base font-normal text-text outline-none transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] placeholder:text-muted focus:border-accent focus:bg-panel focus:ring-2 focus:ring-accent/15 disabled:cursor-not-allowed disabled:opacity-60"
-            onChange={(event) => updateField("note", event.target.value)}
-            placeholder={copy.form.notePlaceholder}
-            value={form.note}
-          />
-        </label>
+        <div className="grid gap-4 sm:grid-cols-[minmax(0,12rem)_minmax(0,1fr)]">
+          <label className="grid gap-2 text-sm font-medium text-text">
+            <FieldLabel required={isRequiredWorkoutField("date")}>{copy.form.date}</FieldLabel>
+            <input
+              className="h-11 rounded-md border border-border bg-panel-muted px-3 text-base font-normal text-text outline-none transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] focus:border-accent focus:bg-panel focus:ring-2 focus:ring-accent/15 disabled:cursor-not-allowed disabled:opacity-60"
+              onChange={(event) => updateField("date", event.target.value)}
+              type="date"
+              value={form.date}
+            />
+          </label>
+          <label className="grid gap-2 text-sm font-medium text-text">
+            {copy.form.note}
+            <textarea
+              className="min-h-11 resize-y rounded-md border border-border bg-panel-muted px-3 py-2.5 text-base font-normal text-text outline-none transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] placeholder:text-muted focus:border-accent focus:bg-panel focus:ring-2 focus:ring-accent/15 disabled:cursor-not-allowed disabled:opacity-60"
+              onChange={(event) => updateField("note", event.target.value)}
+              placeholder={copy.form.notePlaceholder}
+              value={form.note}
+            />
+          </label>
+        </div>
         <div className="grid gap-2">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">
             {copy.form.captionPills}

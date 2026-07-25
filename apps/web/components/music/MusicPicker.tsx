@@ -17,7 +17,7 @@ const pickerCopy = {
     empty: "Không tìm thấy bài phù hợp.",
     error: "Chưa thể tìm trên Deezer. Vui lòng thử lại.",
     help: "Tùy chọn · tối đa một bài",
-    label: "Nhạc Deezer",
+    label: "Nhạc",
     loading: "Đang tìm...",
     placeholder: "Tìm bài hát hoặc nghệ sĩ",
     remove: "Gỡ nhạc",
@@ -29,7 +29,7 @@ const pickerCopy = {
     empty: "No matching tracks found.",
     error: "Unable to search Deezer. Please try again.",
     help: "Optional · one track maximum",
-    label: "Deezer music",
+    label: "Music",
     loading: "Searching...",
     placeholder: "Search songs or artists",
     remove: "Remove music",
@@ -107,7 +107,7 @@ export function MusicPicker({
       <div className="flex items-end justify-between gap-3">
         <div>
           <p className="text-sm font-medium text-text">{copy.label}</p>
-          <p className="mt-0.5 text-xs text-muted">{copy.help}</p>
+          {/* <p className="mt-0.5 text-xs text-muted">{copy.help}</p> */}
         </div>
         {selected ? (
           <button
