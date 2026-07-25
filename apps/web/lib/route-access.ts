@@ -7,7 +7,7 @@ const clerkRoutes = [
   /^\/admin(?:\/|$)/,
   /^\/api\/admin(?:\/|$)/,
   /^\/auth\/(?:continue|resolve)\/?$/,
-  /^\/settings\/profile\/?$/,
+  /^\/settings(?:\/|$)/,
   /^\/__clerk(?:\/|$)/,
 ];
 
