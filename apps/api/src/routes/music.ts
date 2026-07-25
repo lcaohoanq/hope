@@ -53,6 +53,8 @@ export const musicRoutes = new Hono<AppEnv>()
         return onboardingRequired(c, "Complete onboarding before searching for music.");
       }
       try {
+        // Note: Deezer search is geo-restricted by caller IP. Cloudflare Worker
+        // egress often returns empty results; the web app searches via browser JSONP.
         const tracks = await searchDeezerTracks(c.req.valid("query").q);
         return c.json({ tracks });
       } catch (error) {
