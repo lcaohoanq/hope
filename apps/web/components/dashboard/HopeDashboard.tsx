@@ -260,8 +260,8 @@ export function HopeDashboard({
         copy={copy}
       />
 
-      <div className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:px-8">
-        <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)] lg:items-start">
+      <div className="mx-auto grid w-full min-w-0 max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:px-8">
+        <div className="grid min-w-0 gap-6 lg:grid-cols-[280px_minmax(0,1fr)] lg:items-start">
           <UserProfileSidebar
             avatarUrl={avatarUrl}
             copy={copy}
@@ -378,24 +378,27 @@ export function HopeDashboard({
 
 function HeatmapLoadingSkeleton() {
   return (
-    <section className="min-h-[480px] rounded-lg border border-border bg-panel p-5 sm:p-6">
+    <section className="min-h-[320px] rounded-lg border border-border bg-panel p-4 sm:min-h-[480px] sm:p-6">
       <div className="h-5 w-40 animate-pulse rounded bg-panel-muted" />
-      <div className="mt-8 grid gap-5">
-        {Array.from({ length: 8 }, (_, index) => (
-          // biome-ignore lint/suspicious/noArrayIndexKey: Skeleton rows are fixed placeholders that never reorder.
-          <div className="grid gap-2" key={index}>
-            <div className="ml-24 h-3 w-80 rounded bg-panel-muted" />
-            <div className="flex gap-3">
-              <div className="h-3 w-10 rounded bg-panel-muted" />
-              <div className="grid flex-1 grid-cols-12 gap-1">
-                {Array.from({ length: 48 }, (_, cellIndex) => (
-                  // biome-ignore lint/suspicious/noArrayIndexKey: Skeleton cells are fixed placeholders that never reorder.
-                  <div className="h-2.5 rounded-[2px] bg-panel-muted" key={cellIndex} />
-                ))}
+      <p className="mt-3 h-3 w-48 animate-pulse rounded bg-panel-muted sm:hidden" />
+      <div className="mt-6 overflow-x-auto sm:mt-8">
+        <div className="grid min-w-[720px] gap-5 sm:min-w-[900px]">
+          {Array.from({ length: 3 }, (_, index) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: Skeleton rows are fixed placeholders that never reorder.
+            <div className="grid grid-cols-[36px_1fr] gap-2 sm:grid-cols-[44px_1fr]" key={index}>
+              <div className="mt-5 h-20 rounded bg-panel-muted" />
+              <div className="grid gap-2">
+                <div className="h-3 w-full max-w-80 rounded bg-panel-muted" />
+                <div className="grid grid-cols-12 gap-1 sm:grid-cols-[repeat(48,minmax(0,1fr))]">
+                  {Array.from({ length: 48 }, (_, cellIndex) => (
+                    // biome-ignore lint/suspicious/noArrayIndexKey: Skeleton cells are fixed placeholders that never reorder.
+                    <div className="h-2.5 rounded-[2px] bg-panel-muted" key={cellIndex} />
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </section>
   );

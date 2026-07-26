@@ -37,12 +37,10 @@ const WORKOUT_DIALOG_BACKDROP_VARIANTS = {
 const WORKOUT_DIALOG_PANEL_VARIANTS = {
   closed: {
     opacity: 0,
-    scale: 0.94,
-    y: 24,
+    y: 28,
   },
   open: {
     opacity: 1,
-    scale: 1,
     y: 0,
   },
 };
@@ -67,8 +65,14 @@ export function WorkoutDialog({
       }
     }
 
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
   }, [isOpen, onClose]);
 
   return (
@@ -78,7 +82,7 @@ export function WorkoutDialog({
           aria-label={copy.form.logWorkout}
           aria-modal="true"
           animate="open"
-          className="fixed inset-0 z-[10000] flex items-center justify-center bg-text/35 p-4"
+          className="fixed inset-0 z-[10000] flex items-stretch justify-center bg-text/35 sm:items-center sm:p-4"
           exit="closed"
           initial="closed"
           onClick={onClose}
@@ -87,7 +91,7 @@ export function WorkoutDialog({
           variants={WORKOUT_DIALOG_BACKDROP_VARIANTS}
         >
           <motion.div
-            className="relative max-h-[90dvh] w-full max-w-xl overflow-y-auto rounded-lg shadow-[0_30px_120px_rgba(17,17,17,0.22)]"
+            className="relative flex h-[100dvh] w-full max-w-xl flex-col overflow-hidden bg-panel shadow-[0_30px_120px_rgba(17,17,17,0.22)] sm:h-auto sm:max-h-[90dvh] sm:rounded-lg"
             onClick={(event) => event.stopPropagation()}
             transition={WORKOUT_DIALOG_PANEL_TRANSITION}
             variants={WORKOUT_DIALOG_PANEL_VARIANTS}
@@ -100,6 +104,7 @@ export function WorkoutDialog({
               language={language}
               onClose={onClose}
               onSubmitWorkout={onSubmitWorkout}
+              variant="sheet"
             />
           </motion.div>
         </motion.div>

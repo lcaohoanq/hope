@@ -45,13 +45,23 @@
   box-sizing: border-box;
 }
 
+/*
+  Fieldsets default to min-width: min-content in browsers, which prevents
+  nested grids (e.g. stats day strips) from shrinking on mobile.
+*/
+fieldset {
+  min-width: 0;
+}
+
 html {
   min-height: 100%;
+  overflow-x: clip;
 }
 
 body {
   min-height: 100%;
   margin: 0;
+  overflow-x: clip;
   background: oklch(var(--color-app));
   color: oklch(var(--color-text));
   font-family: var(--font-geist-sans), system-ui, sans-serif;
