@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence } from "framer-motion";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { WorkoutDayDetailModal } from "@/components/WorkoutDayDetailModal";
 import { WorkoutTooltip } from "@/components/WorkoutTooltip";
 import { resolveWorkoutIntensity } from "@/lib/heatmap-intensity";
@@ -80,6 +80,41 @@ export function ContributionHeatmap({
   const descendingHeatmapYears = [...heatmapYears].reverse();
   const [activeTooltip, setActiveTooltip] = useState<ActiveTooltip | null>(null);
   const [selectedDay, setSelectedDay] = useState<SelectedDay | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  useEffect(() => {
+    const node = scrollRef.current;
+
+    if (!node) {
+      return;
+    }
+
+    const scrollNode = node;
+
+    function updateScrollAffordance() {
+      const maxScrollLeft = scrollNode.scrollWidth - scrollNode.clientWidth;
+      setCanScrollLeft(scrollNode.scrollLeft > 4);
+      setCanScrollRight(maxScrollLeft - scrollNode.scrollLeft > 4);
+    }
+
+    updateScrollAffordance();
+
+    const resizeObserver = new ResizeObserver(() => {
+      updateScrollAffordance();
+    });
+
+    resizeObserver.observe(scrollNode);
+    scrollNode.addEventListener("scroll", updateScrollAffordance, { passive: true });
+    window.addEventListener("resize", updateScrollAffordance);
+
+    return () => {
+      resizeObserver.disconnect();
+      scrollNode.removeEventListener("scroll", updateScrollAffordance);
+      window.removeEventListener("resize", updateScrollAffordance);
+    };
+  }, []);
 
   function showTooltip({
     element,
@@ -139,99 +174,124 @@ export function ContributionHeatmap({
     return updatedWorkout;
   }
 
+  const showScrollHint = canScrollLeft || canScrollRight;
+
   return (
-    <section className="rounded-lg border border-border p-5 sm:p-6">
-      <div className="relative z-0 mb-0 max-h-[620px] overflow-auto pr-1">
-        <div className="grid min-w-[900px] gap-5">
-          {descendingHeatmapYears.map(({ year, weeks }) => (
-            <div className="grid grid-cols-[44px_1fr] items-start gap-x-3" key={year}>
-              <div className="mt-5 grid grid-rows-7 gap-1 text-[9px] text-text">
-                {copy.heatmap.weekdays.map((label, labelIndex) => (
-                  <span key={label} className="flex h-2.5 items-center">
-                    {labelIndex === 1 || labelIndex === 3 || labelIndex === 5 ? label : ""}
-                  </span>
-                ))}
-              </div>
-              <div>
-                <div
-                  aria-hidden="true"
-                  className="mb-2 grid h-3 w-full auto-cols-[10px] grid-flow-col justify-between gap-1 text-[9px] leading-none text-text"
-                >
-                  {getMonthMarkers(weeks, copy).map((marker) => (
-                    <span className="w-2.5" key={`${year}-${marker.id}`}>
-                      {marker.label}
+    <section className="max-w-full min-w-0 overflow-hidden rounded-lg border border-border bg-panel p-4 sm:p-6">
+      {showScrollHint ? (
+        <p className="mb-3 text-xs text-muted sm:hidden">{copy.heatmap.scrollHint}</p>
+      ) : null}
+      <div className="relative">
+        <div
+          className="relative z-0 mb-0 max-h-[min(70dvh,620px)] overflow-auto overscroll-x-contain pr-1 [-webkit-overflow-scrolling:touch]"
+          ref={scrollRef}
+        >
+          <div className="grid min-w-[720px] gap-5 sm:min-w-[900px]">
+            {descendingHeatmapYears.map(({ year, weeks }) => (
+              <div
+                className="grid grid-cols-[36px_1fr] items-start gap-x-2 sm:grid-cols-[44px_1fr] sm:gap-x-3"
+                key={year}
+              >
+                <div className="mt-5 grid grid-rows-7 gap-1 text-[9px] text-text">
+                  {copy.heatmap.weekdays.map((label, labelIndex) => (
+                    <span key={label} className="flex h-2.5 items-center">
+                      {labelIndex === 1 || labelIndex === 3 || labelIndex === 5 ? label : ""}
                     </span>
                   ))}
                 </div>
-                <section
-                  aria-label={`${year} workout heatmap`}
-                  className="relative isolate grid w-full auto-cols-[10px] grid-flow-col grid-rows-7 justify-between gap-1"
-                >
-                  {createKeyedHeatmapWeeks(year, weeks).map((week) =>
-                    week.map(({ day, key }) => {
-                      if (!day) {
-                        return <span aria-hidden="true" className="h-2.5 w-2.5" key={key} />;
-                      }
+                <div>
+                  <div
+                    aria-hidden="true"
+                    className="mb-2 grid h-3 w-full auto-cols-[10px] grid-flow-col justify-between gap-1 text-[9px] leading-none text-text"
+                  >
+                    {getMonthMarkers(weeks, copy).map((marker) => (
+                      <span className="w-2.5" key={`${year}-${marker.id}`}>
+                        {marker.label}
+                      </span>
+                    ))}
+                  </div>
+                  <section
+                    aria-label={`${year} workout heatmap`}
+                    className="relative isolate grid w-full auto-cols-[10px] grid-flow-col grid-rows-7 justify-between gap-1"
+                  >
+                    {createKeyedHeatmapWeeks(year, weeks).map((week) =>
+                      week.map(({ day, key }) => {
+                        if (!day) {
+                          return <span aria-hidden="true" className="h-2.5 w-2.5" key={key} />;
+                        }
 
-                      const hasWorkout = day.status === "workout";
-                      const isTrackable = day.status !== "no-data";
-                      const intensityClass =
-                        heatmapIntensityClasses[resolveWorkoutIntensity(day.workouts.length)];
-                      const label = !isTrackable
-                        ? copy.heatmap.noTrackingYet
-                        : hasWorkout
-                          ? copy.heatmap.workoutCount(day.workouts.length)
-                          : copy.heatmap.noWorkout;
+                        const hasWorkout = day.status === "workout";
+                        const isTrackable = day.status !== "no-data";
+                        const intensityClass =
+                          heatmapIntensityClasses[resolveWorkoutIntensity(day.workouts.length)];
+                        const label = !isTrackable
+                          ? copy.heatmap.noTrackingYet
+                          : hasWorkout
+                            ? copy.heatmap.workoutCount(day.workouts.length)
+                            : copy.heatmap.noWorkout;
 
-                      return (
-                        <button
-                          aria-label={`${day.date}: ${label}`}
-                          className={`relative h-2.5 w-2.5 rounded-[2px] outline-none ring-offset-2 ring-offset-panel transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:ring-2 hover:ring-text/20 focus-visible:ring-2 focus-visible:ring-accent ${
-                            hasWorkout ? intensityClass : "bg-[#151B23]"
-                          }`}
-                          onBlur={() => setActiveTooltip(null)}
-                          onFocus={(event) =>
-                            showTooltip({
-                              element: event.currentTarget,
-                              date: day.date,
-                              workouts: day.workouts,
-                              isTrackable,
-                            })
-                          }
-                          onMouseEnter={(event) =>
-                            showTooltip({
-                              element: event.currentTarget,
-                              date: day.date,
-                              workouts: day.workouts,
-                              isTrackable,
-                            })
-                          }
-                          onMouseLeave={() => setActiveTooltip(null)}
-                          onClick={(event) => {
-                            const rect = event.currentTarget.getBoundingClientRect();
+                        return (
+                          <button
+                            aria-label={`${day.date}: ${label}`}
+                            className={`relative h-2.5 w-2.5 rounded-[2px] outline-none ring-offset-2 ring-offset-panel transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:ring-2 hover:ring-text/20 focus-visible:ring-2 focus-visible:ring-accent ${
+                              hasWorkout ? intensityClass : "bg-[#151B23]"
+                            }`}
+                            onBlur={() => setActiveTooltip(null)}
+                            onFocus={(event) =>
+                              showTooltip({
+                                element: event.currentTarget,
+                                date: day.date,
+                                workouts: day.workouts,
+                                isTrackable,
+                              })
+                            }
+                            onMouseEnter={(event) =>
+                              showTooltip({
+                                element: event.currentTarget,
+                                date: day.date,
+                                workouts: day.workouts,
+                                isTrackable,
+                              })
+                            }
+                            onMouseLeave={() => setActiveTooltip(null)}
+                            onClick={(event) => {
+                              const rect = event.currentTarget.getBoundingClientRect();
 
-                            setActiveTooltip(null);
-                            setSelectedDay({
-                              date: day.date,
-                              workouts: day.workouts,
-                              isTrackable,
-                              origin: {
-                                x: rect.left + rect.width / 2,
-                                y: rect.top + rect.height / 2,
-                              },
-                            });
-                          }}
-                          key={key}
-                          type="button"
-                        />
-                      );
-                    }),
-                  )}
-                </section>
+                              setActiveTooltip(null);
+                              setSelectedDay({
+                                date: day.date,
+                                workouts: day.workouts,
+                                isTrackable,
+                                origin: {
+                                  x: rect.left + rect.width / 2,
+                                  y: rect.top + rect.height / 2,
+                                },
+                              });
+                            }}
+                            key={key}
+                            type="button"
+                          />
+                        );
+                      }),
+                    )}
+                  </section>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
+        <div
+          aria-hidden="true"
+          className={`pointer-events-none absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-panel to-transparent transition-opacity sm:hidden ${
+            canScrollLeft ? "opacity-100" : "opacity-0"
+          }`}
+        />
+        <div
+          aria-hidden="true"
+          className={`pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-panel to-transparent transition-opacity sm:hidden ${
+            canScrollRight ? "opacity-100" : "opacity-0"
+          }`}
+        />
       </div>
       {activeTooltip ? (
         <div

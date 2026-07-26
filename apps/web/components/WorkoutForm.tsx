@@ -19,6 +19,8 @@ type WorkoutFormProps = {
   language?: Language;
   onClose?: () => void;
   onSubmitWorkout: (input: WorkoutInput) => Promise<void>;
+  /** Full-height sheet layout used inside mobile workout dialogs. */
+  variant?: "default" | "sheet";
 };
 
 type RequiredWorkoutField = "type" | "date";
@@ -63,7 +65,9 @@ export function WorkoutForm({
   language = "en",
   onClose,
   onSubmitWorkout,
+  variant = "default",
 }: WorkoutFormProps) {
+  const isSheet = variant === "sheet";
   const [form, setForm] = useState<WorkoutInput>(() => initialForm(defaultDate));
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
@@ -227,8 +231,21 @@ export function WorkoutForm({
   }
 
   return (
-    <form className="rounded-lg border border-border bg-panel p-5 sm:p-6" onSubmit={handleSubmit}>
-      <div className="flex items-start justify-between gap-3 border-b border-border pb-5">
+    <form
+      className={
+        isSheet
+          ? "flex min-h-0 flex-1 flex-col bg-panel"
+          : "rounded-lg border border-border bg-panel p-5 sm:p-6"
+      }
+      onSubmit={handleSubmit}
+    >
+      <div
+        className={`flex shrink-0 items-start justify-between gap-3 border-b border-border ${
+          isSheet
+            ? "px-4 pb-4 pt-[max(1rem,env(safe-area-inset-top))] sm:px-6 sm:pb-5 sm:pt-6"
+            : "pb-5"
+        }`}
+      >
         <div className="min-w-0">
           <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted">
             {copy.form.todayEntry}
@@ -247,7 +264,7 @@ export function WorkoutForm({
           {onClose ? (
             <button
               aria-label={closeAriaLabel ?? copy.common.close}
-              className="h-9 w-9 rounded-md border border-border bg-panel text-xl leading-none text-muted transition hover:bg-panel-muted hover:text-text"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-border bg-panel text-xl leading-none text-muted transition hover:bg-panel-muted hover:text-text sm:h-9 sm:w-9"
               onClick={onClose}
               type="button"
             >
@@ -257,206 +274,229 @@ export function WorkoutForm({
         </div>
       </div>
 
-      <fieldset className="mt-6 grid gap-4" disabled={isSubmitting}>
-        <ActivityTypeSelector
-          copy={copy}
-          disabled={isSubmitting}
-          label={
-            <FieldLabel required={isRequiredWorkoutField("type")}>
-              {copy.form.workoutType}
-            </FieldLabel>
-          }
-          language={language}
-          onChange={(value) => updateField("type", value)}
-          value={form.type}
-        />
-
-        <label className="grid gap-2 text-sm font-medium text-text">
-          <FieldLabel required={isRequiredWorkoutField("date")}>{copy.form.date}</FieldLabel>
-          <input
-            className="h-11 rounded-md border border-border bg-panel-muted px-3 text-base font-normal text-text outline-none transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] focus:border-accent focus:bg-panel focus:ring-2 focus:ring-accent/15 disabled:cursor-not-allowed disabled:opacity-60"
-            onChange={(event) => updateField("date", event.target.value)}
-            type="date"
-            value={form.date}
+      <div
+        className={
+          isSheet
+            ? "min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-5 sm:px-6"
+            : undefined
+        }
+      >
+        <fieldset className={`${isSheet ? "" : "mt-6 "}grid gap-4`} disabled={isSubmitting}>
+          <ActivityTypeSelector
+            copy={copy}
+            disabled={isSubmitting}
+            label={
+              <FieldLabel required={isRequiredWorkoutField("type")}>
+                {copy.form.workoutType}
+              </FieldLabel>
+            }
+            language={language}
+            onChange={(value) => updateField("type", value)}
+            value={form.type}
           />
-        </label>
 
-        <label className="grid gap-2 text-sm font-medium text-text">
-          {copy.form.note}
-          <textarea
-            className="min-h-24 resize-y rounded-md border border-border bg-panel-muted px-3 py-3 text-base font-normal text-text outline-none transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] placeholder:text-muted focus:border-accent focus:bg-panel focus:ring-2 focus:ring-accent/15 disabled:cursor-not-allowed disabled:opacity-60"
-            onChange={(event) => updateField("note", event.target.value)}
-            placeholder={copy.form.notePlaceholder}
-            value={form.note}
-          />
-        </label>
-        <div className="grid gap-2">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">
-            {copy.form.captionPills}
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {copy.form.captionPillOptions.map((pill) => {
-              const isSelected = hasCaptionPill(form.note, pill);
+          <label className="grid gap-2 text-sm font-medium text-text">
+            <FieldLabel required={isRequiredWorkoutField("date")}>{copy.form.date}</FieldLabel>
+            <input
+              className="h-11 rounded-md border border-border bg-panel-muted px-3 text-base font-normal text-text outline-none transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] focus:border-accent focus:bg-panel focus:ring-2 focus:ring-accent/15 disabled:cursor-not-allowed disabled:opacity-60"
+              onChange={(event) => updateField("date", event.target.value)}
+              type="date"
+              value={form.date}
+            />
+          </label>
 
-              return (
-                <button
-                  aria-pressed={isSelected}
-                  className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition active:scale-[0.98] ${
-                    isSelected
-                      ? "border-accent bg-accent/10 text-text"
-                      : "border-border bg-panel-muted text-muted hover:border-accent/50 hover:text-text"
-                  }`}
-                  key={pill}
-                  onClick={() => updateField("note", appendCaptionPill(form.note, pill))}
-                  type="button"
-                >
-                  {pill}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+          <label className="grid gap-2 text-sm font-medium text-text">
+            {copy.form.note}
+            <textarea
+              className="min-h-24 resize-y rounded-md border border-border bg-panel-muted px-3 py-3 text-base font-normal text-text outline-none transition duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] placeholder:text-muted focus:border-accent focus:bg-panel focus:ring-2 focus:ring-accent/15 disabled:cursor-not-allowed disabled:opacity-60"
+              onChange={(event) => updateField("note", event.target.value)}
+              placeholder={copy.form.notePlaceholder}
+              value={form.note}
+            />
+          </label>
+          <div className="grid gap-2">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">
+              {copy.form.captionPills}
+            </p>
+            <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 sm:flex-wrap sm:overflow-visible sm:pb-0">
+              {copy.form.captionPillOptions.map((pill) => {
+                const isSelected = hasCaptionPill(form.note, pill);
 
-        <MusicPicker
-          disabled={isSubmitting}
-          language={language}
-          onChange={(music) => {
-            setSelectedMusic(music);
-            setError("");
-            setSuccess("");
-          }}
-          selected={selectedMusic}
-        />
-
-        <div className="grid gap-2">
-          <p className="text-sm font-medium text-text">{copy.form.images}</p>
-          <input
-            accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
-            aria-label={copy.form.addImages}
-            className="sr-only"
-            disabled={isSubmitting || selectedImages.length >= MAX_SELECTED_IMAGES}
-            key={imageInputKey}
-            multiple
-            onChange={(event) => {
-              if (event.target.files) {
-                addImages(event.target.files);
-              }
-            }}
-            ref={imageInputRef}
-            type="file"
-          />
-          <section
-            aria-label={copy.form.images}
-            className={`flex h-20 min-w-0 items-center gap-2 overflow-x-auto rounded-md border px-2 transition ${
-              isDraggingImages
-                ? "border-accent bg-accent/10 ring-2 ring-accent/15"
-                : "border-border bg-panel-muted"
-            }`}
-            data-testid="workout-image-strip"
-            onDragEnter={handleImageDragOver}
-            onDragLeave={handleImageDragLeave}
-            onDragOver={handleImageDragOver}
-            onDrop={handleImageDrop}
-          >
-            <button
-              className="flex h-16 w-24 shrink-0 flex-col items-center justify-center gap-1 rounded-md bg-panel px-2 text-center text-xs font-semibold text-text transition hover:bg-border/50 active:scale-[0.98] disabled:cursor-not-allowed disabled:text-muted disabled:hover:bg-panel"
-              disabled={isSubmitting || selectedImages.length >= MAX_SELECTED_IMAGES}
-              onClick={() => imageInputRef.current?.click()}
-              title={
-                selectedImages.length >= MAX_SELECTED_IMAGES
-                  ? copy.form.imageLimitReached(MAX_SELECTED_IMAGES)
-                  : copy.form.addImages
-              }
-              type="button"
-            >
-              <FaImages aria-hidden="true" className="h-4 w-4" />
-              <span className="whitespace-nowrap">
-                {selectedImages.length >= MAX_SELECTED_IMAGES
-                  ? copy.form.imageLimitReached(MAX_SELECTED_IMAGES)
-                  : copy.form.addImages}
-              </span>
-              <span className="font-normal text-muted">
-                {selectedImages.length}/{MAX_SELECTED_IMAGES}
-              </span>
-            </button>
-
-            <button
-              className="flex h-16 w-24 shrink-0 flex-col items-center justify-center gap-1 rounded-md bg-panel px-2 text-center text-xs font-semibold text-text transition hover:bg-border/50 active:scale-[0.98] disabled:cursor-not-allowed disabled:text-muted disabled:hover:bg-panel"
-              disabled={isSubmitting || selectedImages.length >= MAX_SELECTED_IMAGES}
-              onClick={() => setIsCameraOpen(true)}
-              title={
-                selectedImages.length >= MAX_SELECTED_IMAGES
-                  ? copy.form.imageLimitReached(MAX_SELECTED_IMAGES)
-                  : copy.form.takePhoto
-              }
-              type="button"
-            >
-              <FaCamera aria-hidden="true" className="h-4 w-4" />
-              <span className="whitespace-nowrap">{copy.form.takePhoto}</span>
-              <span className="font-normal text-muted">{copy.form.webcam}</span>
-            </button>
-
-            {isPreparingImages
-              ? selectedImages.map((file) => (
-                  <div
-                    aria-label={copy.form.preparingImages}
-                    className="h-16 w-16 shrink-0 animate-pulse rounded-md bg-border/70"
-                    key={getImageFileKey(file)}
-                    role="status"
-                  />
-                ))
-              : previewUrls.map((url, index) => (
-                  <div
-                    className="group relative h-16 w-16 shrink-0 overflow-hidden rounded-md bg-panel"
-                    data-testid="workout-image-preview"
-                    key={url}
+                return (
+                  <button
+                    aria-pressed={isSelected}
+                    className={`shrink-0 rounded-full border px-3 py-2 text-xs font-semibold transition active:scale-[0.98] sm:py-1.5 ${
+                      isSelected
+                        ? "border-accent bg-accent/10 text-text"
+                        : "border-border bg-panel-muted text-muted hover:border-accent/50 hover:text-text"
+                    }`}
+                    key={pill}
+                    onClick={() => updateField("note", appendCaptionPill(form.note, pill))}
+                    type="button"
                   >
-                    {/* biome-ignore lint/performance/noImgElement: Local object URL previews cannot use next/image. */}
-                    <img
-                      alt={copy.form.selectedPreviewAlt(index + 1)}
-                      className="h-full w-full object-cover"
-                      src={url}
+                    {pill}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <MusicPicker
+            disabled={isSubmitting}
+            language={language}
+            onChange={(music) => {
+              setSelectedMusic(music);
+              setError("");
+              setSuccess("");
+            }}
+            selected={selectedMusic}
+          />
+
+          <div className="grid gap-2">
+            <p className="text-sm font-medium text-text">{copy.form.images}</p>
+            <input
+              accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
+              aria-label={copy.form.addImages}
+              className="sr-only"
+              disabled={isSubmitting || selectedImages.length >= MAX_SELECTED_IMAGES}
+              key={imageInputKey}
+              multiple
+              onChange={(event) => {
+                if (event.target.files) {
+                  addImages(event.target.files);
+                }
+              }}
+              ref={imageInputRef}
+              type="file"
+            />
+            <section
+              aria-label={copy.form.images}
+              className={`flex h-20 min-w-0 items-center gap-2 overflow-x-auto rounded-md border px-2 transition [-webkit-overflow-scrolling:touch] ${
+                isDraggingImages
+                  ? "border-accent bg-accent/10 ring-2 ring-accent/15"
+                  : "border-border bg-panel-muted"
+              }`}
+              data-testid="workout-image-strip"
+              onDragEnter={handleImageDragOver}
+              onDragLeave={handleImageDragLeave}
+              onDragOver={handleImageDragOver}
+              onDrop={handleImageDrop}
+            >
+              <button
+                className="flex h-16 w-24 shrink-0 flex-col items-center justify-center gap-1 rounded-md bg-panel px-2 text-center text-xs font-semibold text-text transition hover:bg-border/50 active:scale-[0.98] disabled:cursor-not-allowed disabled:text-muted disabled:hover:bg-panel"
+                disabled={isSubmitting || selectedImages.length >= MAX_SELECTED_IMAGES}
+                onClick={() => imageInputRef.current?.click()}
+                title={
+                  selectedImages.length >= MAX_SELECTED_IMAGES
+                    ? copy.form.imageLimitReached(MAX_SELECTED_IMAGES)
+                    : copy.form.addImages
+                }
+                type="button"
+              >
+                <FaImages aria-hidden="true" className="h-4 w-4" />
+                <span className="whitespace-nowrap">
+                  {selectedImages.length >= MAX_SELECTED_IMAGES
+                    ? copy.form.imageLimitReached(MAX_SELECTED_IMAGES)
+                    : copy.form.addImages}
+                </span>
+                <span className="font-normal text-muted">
+                  {selectedImages.length}/{MAX_SELECTED_IMAGES}
+                </span>
+              </button>
+
+              <button
+                className="flex h-16 w-24 shrink-0 flex-col items-center justify-center gap-1 rounded-md bg-panel px-2 text-center text-xs font-semibold text-text transition hover:bg-border/50 active:scale-[0.98] disabled:cursor-not-allowed disabled:text-muted disabled:hover:bg-panel"
+                disabled={isSubmitting || selectedImages.length >= MAX_SELECTED_IMAGES}
+                onClick={() => setIsCameraOpen(true)}
+                title={
+                  selectedImages.length >= MAX_SELECTED_IMAGES
+                    ? copy.form.imageLimitReached(MAX_SELECTED_IMAGES)
+                    : copy.form.takePhoto
+                }
+                type="button"
+              >
+                <FaCamera aria-hidden="true" className="h-4 w-4" />
+                <span className="whitespace-nowrap">{copy.form.takePhoto}</span>
+                <span className="font-normal text-muted">{copy.form.webcam}</span>
+              </button>
+
+              {isPreparingImages
+                ? selectedImages.map((file) => (
+                    <div
+                      aria-label={copy.form.preparingImages}
+                      className="h-16 w-16 shrink-0 animate-pulse rounded-md bg-border/70"
+                      key={getImageFileKey(file)}
+                      role="status"
                     />
-                    <button
-                      aria-label={copy.form.removeImage(index + 1)}
-                      className="absolute right-1 top-1 inline-flex h-7 w-7 items-center justify-center rounded-md bg-text/80 text-white transition hover:bg-danger focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white disabled:cursor-not-allowed disabled:bg-muted sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100"
-                      data-testid="workout-image-remove"
-                      disabled={isSubmitting}
-                      onClick={() => removeImage(index)}
-                      title={copy.form.removeImage(index + 1)}
-                      type="button"
+                  ))
+                : previewUrls.map((url, index) => (
+                    <div
+                      className="group relative h-16 w-16 shrink-0 overflow-hidden rounded-md bg-panel"
+                      data-testid="workout-image-preview"
+                      key={url}
                     >
-                      <FaTimes aria-hidden="true" className="h-3 w-3" />
-                    </button>
-                  </div>
-                ))}
+                      {/* biome-ignore lint/performance/noImgElement: Local object URL previews cannot use next/image. */}
+                      <img
+                        alt={copy.form.selectedPreviewAlt(index + 1)}
+                        className="h-full w-full object-cover"
+                        src={url}
+                      />
+                      <button
+                        aria-label={copy.form.removeImage(index + 1)}
+                        className="absolute right-1 top-1 inline-flex h-7 w-7 items-center justify-center rounded-md bg-text/80 text-white transition hover:bg-danger focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white disabled:cursor-not-allowed disabled:bg-muted sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100"
+                        data-testid="workout-image-remove"
+                        disabled={isSubmitting}
+                        onClick={() => removeImage(index)}
+                        title={copy.form.removeImage(index + 1)}
+                        type="button"
+                      >
+                        <FaTimes aria-hidden="true" className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
 
-            {selectedImages.length === 0 && !isPreparingImages ? (
-              <div className="min-w-40 flex-1 px-1">
-                <p className="text-sm font-medium text-text">{copy.form.dropImages}</p>
-                <p className="mt-1 text-xs text-muted">{copy.form.imageFormats}</p>
-              </div>
-            ) : null}
+              {selectedImages.length === 0 && !isPreparingImages ? (
+                <div className="hidden min-w-40 flex-1 px-1 sm:block">
+                  <p className="text-sm font-medium text-text">{copy.form.dropImages}</p>
+                  <p className="mt-1 text-xs text-muted">{copy.form.imageFormats}</p>
+                </div>
+              ) : null}
 
-            <span aria-live="polite" className="sr-only">
-              {copy.form.selectedImageCount(selectedImages.length, MAX_SELECTED_IMAGES)}
-            </span>
-          </section>
-        </div>
-      </fieldset>
+              <span aria-live="polite" className="sr-only">
+                {copy.form.selectedImageCount(selectedImages.length, MAX_SELECTED_IMAGES)}
+              </span>
+            </section>
+          </div>
+        </fieldset>
 
-      <div className="mt-5 min-h-6">
-        {error ? <p className="text-sm font-medium text-danger">{error}</p> : null}
-        {success ? <p className="text-sm font-medium text-accent">{success}</p> : null}
+        {!isSheet ? (
+          <div className="mt-5 min-h-6">
+            {error ? <p className="text-sm font-medium text-danger">{error}</p> : null}
+            {success ? <p className="text-sm font-medium text-accent">{success}</p> : null}
+          </div>
+        ) : (
+          <div className="mt-4 min-h-5">
+            {error ? <p className="text-sm font-medium text-danger">{error}</p> : null}
+            {success ? <p className="text-sm font-medium text-accent">{success}</p> : null}
+          </div>
+        )}
       </div>
 
-      <button
-        className="mt-5 h-11 w-full rounded-md bg-accent px-4 text-sm font-semibold text-accent-contrast transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-accent/90 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-muted disabled:active:scale-100"
-        disabled={isSubmitting || !canSubmit}
-        type="submit"
+      <div
+        className={
+          isSheet
+            ? "shrink-0 border-t border-border px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 sm:px-6"
+            : undefined
+        }
       >
-        {isSubmitting ? copy.common.saving : copy.form.submit}
-      </button>
+        <button
+          className={`${isSheet ? "" : "mt-5 "}h-12 w-full rounded-md bg-accent px-4 text-sm font-semibold text-accent-contrast transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-accent/90 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-muted disabled:active:scale-100 sm:h-11`}
+          disabled={isSubmitting || !canSubmit}
+          type="submit"
+        >
+          {isSubmitting ? copy.common.saving : copy.form.submit}
+        </button>
+      </div>
 
       <WebcamCaptureDialog
         copy={copy}
