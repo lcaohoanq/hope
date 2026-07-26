@@ -356,7 +356,7 @@ export function WorkoutDayDetailModal({
   return (
     <motion.div
       aria-modal="true"
-      className="fixed inset-0 z-[10000] flex items-center justify-center bg-text/45 p-3 sm:p-4"
+      className="fixed inset-0 z-[10000] flex items-stretch justify-center bg-text/45 sm:items-center sm:p-4"
       exit={{ opacity: 0 }}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -377,7 +377,7 @@ export function WorkoutDayDetailModal({
           x: 0,
           y: 0,
         }}
-        className="relative flex max-h-[92dvh] w-full max-w-5xl flex-col overflow-hidden rounded-lg border border-border bg-panel shadow-[0_30px_120px_rgba(17,17,17,0.22)]"
+        className="relative flex h-[100dvh] max-h-[100dvh] w-full max-w-5xl flex-col overflow-hidden border-border bg-panel shadow-[0_30px_120px_rgba(17,17,17,0.22)] sm:h-auto sm:max-h-[92dvh] sm:rounded-lg sm:border"
         exit={{
           opacity: 0,
           rotate: 0,
@@ -419,9 +419,9 @@ export function WorkoutDayDetailModal({
           y: { duration: 0.36, ease: [0.16, 1, 0.3, 1] },
         }}
       >
-        <div className="flex shrink-0 items-center justify-between gap-4 border-b border-border px-4 py-3 sm:px-5">
+        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border px-3 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:gap-4 sm:px-5 sm:py-3">
           <div className="min-w-0 flex-1">
-            <h3 className="text-2xl font-semibold tracking-[-0.03em] text-text">
+            <h3 className="truncate text-xl font-semibold tracking-[-0.03em] text-text sm:text-2xl">
               {formatDisplayDate(date, language)}
             </h3>
           </div>
@@ -429,7 +429,7 @@ export function WorkoutDayDetailModal({
             {editingWorkout ? (
               <button
                 aria-label={copy.modal.backToWorkoutDetail}
-                className="inline-flex h-9 items-center gap-2 rounded-md border border-border bg-panel px-3 text-sm font-semibold text-muted transition hover:bg-panel-muted hover:text-text active:scale-[0.98]"
+                className="inline-flex h-11 items-center gap-2 rounded-md border border-border bg-panel px-3 text-sm font-semibold text-muted transition hover:bg-panel-muted hover:text-text active:scale-[0.98] sm:h-9"
                 disabled={isSavingEdit}
                 onClick={cancelEditing}
                 type="button"
@@ -442,7 +442,7 @@ export function WorkoutDayDetailModal({
                 {canEditWorkouts && selectedImage ? (
                   <button
                     aria-label={storyCopy.create}
-                    className="inline-flex h-9 items-center gap-2 rounded-md bg-accent px-3 text-sm font-semibold text-accent-contrast transition hover:bg-accent/90 active:scale-[0.98]"
+                    className="inline-flex h-11 items-center gap-2 rounded-md bg-accent px-3 text-sm font-semibold text-accent-contrast transition hover:bg-accent/90 active:scale-[0.98] sm:h-9"
                     onClick={() => setIsStoryOpen(true)}
                     type="button"
                   >
@@ -453,7 +453,7 @@ export function WorkoutDayDetailModal({
                 {canEditWorkouts && selectedEditableWorkout ? (
                   <button
                     aria-label={copy.form.editWorkout}
-                    className="inline-flex h-9 items-center gap-2 rounded-md border border-border bg-panel px-3 text-sm font-semibold text-muted transition hover:bg-panel-muted hover:text-text active:scale-[0.98]"
+                    className="inline-flex h-11 items-center gap-2 rounded-md border border-border bg-panel px-3 text-sm font-semibold text-muted transition hover:bg-panel-muted hover:text-text active:scale-[0.98] sm:h-9"
                     onClick={() => startEditing(selectedEditableWorkout)}
                     type="button"
                   >
@@ -465,7 +465,7 @@ export function WorkoutDayDetailModal({
             )}
             <button
               aria-label={copy.modal.closeWorkoutDetail}
-              className="h-9 w-9 rounded-md border border-border bg-panel text-xl leading-none text-muted transition hover:bg-panel-muted hover:text-text"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-border bg-panel text-xl leading-none text-muted transition hover:bg-panel-muted hover:text-text sm:h-9 sm:w-9"
               onClick={onClose}
               type="button"
             >
@@ -474,12 +474,12 @@ export function WorkoutDayDetailModal({
           </div>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-3 sm:p-4">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:p-4">
           {editingWorkout && editForm ? (
             <section
               aria-label={copy.form.editWorkout}
               aria-modal="true"
-              className="rounded-lg border border-border bg-panel-muted p-4 sm:p-5"
+              className="rounded-lg border border-border bg-panel-muted p-3 sm:p-5"
               role="dialog"
             >
               <EditWorkoutPanel
@@ -525,7 +525,7 @@ export function WorkoutDayDetailModal({
               {selectedImage ? (
                 <div className="overflow-hidden rounded-lg border border-border">
                   <div
-                    className="group relative h-[calc(92dvh-12.75rem)] min-h-[20rem] touch-pan-y overflow-hidden"
+                    className="group relative h-[min(52dvh,24rem)] min-h-[16rem] touch-pan-y overflow-hidden sm:h-[calc(92dvh-12.75rem)] sm:min-h-[20rem]"
                     {...gallerySwipeHandlers}
                   >
                     <WorkoutImageThumbnail
@@ -732,18 +732,11 @@ function EditWorkoutPanel({
         onSubmit();
       }}
     >
-      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border pb-4">
+      <div className="flex flex-col gap-3 border-b border-border pb-4 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
         <div>
           <p className="text-base font-semibold text-text">{copy.form.editWorkout}</p>
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-2">
-          <button
-            className="h-9 rounded-md bg-accent px-3 text-sm font-semibold text-accent-contrast transition hover:bg-accent/90 disabled:cursor-not-allowed disabled:bg-muted"
-            disabled={isSavingEdit}
-            type="submit"
-          >
-            {isSavingEdit ? copy.common.saving : copy.common.saveChanges}
-          </button>
           <PublicPrivateStatusToggle
             ariaLabel={copy.form.publicWorkout}
             checked={editForm.isPublic}
@@ -751,18 +744,25 @@ function EditWorkoutPanel({
             onCheckedChange={(isPublic) => onUpdateField("isPublic", isPublic)}
           />
           <button
-            className="h-9 rounded-md border border-border bg-panel px-3 text-sm font-semibold text-muted transition hover:bg-panel-muted"
+            className="h-11 flex-1 rounded-md border border-border bg-panel px-3 text-sm font-semibold text-muted transition hover:bg-panel-muted sm:h-9 sm:flex-none"
             disabled={isSavingEdit}
             onClick={onCancel}
             type="button"
           >
             {copy.common.cancel}
           </button>
+          <button
+            className="h-11 flex-1 rounded-md bg-accent px-3 text-sm font-semibold text-accent-contrast transition hover:bg-accent/90 disabled:cursor-not-allowed disabled:bg-muted sm:h-9 sm:flex-none"
+            disabled={isSavingEdit}
+            type="submit"
+          >
+            {isSavingEdit ? copy.common.saving : copy.common.saveChanges}
+          </button>
         </div>
       </div>
 
       {selectedEditImage ? (
-        <div className="fixed inset-0 z-[10020] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[10020] flex items-stretch justify-center sm:items-center sm:p-4">
           <button
             aria-label={copy.common.close}
             className="absolute inset-0 cursor-default bg-text/70"
@@ -772,10 +772,10 @@ function EditWorkoutPanel({
           <div
             aria-label={copy.modal.editWorkoutImageGallery}
             aria-modal="true"
-            className="relative flex max-h-[92dvh] w-full max-w-5xl flex-col overflow-hidden rounded-lg border border-border bg-panel shadow-[0_30px_120px_rgba(17,17,17,0.3)]"
+            className="relative flex h-[100dvh] max-h-[100dvh] w-full max-w-5xl flex-col overflow-hidden border-border bg-panel shadow-[0_30px_120px_rgba(17,17,17,0.3)] sm:h-auto sm:max-h-[92dvh] sm:rounded-lg sm:border"
             role="dialog"
           >
-            <div className="flex items-center justify-between gap-3 border-b border-border p-3 sm:p-4">
+            <div className="flex items-center justify-between gap-3 border-b border-border px-3 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:p-4">
               <div className="min-w-0">
                 <p className="text-sm font-semibold text-text">
                   {copy.modal.editWorkoutImageGallery}
@@ -785,7 +785,7 @@ function EditWorkoutPanel({
                 </p>
               </div>
               <button
-                className="h-9 rounded-md border border-border bg-panel px-3 text-sm font-semibold text-muted transition hover:bg-panel-muted hover:text-text"
+                className="inline-flex h-11 items-center rounded-md border border-border bg-panel px-3 text-sm font-semibold text-muted transition hover:bg-panel-muted hover:text-text sm:h-9"
                 onClick={() => setSelectedEditImageIndex(null)}
                 type="button"
               >
@@ -794,7 +794,7 @@ function EditWorkoutPanel({
             </div>
 
             <div
-              className="group relative flex min-h-[50dvh] touch-pan-y items-center justify-center bg-text p-3 sm:min-h-[64dvh] sm:p-5"
+              className="group relative flex min-h-0 flex-1 touch-pan-y items-center justify-center bg-text p-3 sm:min-h-[64dvh] sm:p-5"
               {...editGallerySwipeHandlers}
             >
               {selectedEditImage.kind === "existing" ? (
@@ -841,8 +841,8 @@ function EditWorkoutPanel({
       ) : null}
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(280px,0.9fr)]">
-        <div className="grid gap-3 content-start">
-          <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid content-start gap-3">
+          <div className="grid gap-3">
             <ActivityTypeSelector
               copy={copy}
               disabled={isSavingEdit}
@@ -855,7 +855,7 @@ function EditWorkoutPanel({
             <label className="grid gap-1.5 text-sm font-medium text-text">
               {copy.form.date}
               <input
-                className="h-10 rounded-md border border-border bg-panel px-3 text-sm font-normal text-text outline-none focus:border-accent focus:ring-2 focus:ring-accent/15"
+                className="h-11 rounded-md border border-border bg-panel px-3 text-base font-normal text-text outline-none focus:border-accent focus:ring-2 focus:ring-accent/15 sm:h-10 sm:text-sm"
                 onChange={(event) => onUpdateField("date", event.target.value)}
                 type="date"
                 value={editForm.date}
@@ -876,14 +876,14 @@ function EditWorkoutPanel({
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">
               {copy.form.captionPills}
             </p>
-            <div className="flex flex-wrap gap-2">
+            <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 sm:flex-wrap sm:overflow-visible sm:pb-0">
               {copy.form.captionPillOptions.map((pill) => {
                 const isSelected = hasCaptionPill(editForm.note, pill);
 
                 return (
                   <button
                     aria-pressed={isSelected}
-                    className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition active:scale-[0.98] ${
+                    className={`shrink-0 rounded-full border px-3 py-2 text-xs font-semibold transition active:scale-[0.98] sm:py-1.5 ${
                       isSelected
                         ? "border-accent bg-accent/10 text-text"
                         : "border-border bg-panel-muted text-muted hover:border-accent/50 hover:text-text"
@@ -996,7 +996,7 @@ function CaptionPill({ caption }: { caption?: string }) {
   }
 
   return (
-    <div className="pointer-events-none absolute bottom-4 left-1/2 z-10 max-w-[min(82%,34rem)] -translate-x-1/2 rounded-full bg-black/80 px-4 py-2 text-center text-sm font-semibold leading-snug text-white shadow-[0_10px_30px_rgba(0,0,0,0.3)] backdrop-blur-sm">
+    <div className="pointer-events-none absolute bottom-3 left-1/2 z-10 max-w-[min(90%,20rem)] -translate-x-1/2 rounded-full bg-black/80 px-3 py-1.5 text-center text-xs font-semibold leading-snug text-white shadow-[0_10px_30px_rgba(0,0,0,0.3)] backdrop-blur-sm sm:bottom-4 sm:max-w-[min(82%,34rem)] sm:px-4 sm:py-2 sm:text-sm">
       <span className="line-clamp-2">{truncateCaption(trimmedCaption, CAPTION_MAX_LENGTH)}</span>
     </div>
   );

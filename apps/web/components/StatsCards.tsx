@@ -63,7 +63,7 @@ export function StatsCards({ copy, language, workouts, todayDateKey, view }: Sta
       : formatShortDateLabel(statsEndDateKey, language);
 
   return (
-    <section className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+    <section className="grid w-full min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
       {stats.streak > 0 ? (
         <StreakActiveCard
           copy={copy}
@@ -135,8 +135,8 @@ export function StatsCards({ copy, language, workouts, todayDateKey, view }: Sta
         valueSuffix={copy.stats.activityCount(stats.totalSessions)}
       >
         {mixChartData.length > 0 ? (
-          <div className="grid grid-cols-[minmax(0,7.5rem)_minmax(0,1fr)] items-center gap-4">
-            <div className="h-28">
+          <div className="grid grid-cols-1 items-center gap-4 sm:grid-cols-[minmax(0,7.5rem)_minmax(0,1fr)]">
+            <div className="mx-auto h-28 w-28 sm:mx-0 sm:w-auto sm:max-w-none">
               <ResponsiveContainer height="100%" width="100%">
                 <PieChart>
                   <Pie
@@ -210,58 +210,64 @@ function ActivityDayStrip({
   const isLarge = size === "large";
 
   return (
-    <div className="relative">
+    <div className="relative w-full min-w-0 max-w-full">
       <fieldset
         aria-label={
           isLarge
             ? copy.stats.last7DaysDetail
             : copy.stats.last30PaceDetail(days.filter((day) => day.count > 0).length)
         }
-        className={
-          isLarge
-            ? "m-0 min-w-0 border-0 p-0 grid grid-cols-7 gap-2"
-            : "m-0 min-w-0 border-0 p-0 grid grid-cols-[repeat(30,minmax(0,1fr))] gap-[3px]"
-        }
+        className="m-0 w-full min-w-0 max-w-full border-0 p-0"
         onMouseLeave={() => setTooltip(null)}
       >
-        {days.map((day, index) => {
-          const isActive = day.count > 0;
-          const isEnd = index === days.length - 1;
+        <div
+          className={
+            isLarge
+              ? "grid w-full min-w-0 grid-cols-7 gap-1.5 sm:gap-2"
+              : "grid w-full min-w-0 grid-cols-10 gap-1 sm:grid-cols-[repeat(30,minmax(0,1fr))] sm:gap-[3px]"
+          }
+        >
+          {days.map((day, index) => {
+            const isActive = day.count > 0;
+            const isEnd = index === days.length - 1;
 
-          return (
-            <div className="grid gap-1.5" key={day.date}>
-              <button
-                aria-label={`${formatDisplayDate(day.date, language)}: ${
-                  isActive ? copy.stats.last30TooltipCount(day.count) : copy.stats.last30TooltipIdle
-                }`}
-                className={`w-full rounded-[3px] outline-none transition duration-150 ${
-                  isLarge ? "aspect-square min-h-[36px] rounded-md" : "aspect-square min-h-[12px]"
-                } ${isActive ? "bg-[#2EA043]" : "bg-border"} ${
-                  isEnd
-                    ? "ring-2 ring-text ring-offset-2 ring-offset-panel"
-                    : "hover:ring-1 hover:ring-text/25"
-                }`}
-                onBlur={() => setTooltip(null)}
-                onFocus={(event) => {
-                  setTooltip(getDayTooltipPosition(event.currentTarget, day));
-                }}
-                onMouseEnter={(event) => {
-                  setTooltip(getDayTooltipPosition(event.currentTarget, day));
-                }}
-                type="button"
-              />
-              {showWeekdayLabels ? (
-                <span className="text-center text-[11px] text-muted">
-                  {formatWeekdayLabel(day.date, language)}
-                </span>
-              ) : null}
-            </div>
-          );
-        })}
+            return (
+              <div className="grid min-w-0 gap-1" key={day.date}>
+                <button
+                  aria-label={`${formatDisplayDate(day.date, language)}: ${
+                    isActive
+                      ? copy.stats.last30TooltipCount(day.count)
+                      : copy.stats.last30TooltipIdle
+                  }`}
+                  className={`min-w-0 w-full rounded-[3px] outline-none transition duration-150 ${
+                    isLarge ? "aspect-square rounded-md" : "aspect-square"
+                  } ${isActive ? "bg-[#2EA043]" : "bg-border"} ${
+                    isEnd
+                      ? "ring-2 ring-text ring-offset-1 ring-offset-panel sm:ring-offset-2"
+                      : "hover:ring-1 hover:ring-text/25"
+                  }`}
+                  onBlur={() => setTooltip(null)}
+                  onFocus={(event) => {
+                    setTooltip(getDayTooltipPosition(event.currentTarget, day));
+                  }}
+                  onMouseEnter={(event) => {
+                    setTooltip(getDayTooltipPosition(event.currentTarget, day));
+                  }}
+                  type="button"
+                />
+                {showWeekdayLabels ? (
+                  <span className="truncate text-center text-[10px] text-muted sm:text-[11px]">
+                    {formatWeekdayLabel(day.date, language)}
+                  </span>
+                ) : null}
+              </div>
+            );
+          })}
+        </div>
       </fieldset>
       {tooltip ? (
         <div
-          className="pointer-events-none absolute bottom-full z-20 mb-2 w-max max-w-[220px] -translate-x-1/2 rounded-md border border-border bg-panel px-3 py-2 text-left shadow-[0_12px_28px_rgba(28,25,23,0.18)]"
+          className="pointer-events-none absolute bottom-full z-20 mb-2 w-max max-w-[min(220px,calc(100%-0.5rem))] -translate-x-1/2 rounded-md border border-border bg-panel px-3 py-2 text-left shadow-[0_12px_28px_rgba(28,25,23,0.18)]"
           style={{ left: tooltip.left }}
         >
           <p className="text-xs font-semibold text-text">
@@ -284,7 +290,7 @@ function ActivityDayStrip({
 }
 
 function getDayTooltipPosition(cell: HTMLElement, day: WorkoutDayCount) {
-  const strip = cell.closest('[role="group"]');
+  const strip = cell.closest("fieldset");
 
   if (!(strip instanceof HTMLElement)) {
     return { day, left: 0 };
@@ -292,10 +298,16 @@ function getDayTooltipPosition(cell: HTMLElement, day: WorkoutDayCount) {
 
   const stripRect = strip.getBoundingClientRect();
   const cellRect = cell.getBoundingClientRect();
+  const edgePadding = 88;
+  const rawLeft = cellRect.left + cellRect.width / 2 - stripRect.left;
+  const left = Math.min(
+    Math.max(rawLeft, edgePadding),
+    Math.max(stripRect.width - edgePadding, edgePadding),
+  );
 
   return {
     day,
-    left: cellRect.left + cellRect.width / 2 - stripRect.left,
+    left,
   };
 }
 
@@ -344,25 +356,25 @@ function StreakActiveCard({
   streak: number;
 }) {
   return (
-    <div className="streak-active-card group h-full min-w-0 rounded-2xl border border-white/20 p-4 text-white transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:shadow-[0_20px_44px_rgba(20,99,48,0.28)] motion-reduce:transform-none motion-reduce:transition-none sm:p-5">
+    <div className="streak-active-card group h-full min-w-0 max-w-full rounded-2xl border border-white/20 p-4 text-white transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:shadow-[0_20px_44px_rgba(20,99,48,0.28)] motion-reduce:transform-none motion-reduce:transition-none sm:p-5">
       <div className="relative z-[1] flex h-full min-w-0 flex-col">
-        <div className="flex items-start justify-between gap-2.5">
-          <p className="pt-1 font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-white sm:text-[11px]">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-2.5">
+          <p className="pt-0.5 font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-white sm:pt-1 sm:text-[11px]">
             {copy.stats.currentStreak}
           </p>
 
-          <span className="inline-flex max-w-[62%] items-start gap-1.5 rounded-full border border-white/15 bg-black/10 px-2.5 py-1 text-right text-[10px] font-semibold leading-tight text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-sm sm:max-w-[68%] sm:text-[11px]">
+          <span className="inline-flex max-w-full items-start gap-1.5 self-start rounded-full border border-white/15 bg-black/10 px-2.5 py-1 text-left text-[10px] font-semibold leading-tight text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-sm sm:max-w-[68%] sm:self-auto sm:text-right sm:text-[11px]">
             <span
               aria-hidden="true"
               className="mt-[0.3em] h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-200 shadow-[0_0_8px_rgba(167,243,208,0.8)]"
             />
-            {primary}
+            <span className="min-w-0">{primary}</span>
           </span>
         </div>
 
-        <div className="mt-4 flex min-w-0 items-center justify-between gap-4">
+        <div className="mt-4 flex min-w-0 items-center justify-between gap-3 sm:gap-4">
           <p className="flex min-w-0 items-end gap-2">
-            <span className="text-5xl font-semibold leading-[0.86] tracking-[-0.065em] tabular-nums text-white drop-shadow-sm">
+            <span className="text-4xl font-semibold leading-[0.86] tracking-[-0.065em] tabular-nums text-white drop-shadow-sm sm:text-5xl">
               {streak}
             </span>
             <span className="mb-0.5 text-sm font-medium leading-none text-white/90 sm:mb-1">
@@ -372,13 +384,13 @@ function StreakActiveCard({
 
           <div
             aria-hidden="true"
-            className="streak-fire-badge relative grid h-14 w-14 shrink-0 place-items-center rounded-full border border-white/25 text-amber-100 transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:-translate-y-0.5 group-hover:rotate-2 motion-reduce:transform-none motion-reduce:transition-none sm:h-16 sm:w-16"
+            className="streak-fire-badge relative grid h-12 w-12 shrink-0 place-items-center rounded-full border border-white/25 text-amber-100 transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:-translate-y-0.5 group-hover:rotate-2 motion-reduce:transform-none motion-reduce:transition-none sm:h-16 sm:w-16"
           >
-            <FaFire className="relative z-[1] h-6 w-6 drop-shadow-[0_2px_5px_rgba(120,53,15,0.35)] sm:h-7 sm:w-7" />
+            <FaFire className="relative z-[1] h-5 w-5 drop-shadow-[0_2px_5px_rgba(120,53,15,0.35)] sm:h-7 sm:w-7" />
           </div>
         </div>
 
-        <div className="mt-5 flex items-center gap-3 rounded-xl border border-white/15 bg-black/10 px-3 py-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-sm">
+        <div className="mt-4 flex items-center gap-3 rounded-xl border border-white/15 bg-black/10 px-3 py-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-sm sm:mt-5">
           <span
             aria-hidden="true"
             className="h-8 w-1 shrink-0 rounded-full bg-gradient-to-b from-amber-200 via-emerald-200 to-white/25"
@@ -388,7 +400,7 @@ function StreakActiveCard({
           </p>
           <span
             aria-hidden="true"
-            className="ml-auto h-px w-8 shrink-0 bg-gradient-to-r from-white/45 to-transparent"
+            className="ml-auto hidden h-px w-8 shrink-0 bg-gradient-to-r from-white/45 to-transparent sm:block"
           />
         </div>
       </div>
@@ -410,9 +422,9 @@ function StatCard({
   valueSuffix?: string;
 }) {
   return (
-    <div className="rounded-lg border border-border p-5 transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgba(17,17,17,0.04)]">
+    <div className="min-w-0 max-w-full rounded-lg border border-border p-4 transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgba(17,17,17,0.04)] sm:p-5">
       <div className="flex items-start justify-between gap-3">
-        <div>
+        <div className="min-w-0">
           <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-muted">{label}</p>
           <p className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-text">
             {value}
@@ -425,7 +437,7 @@ function StatCard({
           {detail ? <p className="mt-1 text-sm text-muted">{detail}</p> : null}
         </div>
       </div>
-      <div className="mt-4">{children}</div>
+      <div className="mt-4 min-w-0 max-w-full">{children}</div>
     </div>
   );
 }
