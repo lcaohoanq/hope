@@ -128,8 +128,8 @@ importers:
         version: 6.18.0(@react-email/render@2.1.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8))
     devDependencies:
       '@next/env':
-        specifier: 16.3.0-preview.9
-        version: 16.3.0-preview.9
+        specifier: 16.3.0-preview.10
+        version: 16.3.0-preview.10
       '@types/node':
         specifier: ^26.1.2
         version: 26.1.2
@@ -416,8 +416,8 @@ importers:
         specifier: ^5.20260727.1
         version: 5.20260727.1
       '@next/env':
-        specifier: ^16.3.0-preview.9
-        version: 16.3.0-preview.9
+        specifier: ^16.3.0-preview.10
+        version: 16.3.0-preview.10
       '@playwright/test':
         specifier: ^1.62.0
         version: 1.62.0
@@ -512,8 +512,8 @@ importers:
         version: 3.4.9
     devDependencies:
       '@next/env':
-        specifier: 16.3.0-preview.9
-        version: 16.3.0-preview.9
+        specifier: 16.3.0-preview.10
+        version: 16.3.0-preview.10
       '@types/node':
         specifier: ^26.1.2
         version: 26.1.2
@@ -3623,6 +3623,9 @@ packages:
 
   '@napi-rs/wasm-runtime@1.0.7':
     resolution: {integrity: sha512-SeDnOO0Tk7Okiq6DbXmmBODgOAb9dp9gjlphokTUxmt8U3liIP1ZsozBahH69j/RJv+Rfs6IwUKHTgQYJ/HBAw==}
+
+  '@next/env@16.3.0-preview.10':
+    resolution: {integrity: sha512-R4uP3RswLWJnbsGqbtoHnE5cZY+2VR7KDMyp/UMvBX/SFRNF/YxTs0Dikr+fL4zhyrFKoejn5Iv+24vzZrNn6g==}
 
   '@next/env@16.3.0-preview.9':
     resolution: {integrity: sha512-BcD+/sVDfoHckHcEx6e4RaLfWrUb+DpXgL9jOc6f29RTyvNwVVtnAaPljp3ok4zFQan6RhFE7q32lSXAFjjV9A==}
@@ -17345,6 +17348,8 @@ snapshots:
       '@emnapi/runtime': 1.11.2
       '@tybys/wasm-util': 0.10.3
     optional: true
+
+  '@next/env@16.3.0-preview.10': {}
 
   '@next/env@16.3.0-preview.9': {}
 
