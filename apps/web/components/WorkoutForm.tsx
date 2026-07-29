@@ -31,7 +31,7 @@ const initialForm = (defaultDate: string): WorkoutInput => ({
   date: defaultDate,
   type: "",
   note: "",
-  isPublic: false,
+  isPublic: true,
 });
 
 const MAX_SELECTED_IMAGES = 3;
@@ -254,24 +254,16 @@ export function WorkoutForm({
             {copy.form.logWorkout}
           </h2>
         </div>
-        <div className="flex shrink-0 items-center gap-2">
-          <PublicPrivateStatusToggle
-            ariaLabel={copy.form.publicWorkout}
-            checked={form.isPublic}
-            disabled={isSubmitting}
-            onCheckedChange={(isPublic) => setForm((current) => ({ ...current, isPublic }))}
-          />
-          {onClose ? (
-            <button
-              aria-label={closeAriaLabel ?? copy.common.close}
-              className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-border bg-panel text-xl leading-none text-muted transition hover:bg-panel-muted hover:text-text sm:h-9 sm:w-9"
-              onClick={onClose}
-              type="button"
-            >
-              x
-            </button>
-          ) : null}
-        </div>
+        {onClose ? (
+          <button
+            aria-label={closeAriaLabel ?? copy.common.close}
+            className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-border bg-panel text-xl leading-none text-muted transition hover:bg-panel-muted hover:text-text sm:h-9 sm:w-9"
+            onClick={onClose}
+            type="button"
+          >
+            x
+          </button>
+        ) : null}
       </div>
 
       <div
@@ -304,6 +296,21 @@ export function WorkoutForm({
               value={form.date}
             />
           </label>
+
+          <div className="flex items-center justify-between gap-4 rounded-md border border-border bg-panel-muted px-3 py-3">
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-text">{copy.form.publicWorkout}</p>
+              <p className="mt-1 text-xs leading-5 text-muted">{copy.form.publicWorkoutHelp}</p>
+            </div>
+            <div className="shrink-0">
+              <PublicPrivateStatusToggle
+                ariaLabel={copy.form.publicWorkout}
+                checked={form.isPublic}
+                disabled={isSubmitting}
+                onCheckedChange={(isPublic) => setForm((current) => ({ ...current, isPublic }))}
+              />
+            </div>
+          </div>
 
           <label className="grid gap-2 text-sm font-medium text-text">
             {copy.form.note}
