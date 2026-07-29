@@ -183,7 +183,7 @@ export function ContributionHeatmap({
       ) : null}
       <div className="relative">
         <div
-          className="relative z-0 mb-0 max-h-[min(70dvh,620px)] overflow-auto overscroll-x-contain pr-1 [-webkit-overflow-scrolling:touch]"
+          className="relative z-0 mb-0 max-h-[min(70dvh,620px)] overflow-auto overscroll-x-contain pr-1 [-webkit-overflow-scrolling:touch] sm:[scrollbar-width:none] sm:[&::-webkit-scrollbar]:hidden"
           ref={scrollRef}
         >
           <div className="grid min-w-[720px] gap-5 sm:min-w-[900px]">
