@@ -20,7 +20,7 @@
     "@next/env": "16.3.0-preview.10",
     "@types/node": "^26.1.2",
     "@types/react": "^19.2.18",
-    "tsx": "^4.23.1",
+    "tsx": "^4.23.5",
     "typescript": "^6.0.3"
   }
 }
