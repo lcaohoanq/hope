@@ -52,7 +52,7 @@
     "@clerk/backend": "^3.15.0",
     "@clerk/testing": "^2.2.16",
     "@cloudflare/workers-types": "^5.20260801.1",
-    "@next/env": "^16.3.0-preview.10",
+    "@next/env": "^16.3.0",
     "@playwright/test": "^1.62.1",
     "@types/node": "^26.1.2",
     "@types/react": "^19.2.18",
