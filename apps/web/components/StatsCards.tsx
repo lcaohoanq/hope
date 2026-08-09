@@ -25,6 +25,7 @@ type StatsCardsProps = {
 const CHART = {
   accent: "#2EA043",
   study: "#3B82F6",
+  work: "#F59E0B",
   other: "#A8A29E",
   muted: "oklch(var(--color-muted))",
   text: "oklch(var(--color-text))",
@@ -32,9 +33,10 @@ const CHART = {
   border: "oklch(var(--color-border))",
 } as const;
 
-const MIX_COLORS: Record<"workout" | "study" | "other", string> = {
+const MIX_COLORS: Record<ActivityMixKey, string> = {
   workout: CHART.accent,
   study: CHART.study,
+  work: CHART.work,
   other: CHART.other,
 };
 

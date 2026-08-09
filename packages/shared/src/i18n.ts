@@ -32,6 +32,7 @@ export const translations = {
       labels: {
         other: "Hoạt động khác",
         study: "Học tập",
+        work: "Công việc",
         workout: "Tập luyện",
       },
       modalTitle: "Chọn hoạt động",
@@ -325,6 +326,7 @@ export const translations = {
       labels: {
         other: "Other activity",
         study: "Study",
+        work: "Work",
         workout: "Workout",
       },
       modalTitle: "Choose an activity",
