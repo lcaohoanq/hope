@@ -4,7 +4,7 @@ import type { ActivityTypeSummary, Language } from "@hope/shared";
 import { AnimatePresence, motion } from "framer-motion";
 import { type ReactNode, useEffect, useId, useMemo, useState } from "react";
 import type { IconType } from "react-icons";
-import { FaBicycle, FaBook, FaEllipsisH, FaStar } from "react-icons/fa";
+import { FaBicycle, FaBook, FaBriefcase, FaEllipsisH, FaStar } from "react-icons/fa";
 import { getClientApiClient, parseApiJson } from "@/lib/http";
 import type { AppCopy } from "@/lib/i18n";
 
@@ -22,6 +22,7 @@ type ActivityTypeSelectorProps = {
 const ICON_BY_SLUG: Record<string, IconType> = {
   workout: FaBicycle,
   study: FaBook,
+  work: FaBriefcase,
   other: FaEllipsisH,
 };
 
@@ -74,11 +75,19 @@ const FALLBACK_TYPES: ActivityTypeSummary[] = [
     isActive: true,
   },
   {
+    id: "activity-type-work",
+    slug: "work",
+    label: { en: "Work", vi: "Công việc" },
+    weight: 2,
+    sortOrder: 2,
+    isActive: true,
+  },
+  {
     id: "activity-type-other",
     slug: "other",
     label: { en: "Other", vi: "Hoạt động khác" },
     weight: 1,
-    sortOrder: 2,
+    sortOrder: 3,
     isActive: true,
   },
 ];

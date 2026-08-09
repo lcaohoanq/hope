@@ -433,7 +433,7 @@ export function replaceWorkout(data: WorkoutData, workout: Workout): WorkoutData
   };
 }
 
-export type ActivityMixKey = "workout" | "study" | "other";
+export type ActivityMixKey = "workout" | "study" | "work" | "other";
 
 export type WorkoutDayCount = {
   date: string;
@@ -593,6 +593,7 @@ function getActivityMix(workouts: Workout[]) {
   const counts: Record<ActivityMixKey, number> = {
     workout: 0,
     study: 0,
+    work: 0,
     other: 0,
   };
 
@@ -608,7 +609,7 @@ function getActivityMix(workouts: Workout[]) {
 function normalizeActivityMixKey(type: string): ActivityMixKey {
   const normalized = type.trim().toLowerCase();
 
-  if (normalized === "study" || normalized === "other") {
+  if (normalized === "study" || normalized === "work" || normalized === "other") {
     return normalized;
   }
 
