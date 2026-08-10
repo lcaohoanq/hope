@@ -39,17 +39,17 @@ importers:
   apps/api:
     dependencies:
       '@aws-sdk/client-s3':
-        specifier: ^3.1103.0
-        version: 3.1103.0
+        specifier: ^3.1105.0
+        version: 3.1105.0
       '@clerk/backend':
-        specifier: ^3.15.1
-        version: 3.15.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+        specifier: ^3.16.0
+        version: 3.16.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@hono/node-server':
         specifier: ^2.1.0
         version: 2.1.0(hono@4.13.0)
       '@hono/standard-validator':
-        specifier: ^0.3.0
-        version: 0.3.0(@standard-schema/spec@1.1.0)(hono@4.13.0)
+        specifier: ^0.4.0
+        version: 0.4.0(@standard-schema/spec@1.1.0)(hono@4.13.0)
       '@hope/core':
         specifier: workspace:*
         version: link:../../packages/core
@@ -76,7 +76,7 @@ importers:
         version: 4.13.0
       hono-openapi:
         specifier: ^1.3.1
-        version: 1.3.1(@hono/standard-validator@0.3.0(@standard-schema/spec@1.1.0)(hono@4.13.0))(@standard-community/standard-json@0.3.5(@standard-schema/spec@1.1.0)(@types/json-schema@7.0.15)(quansync@0.2.11)(zod-to-json-schema@3.25.2(zod@4.4.3))(zod@4.4.3))(@standard-community/standard-openapi@0.2.9(@standard-community/standard-json@0.3.5(@standard-schema/spec@1.1.0)(@types/json-schema@7.0.15)(quansync@0.2.11)(zod-to-json-schema@3.25.2(zod@4.4.3))(zod@4.4.3))(@standard-schema/spec@1.1.0)(openapi-types@12.1.3)(zod@4.4.3))(@types/json-schema@7.0.15)(hono@4.13.0)(openapi-types@12.1.3)
+        version: 1.3.1(@hono/standard-validator@0.4.0(@standard-schema/spec@1.1.0)(hono@4.13.0))(@standard-community/standard-json@0.3.5(@standard-schema/spec@1.1.0)(@types/json-schema@7.0.15)(quansync@0.2.11)(zod-to-json-schema@3.25.2(zod@4.4.3))(zod@4.4.3))(@standard-community/standard-openapi@0.2.9(@standard-community/standard-json@0.3.5(@standard-schema/spec@1.1.0)(@types/json-schema@7.0.15)(quansync@0.2.11)(zod-to-json-schema@3.25.2(zod@4.4.3))(zod@4.4.3))(@standard-schema/spec@1.1.0)(openapi-types@12.1.3)(zod@4.4.3))(@types/json-schema@7.0.15)(hono@4.13.0)(openapi-types@12.1.3)
       openapi-types:
         specifier: ^12.1.3
         version: 12.1.3
@@ -106,8 +106,8 @@ importers:
   apps/cron:
     dependencies:
       '@clerk/backend':
-        specifier: ^3.15.1
-        version: 3.15.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+        specifier: ^3.16.0
+        version: 3.16.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@hope/core':
         specifier: workspace:*
         version: link:../../packages/core
@@ -307,8 +307,8 @@ importers:
   apps/web:
     dependencies:
       '@clerk/nextjs':
-        specifier: ^7.6.5
-        version: 7.6.5(next@16.3.0(@babel/core@7.29.7)(@opentelemetry/api@1.9.0)(@playwright/test@1.62.1)(@types/node@26.1.2)(babel-plugin-macros@3.1.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+        specifier: ^7.7.0
+        version: 7.7.0(next@16.3.0(@babel/core@7.29.7)(@opentelemetry/api@1.9.0)(@playwright/test@1.62.1)(@types/node@26.1.2)(babel-plugin-macros@3.1.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@hope/api-client':
         specifier: workspace:*
         version: link:../../packages/api-client
@@ -364,8 +364,8 @@ importers:
         specifier: ^0.0.4
         version: 0.0.4
       lucide-react:
-        specifier: ^1.28.0
-        version: 1.28.0(react@19.2.8)
+        specifier: ^1.29.0
+        version: 1.29.0(react@19.2.8)
       motion:
         specifier: ^12.43.0
         version: 12.43.0(@emotion/is-prop-valid@1.4.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -394,8 +394,8 @@ importers:
         specifier: ^6.5.0
         version: 6.5.0(react-dom@19.2.8(react@19.2.8))(react-native@0.86.2(@babel/core@7.29.7)(@react-native/metro-config@0.86.2(@babel/core@7.29.7))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.8))(react@19.2.8)
       swiper:
-        specifier: ^14.0.7
-        version: 14.0.7
+        specifier: ^14.1.0
+        version: 14.1.0
       tailwind-merge:
         specifier: ^3.6.0
         version: 3.6.0
@@ -407,8 +407,8 @@ importers:
         version: 4.4.3
     devDependencies:
       '@clerk/backend':
-        specifier: ^3.15.1
-        version: 3.15.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+        specifier: ^3.16.0
+        version: 3.16.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@clerk/testing':
         specifier: ^2.2.17
         version: 2.2.17(@playwright/test@1.62.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -477,8 +477,8 @@ importers:
   packages/core:
     dependencies:
       '@aws-sdk/client-s3':
-        specifier: ^3.1103.0
-        version: 3.1103.0
+        specifier: ^3.1105.0
+        version: 3.1105.0
       '@hope/db':
         specifier: workspace:*
         version: link:../db
@@ -666,8 +666,8 @@ packages:
     resolution: {integrity: sha512-CGznePoL+1oWCSzqmkvlYMpWQEZohPR3LntjKXXfVH+oh6Kd8d+yHLkjpiAGwPIHAxFe4OAq3aKfRnv/wqWIyA==}
     engines: {node: '>=20.0.0'}
 
-  '@aws-sdk/client-s3@3.1103.0':
-    resolution: {integrity: sha512-FO7SB2vLhZRN3lBHVhMhRm3YKSHK8e917qjB8LMEEhU69cQ0Ahd/OMyezu+KqNANqEtyxfSnFVvYt81x6ZKGZA==}
+  '@aws-sdk/client-s3@3.1105.0':
+    resolution: {integrity: sha512-eiR289CNgH2atIh2zOSDSpXOmDVGCxFEk0S8jMHo599oTCjcnjmlNOVsFCWXx5jMPP83+c47Wl/1R7xgUVBzZw==}
     engines: {node: '>=20.0.0'}
 
   '@aws-sdk/core@3.977.6':
@@ -1442,8 +1442,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@clerk/backend@3.15.1':
-    resolution: {integrity: sha512-/haECiKneGkRXkedhNHYp8tK9kjDpWIf6vtWhd+zeJ+HE6a7A9UOcajLUipvbqe834iAJAewhzUretCSrhAglg==}
+  '@clerk/backend@3.16.0':
+    resolution: {integrity: sha512-x+FO1BGGKeT/0q8XFtmkEpIszvxRTdADyPnWN/NlP0Lh/lQqG74ynWNE617AuUIF7bA4ZBYDDI3Xe280PCBkuA==}
     engines: {node: '>=20.9.0'}
 
   '@clerk/clerk-expo@2.19.31':
@@ -1491,8 +1491,8 @@ packages:
     resolution: {integrity: sha512-ib/8WciLkflXsg72IM9BjMZgENUv3nfXx1BrygKkpDqFPb1Dshron1+u+sG7dD+quQpZOLn6iie2Vno5YJy3zQ==}
     engines: {node: '>=18.17.0'}
 
-  '@clerk/nextjs@7.6.5':
-    resolution: {integrity: sha512-bBj7dn4P9WjYeax3z63u/4uKHnKBVWdnUZfA7M69FqBekT954VrgYq1r1PfpEexWsrm7ZIUY56JoJBwOsgIXNg==}
+  '@clerk/nextjs@7.7.0':
+    resolution: {integrity: sha512-Y7+uBa3euk7tSvxnEiGJWmSyYL3r+HwaxZRGa9+Oa9lRIi2BliYhUjLPbVPaDRK0V8zZdnSeERx0hrn+Hr3Fpg==}
     engines: {node: '>=20.9.0'}
     peerDependencies:
       next: ^15.2.8 || ^15.3.8 || ^15.4.10 || ^15.5.9 || ^15.6.0-0 || ^16.0.10 || ^16.1.0-0
@@ -3094,8 +3094,8 @@ packages:
     peerDependencies:
       hono: ^4
 
-  '@hono/standard-validator@0.3.0':
-    resolution: {integrity: sha512-tHLKEjKXDcHImj0XTFWW4Hr0ev+1G5GxnBZrGdpg/7NLy9s9meFPTSCOkw++ZzZKom3FjrMw2e0nFQpPPvwUVQ==}
+  '@hono/standard-validator@0.4.0':
+    resolution: {integrity: sha512-MxOm1asDh9j7c1D0KiWwppSbFgAQxTRO4YEhjMrJn3lF1BIcXenPdgjSGKDRfQmZdaTaMA8slQLETgVOKyJxFw==}
     peerDependencies:
       '@standard-schema/spec': ^1.0.0
       hono: '>=4.11.2'
@@ -9350,8 +9350,8 @@ packages:
   lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
 
-  lucide-react@1.28.0:
-    resolution: {integrity: sha512-fARAFJULsGuDDydjp6+6blekG/sBIM29TerzLjc9bQUKAcEfrSc4ZQKb25KRz4OMKd87cZTb5dgq0w/T6KufVg==}
+  lucide-react@1.29.0:
+    resolution: {integrity: sha512-Xs9QFG5+9sNX04MdKVT4++umA+hJ2qsJVlRlRWHQ7qZobXgMiNHSpZ5eZm8JUoGCdNyoEdXoEwa8HVr0DNjOQg==}
     peerDependencies:
       react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
@@ -11905,8 +11905,8 @@ packages:
       '@swc/core': ^1.2.147
       webpack: '>=2'
 
-  swiper@14.0.7:
-    resolution: {integrity: sha512-PDMY+8hNQBh4kAYdfKIF1GNS7u3hg4xl3NVKBey0rENnpUpTsiE/aCcbgpmm1PIf4RMI7loO3XhW9BdxLzQw0A==}
+  swiper@14.1.0:
+    resolution: {integrity: sha512-ppit/AqmGvThKlXy4I1/9N/gEyb9s/BDHWciWNeIxbfteFKUhPQXrYuOMKszomXKd9WiLd+/0vKdPHW+0N0mhA==}
     engines: {node: '>= 4.7.0'}
 
   swr@2.3.4:
@@ -13012,7 +13012,7 @@ snapshots:
       '@smithy/types': 4.16.1
       tslib: 2.8.1
 
-  '@aws-sdk/client-s3@3.1103.0':
+  '@aws-sdk/client-s3@3.1105.0':
     dependencies:
       '@aws-sdk/checksums': 3.1000.26
       '@aws-sdk/core': 3.977.6
@@ -14067,7 +14067,7 @@ snapshots:
   '@biomejs/cli-win32-x64@2.5.7':
     optional: true
 
-  '@clerk/backend@3.15.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
+  '@clerk/backend@3.16.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
     dependencies:
       '@clerk/shared': 4.27.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       standardwebhooks: 1.0.0
@@ -14167,9 +14167,9 @@ snapshots:
       - react
       - react-dom
 
-  '@clerk/nextjs@7.6.5(next@16.3.0(@babel/core@7.29.7)(@opentelemetry/api@1.9.0)(@playwright/test@1.62.1)(@types/node@26.1.2)(babel-plugin-macros@3.1.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
+  '@clerk/nextjs@7.7.0(next@16.3.0(@babel/core@7.29.7)(@opentelemetry/api@1.9.0)(@playwright/test@1.62.1)(@types/node@26.1.2)(babel-plugin-macros@3.1.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
     dependencies:
-      '@clerk/backend': 3.15.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@clerk/backend': 3.16.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@clerk/react': 6.13.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@clerk/shared': 4.27.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       next: 16.3.0(@babel/core@7.29.7)(@opentelemetry/api@1.9.0)(@playwright/test@1.62.1)(@types/node@26.1.2)(babel-plugin-macros@3.1.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -14209,7 +14209,7 @@ snapshots:
 
   '@clerk/testing@2.2.17(@playwright/test@1.62.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
     dependencies:
-      '@clerk/backend': 3.15.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@clerk/backend': 3.16.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@clerk/shared': 4.27.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       dotenv: 17.2.2
     optionalDependencies:
@@ -16719,7 +16719,7 @@ snapshots:
     dependencies:
       hono: 4.13.0
 
-  '@hono/standard-validator@0.3.0(@standard-schema/spec@1.1.0)(hono@4.13.0)':
+  '@hono/standard-validator@0.4.0(@standard-schema/spec@1.1.0)(hono@4.13.0)':
     dependencies:
       '@standard-schema/spec': 1.1.0
       hono: 4.13.0
@@ -22994,14 +22994,14 @@ snapshots:
     dependencies:
       react-is: 16.13.1
 
-  hono-openapi@1.3.1(@hono/standard-validator@0.3.0(@standard-schema/spec@1.1.0)(hono@4.13.0))(@standard-community/standard-json@0.3.5(@standard-schema/spec@1.1.0)(@types/json-schema@7.0.15)(quansync@0.2.11)(zod-to-json-schema@3.25.2(zod@4.4.3))(zod@4.4.3))(@standard-community/standard-openapi@0.2.9(@standard-community/standard-json@0.3.5(@standard-schema/spec@1.1.0)(@types/json-schema@7.0.15)(quansync@0.2.11)(zod-to-json-schema@3.25.2(zod@4.4.3))(zod@4.4.3))(@standard-schema/spec@1.1.0)(openapi-types@12.1.3)(zod@4.4.3))(@types/json-schema@7.0.15)(hono@4.13.0)(openapi-types@12.1.3):
+  hono-openapi@1.3.1(@hono/standard-validator@0.4.0(@standard-schema/spec@1.1.0)(hono@4.13.0))(@standard-community/standard-json@0.3.5(@standard-schema/spec@1.1.0)(@types/json-schema@7.0.15)(quansync@0.2.11)(zod-to-json-schema@3.25.2(zod@4.4.3))(zod@4.4.3))(@standard-community/standard-openapi@0.2.9(@standard-community/standard-json@0.3.5(@standard-schema/spec@1.1.0)(@types/json-schema@7.0.15)(quansync@0.2.11)(zod-to-json-schema@3.25.2(zod@4.4.3))(zod@4.4.3))(@standard-schema/spec@1.1.0)(openapi-types@12.1.3)(zod@4.4.3))(@types/json-schema@7.0.15)(hono@4.13.0)(openapi-types@12.1.3):
     dependencies:
       '@standard-community/standard-json': 0.3.5(@standard-schema/spec@1.1.0)(@types/json-schema@7.0.15)(quansync@0.2.11)(zod-to-json-schema@3.25.2(zod@4.4.3))(zod@4.4.3)
       '@standard-community/standard-openapi': 0.2.9(@standard-community/standard-json@0.3.5(@standard-schema/spec@1.1.0)(@types/json-schema@7.0.15)(quansync@0.2.11)(zod-to-json-schema@3.25.2(zod@4.4.3))(zod@4.4.3))(@standard-schema/spec@1.1.0)(openapi-types@12.1.3)(zod@4.4.3)
       '@types/json-schema': 7.0.15
       openapi-types: 12.1.3
     optionalDependencies:
-      '@hono/standard-validator': 0.3.0(@standard-schema/spec@1.1.0)(hono@4.13.0)
+      '@hono/standard-validator': 0.4.0(@standard-schema/spec@1.1.0)(hono@4.13.0)
       hono: 4.13.0
 
   hono@4.13.0: {}
@@ -23692,7 +23692,7 @@ snapshots:
     dependencies:
       yallist: 3.1.1
 
-  lucide-react@1.28.0(react@19.2.8):
+  lucide-react@1.29.0(react@19.2.8):
     dependencies:
       react: 19.2.8
 
@@ -27108,7 +27108,7 @@ snapshots:
       '@swc/counter': 0.1.3
       webpack: 5.109.2(@swc/core@1.15.46(@swc/helpers@0.5.23))(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)
 
-  swiper@14.0.7: {}
+  swiper@14.1.0: {}
 
   swr@2.3.4(react@19.2.8):
     dependencies:
