@@ -1,3 +1,4 @@
+import { Buffer } from "node:buffer";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { externalHttpClient } from "@/lib/http";
@@ -89,8 +90,8 @@ function encodeBase64(value: string) {
   return Buffer.from(value, "utf8").toString("base64");
 }
 
-function encodeBase64Buffer(value: Buffer) {
-  return value.toString("base64");
+function encodeBase64Buffer(value: Uint8Array) {
+  return Buffer.from(value).toString("base64");
 }
 
 function decodeBase64(value: string) {

@@ -1,3 +1,4 @@
+import { Buffer } from "node:buffer";
 import path from "node:path";
 import { clerk } from "@clerk/testing/playwright";
 import { expect, test } from "@playwright/test";
@@ -295,7 +296,7 @@ test("lets the owner reposition and crop an avatar in settings before upload", a
   await dialog.getByRole("button", { name: /cancel|hủy/i }).click();
   await expect(dialog).toBeHidden();
 
-  let uploadedBody: Buffer | null = null;
+  let uploadedBody: Uint8Array | null = null;
   await page.route("**/api/users/avatar", async (route) => {
     uploadedBody = route.request().postDataBuffer();
     await route.fulfill({
@@ -318,7 +319,7 @@ test("lets the owner reposition and crop an avatar in settings before upload", a
   await expect(dialog).toBeHidden();
 
   expect(uploadedBody).not.toBeNull();
-  const multipart = uploadedBody!.toString("latin1");
+  const multipart = Buffer.from(uploadedBody!).toString("latin1");
   expect(multipart).toContain('name="avatar"');
   expect(multipart).toContain("-cropped.webp");
   expect(multipart).toContain("image/webp");
