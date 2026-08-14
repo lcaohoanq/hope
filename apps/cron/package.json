@@ -8,17 +8,17 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@clerk/backend": "^3.15.1",
+    "@clerk/backend": "^3.16.3",
     "@hope/core": "workspace:*",
     "@hope/db": "workspace:*",
     "@hope/shared": "workspace:*",
     "@react-email/components": "^1.0.12",
     "@react-email/render": "^2.1.0",
-    "resend": "^6.18.1"
+    "resend": "^6.19.0"
   },
   "devDependencies": {
     "@next/env": "16.3.0",
-    "@types/node": "^26.1.2",
+    "@types/node": "^26.2.0",
     "@types/react": "^19.2.18",
     "tsx": "^4.23.8",
     "typescript": "^6.0.3"
