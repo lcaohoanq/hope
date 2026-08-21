@@ -14,7 +14,7 @@
     "migrate:legacy": "tsx scripts/migrate-legacy.ts"
   },
   "dependencies": {
-    "@clerk/nextjs": "^7.7.5",
+    "@clerk/nextjs": "^7.7.7",
     "@hope/api-client": "workspace:*",
     "@hope/core": "workspace:*",
     "@hope/db": "workspace:*",
@@ -42,15 +42,15 @@
     "react-easy-crop": "^6.2.3",
     "react-icons": "^5.7.0",
     "recharts": "^3.10.1",
-    "styled-components": "^6.5.2",
+    "styled-components": "^6.5.3",
     "swiper": "^14.1.0",
     "tailwind-merge": "^3.6.0",
     "three": "^0.185.1",
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@clerk/backend": "^3.16.5",
-    "@clerk/testing": "^2.2.23",
+    "@clerk/backend": "^3.16.7",
+    "@clerk/testing": "^2.2.25",
     "@cloudflare/workers-types": "^5.20260811.1",
     "@next/env": "^16.3.1",
     "@playwright/test": "^1.62.1",
