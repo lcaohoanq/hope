@@ -14,7 +14,7 @@
     "migrate:legacy": "tsx scripts/migrate-legacy.ts"
   },
   "dependencies": {
-    "@clerk/nextjs": "^7.7.9",
+    "@clerk/nextjs": "^7.8.0",
     "@hope/api-client": "workspace:*",
     "@hope/core": "workspace:*",
     "@hope/db": "workspace:*",
@@ -33,7 +33,7 @@
     "framer-motion": "^12.43.0",
     "gsap": "^3.15.0",
     "heic2any": "^0.0.4",
-    "lucide-react": "^1.31.0",
+    "lucide-react": "^1.33.0",
     "motion": "^12.43.0",
     "next": "16.3.1",
     "ogl": "^1.0.11",
@@ -51,7 +51,7 @@
   "devDependencies": {
     "@clerk/backend": "^3.16.9",
     "@clerk/testing": "^2.2.27",
-    "@cloudflare/workers-types": "^5.20260817.1",
+    "@cloudflare/workers-types": "^5.20260821.1",
     "@next/env": "^16.3.1",
     "@playwright/test": "^1.62.1",
     "@types/node": "^26.2.0",
