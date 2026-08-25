@@ -15,7 +15,7 @@
     "hono": "^4.13.3"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^5.20260817.1",
+    "@cloudflare/workers-types": "^5.20260822.1",
     "@hope/api": "workspace:*",
     "@types/node": "^26.2.0",
     "typescript": "^6.0.3"
