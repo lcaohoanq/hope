@@ -8,7 +8,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@clerk/backend": "^3.16.9",
+    "@clerk/backend": "^3.16.10",
     "@hope/core": "workspace:*",
     "@hope/db": "workspace:*",
     "@hope/shared": "workspace:*",
@@ -17,7 +17,7 @@
     "resend": "^6.20.0"
   },
   "devDependencies": {
-    "@next/env": "16.3.1",
+    "@next/env": "16.3.2",
     "@types/node": "^26.2.0",
     "@types/react": "^19.2.18",
     "tsx": "^4.23.12",
