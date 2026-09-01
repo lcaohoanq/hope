@@ -27,14 +27,14 @@
     "prepare": "lefthook install"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.9",
+    "@biomejs/biome": "2.5.11",
     "@types/inquirer": "^9.0.10",
     "chalk": "^5.6.2",
     "commander": "^15.0.0",
     "inquirer": "^14.1.0",
-    "lefthook": "2.1.10",
+    "lefthook": "2.1.12",
     "ora": "^9.4.1",
     "tsx": "^4.23.12",
-    "turbo": "^2.10.11"
+    "turbo": "^2.10.12"
   }
 }
