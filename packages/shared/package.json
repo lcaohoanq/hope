@@ -14,7 +14,7 @@
     "test": "tsx --test src/*.test.ts"
   },
   "dependencies": {
-    "zod": "^4.6.2"
+    "zod": "^4.6.3"
   },
   "devDependencies": {
     "tsx": "^4.23.13",
