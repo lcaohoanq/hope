@@ -35,7 +35,7 @@
     "heic2any": "^0.0.4",
     "lucide-react": "^1.45.0",
     "motion": "^12.43.0",
-    "next": "16.3.4",
+    "next": "16.3.5",
     "ogl": "^1.0.11",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
@@ -46,13 +46,13 @@
     "swiper": "^14.2.0",
     "tailwind-merge": "^3.6.0",
     "three": "^0.186.0",
-    "zod": "^4.6.2"
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@clerk/backend": "^3.17.2",
-    "@clerk/testing": "^2.2.33",
+    "@clerk/testing": "^2.2.34",
     "@cloudflare/workers-types": "^5.20260911.1",
-    "@next/env": "^16.3.4",
+    "@next/env": "^16.3.5",
     "@playwright/test": "^1.63.0",
     "@types/node": "^26.5.1",
     "@types/react": "^19.3.0",
