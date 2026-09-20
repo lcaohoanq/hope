@@ -11,8 +11,10 @@ import {
   type WfhCheckIn,
   type WfhSettings,
 } from "@hope/shared";
+import { Settings } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getClientApiClient } from "@/lib/http";
+import { WfhSettingsDialog } from "./WfhSettingsDialog";
 
 const panel = "rounded-lg border border-border bg-panel p-4 sm:p-6";
 const input = "rounded-md border border-border bg-app p-2 text-text";
@@ -35,6 +37,8 @@ export function WfhTracker({ language }: { language: "en" | "vi" }) {
   const [selected, setSelected] = useState(today);
   const [note, setNote] = useState("");
   const [status, setStatus] = useState<"WFH" | "OFFICE">("WFH");
+  const [editor, setEditor] = useState(false);
+  const [confirmation, setConfirmation] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const dialog = useRef<HTMLDialogElement>(null);
   const generation = useRef(0);
@@ -108,6 +112,14 @@ export function WfhTracker({ language }: { language: "en" | "vi" }) {
     }
   }
   const stats = calculateWfhStats(records, year, quota);
+  const usage = quota > 0 ? Math.min(100, (stats.used / quota) * 100) : stats.used > 0 ? 100 : 0;
+  const formatDate = (date: string, includeYear = true) =>
+    new Intl.DateTimeFormat(vi ? "vi" : "en", {
+      month: vi ? "long" : "short",
+      day: "numeric",
+      ...(includeYear ? { year: "numeric" as const } : {}),
+      timeZone: "UTC",
+    }).format(new Date(`${date}T00:00:00Z`));
   const byDate = new Map(records.map((record) => [record.date, record]));
   const statusLabel = (status?: string) =>
     status === "WFH"
@@ -138,31 +150,14 @@ export function WfhTracker({ language }: { language: "en" | "vi" }) {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold">{t("WFH tracker", "Theo dõi WFH")}</h1>
-          <p className="text-sm text-muted">
+          {/* <p className="text-sm text-muted">
             {t("Private · Your calendar-year allowance", "Riêng tư · Hạn mức theo năm dương lịch")}
-          </p>
+          </p> */}
         </div>
-        <label>
-          {t("Year", "Năm")}{" "}
-          <input
-            aria-label={t("Year", "Năm")}
-            className={`${input} w-24`}
-            type="number"
-            min="1900"
-            max="9998"
-            value={year}
-            disabled={busy || loading}
-            onChange={(e) => {
-              const value = Number(e.target.value);
-              if (value >= 1900 && value <= 9998) {
-                setYear(value);
-                setSelected(`${value}-01-01`);
-                setNote("");
-              }
-            }}
-          />
-        </label>
       </div>
+      <p role="status" className={confirmation ? "text-sm text-muted" : "sr-only"}>
+        {confirmation}
+      </p>
       {error && (
         <div role="alert" className="rounded-lg border border-danger-border p-4 text-danger">
           {error}{" "}
@@ -175,72 +170,115 @@ export function WfhTracker({ language }: { language: "en" | "vi" }) {
         <p role="status">{t("Loading…", "Đang tải…")}</p>
       ) : loaded ? (
         <>
-          <section className={panel}>
-            <h2 className="mb-3 font-semibold">
-              {settings
-                ? t("Employment & reminders", "Công việc & nhắc nhở")
-                : t("Set up WFH tracking", "Thiết lập theo dõi WFH")}
-            </h2>
-            <form
-              key={JSON.stringify(settings)}
-              className="grid gap-3"
-              onSubmit={(e) => {
-                e.preventDefault();
-                const data = new FormData(e.currentTarget);
-                void mutate((client) =>
-                  client.wfh.settings.$patch({
-                    json: {
-                      startDate: String(data.get("startDate")),
-                      endDate: String(data.get("endDate")) || null,
-                      reminderEnabled: data.get("reminder") === "on",
-                    },
-                  }),
-                );
-              }}
+          <section className={panel} aria-label={t("WFH overview", "Tổng quan WFH")}>
+            <div
+              className={`relative flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4 ${settings ? "pr-14" : ""}`}
             >
-              <div className="flex flex-wrap gap-3">
-                <label className="grid gap-1 text-sm">
-                  {t("First working day", "Ngày bắt đầu")}
-                  <input
-                    className={input}
-                    type="date"
-                    name="startDate"
-                    required
-                    defaultValue={settings?.startDate ?? today}
-                  />
-                </label>
-                <label className="grid gap-1 text-sm">
-                  {t("Last working day (optional)", "Ngày kết thúc (không bắt buộc)")}
-                  <input
-                    className={input}
-                    type="date"
-                    name="endDate"
-                    defaultValue={settings?.endDate ?? ""}
-                  />
-                </label>
-              </div>
-              <label className="flex items-center gap-2 text-sm">
+              <label>
+                {t("Year", "Năm")}{" "}
                 <input
-                  type="checkbox"
-                  name="reminder"
-                  defaultChecked={settings?.reminderEnabled ?? false}
+                  aria-label={t("Year", "Năm")}
+                  className={`${input} w-24`}
+                  type="number"
+                  min="1900"
+                  max="9998"
+                  value={year}
+                  disabled={busy || loading}
+                  onChange={(e) => {
+                    const value = Number(e.target.value);
+                    if (value >= 1900 && value <= 9998) {
+                      setYear(value);
+                      setSelected(`${value}-01-01`);
+                      setNote("");
+                    }
+                  }}
                 />
-                {t(
-                  "Email me weekdays at 17:30 (Vietnam time)",
-                  "Nhắc qua email các ngày trong tuần lúc 17:30 (giờ Việt Nam)",
-                )}
               </label>
               <p className="text-sm text-muted">
-                {t(
-                  "45 days each year, even for a partial year. No carryover.",
-                  "45 ngày mỗi năm, kể cả làm chưa đủ năm. Không chuyển hạn mức sang năm sau.",
-                )}
+                {formatDate(stats.startDate, false)} – {formatDate(stats.endDate)}
               </p>
-              <button type="submit" className={`${button} justify-self-start`} disabled={busy}>
-                {t("Save settings", "Lưu cài đặt")}
-              </button>
-            </form>
+              {settings && (
+                <button
+                  type="button"
+                  className="absolute right-0 top-0 flex h-10 w-10 items-center justify-center rounded-md text-muted hover:bg-panel-muted hover:text-text focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent disabled:opacity-40"
+                  aria-label={t("Edit settings", "Chỉnh sửa cài đặt")}
+                  title={t("Edit settings", "Chỉnh sửa cài đặt")}
+                  aria-haspopup="dialog"
+                  disabled={busy}
+                  onClick={() => {
+                    setConfirmation("");
+                    setEditor(true);
+                  }}
+                >
+                  <Settings size={20} aria-hidden="true" />
+                </button>
+              )}
+            </div>
+            <div className="pt-5">
+              <div>
+                <p className="text-4xl font-semibold tracking-tight sm:text-5xl">
+                  {t(`${stats.remaining} days left`, `Còn ${stats.remaining} ngày`)}
+                </p>
+                <div className="mt-3">
+                  <p className="text-sm text-muted">
+                    {t(`${stats.used} of ${quota} used`, `Đã dùng ${stats.used} / ${quota} ngày`)}
+                  </p>
+                </div>
+                <div
+                  role="progressbar"
+                  aria-label={t("Allowance usage", "Mức sử dụng hạn mức")}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={usage}
+                  aria-valuetext={t(
+                    `${stats.used} of ${quota} days used`,
+                    `Đã dùng ${stats.used} / ${quota} ngày`,
+                  )}
+                  className="mt-3 h-1.5 overflow-hidden rounded-full bg-panel-muted"
+                >
+                  <div
+                    className={`h-full rounded-full ${stats.overAllowance ? "bg-danger" : "bg-accent"}`}
+                    style={{ width: `${usage}%` }}
+                  />
+                </div>
+                {stats.overAllowance > 0 && (
+                  <p className="mt-2 text-sm text-danger">
+                    {t(
+                      `${stats.overAllowance} days over allowance`,
+                      `Vượt hạn mức ${stats.overAllowance} ngày`,
+                    )}
+                  </p>
+                )}
+              </div>
+            </div>
           </section>
+          {!settings && (
+            <section className="flex flex-col gap-3 rounded-lg border border-border bg-panel px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="font-semibold">
+                  {t("Set up WFH tracking", "Thiết lập theo dõi WFH")}
+                </h2>
+                <p className="text-sm text-muted">
+                  {t(
+                    "Add your employment dates to start recording workdays.",
+                    "Thêm thời gian làm việc để bắt đầu ghi nhận ngày làm việc.",
+                  )}
+                </p>
+              </div>
+              <button
+                className={`${button} self-start sm:shrink-0`}
+                type="button"
+                disabled={busy}
+                aria-haspopup="dialog"
+                onClick={() => {
+                  setConfirmation("");
+                  setEditor(true);
+                }}
+              >
+                {t("Set up tracking", "Thiết lập theo dõi")}
+              </button>
+            </section>
+          )}
           {settings && (
             <>
               {year === Number(today.slice(0, 4)) && canEdit(today) && (
@@ -271,64 +309,6 @@ export function WfhTracker({ language }: { language: "en" | "vi" }) {
                   </div>
                 </section>
               )}
-              <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                {[
-                  [t("Days used", "Ngày đã dùng"), stats.used],
-                  [t("Days remaining", "Ngày còn lại"), stats.remaining],
-                  [
-                    t("WFH rate", "Tỷ lệ WFH"),
-                    stats.rate === null ? "—" : `${Math.round(stats.rate * 100)}%`,
-                  ],
-                  [t("Allowance period", "Kỳ hạn mức"), `${year}`],
-                ].map(([label, value]) => (
-                  <div className={panel} key={label}>
-                    <p className="text-sm text-muted">{label}</p>
-                    <p className="mt-2 text-xl font-semibold">{value}</p>
-                  </div>
-                ))}
-              </section>
-              <p className="text-sm text-muted">
-                {stats.startDate} → {stats.endDate} ·{" "}
-                {t(
-                  "WFH rate uses recorded workdays only.",
-                  "Tỷ lệ WFH chỉ tính những ngày đã ghi nhận.",
-                )}
-                {stats.overAllowance > 0 && (
-                  <span className="text-danger">
-                    {" "}
-                    · {stats.overAllowance} {t("days over allowance", "ngày vượt hạn mức")}
-                  </span>
-                )}
-              </p>
-              <form
-                className="flex flex-wrap items-center gap-3"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  const data = new FormData(e.currentTarget);
-                  void mutate((client) =>
-                    client.wfh.allowance.$patch({
-                      json: { year, totalDays: Number(data.get("quota")) },
-                    }),
-                  );
-                }}
-              >
-                <label>
-                  {t("Annual quota", "Hạn mức năm")}{" "}
-                  <input
-                    key={`${year}-${quota}`}
-                    className={`${input} w-20`}
-                    name="quota"
-                    type="number"
-                    min="0"
-                    max="366"
-                    required
-                    defaultValue={quota}
-                  />
-                </label>
-                <button type="submit" className={button} disabled={busy}>
-                  {t("Save quota", "Lưu hạn mức")}
-                </button>
-              </form>
               <section className={panel}>
                 <h2 className="mb-4 font-semibold">{t("Calendar", "Lịch")}</h2>
                 <p className="mb-4 text-sm text-muted">
@@ -390,6 +370,54 @@ export function WfhTracker({ language }: { language: "en" | "vi" }) {
           )}
         </>
       ) : null}
+      {editor && (
+        <WfhSettingsDialog
+          language={language}
+          settings={settings}
+          quota={quota}
+          year={year}
+          today={today}
+          onClose={() => setEditor(null)}
+          onSave={async ({ quota: nextQuota, settings: nextSettings }) => {
+            const client = getClientApiClient(await getToken());
+            const saves = await Promise.allSettled([
+              nextQuota === undefined
+                ? Promise.resolve()
+                : unwrapResponse<{ allowance: { totalDays: number } }>(
+                    client.wfh.allowance.$patch({ json: { year, totalDays: nextQuota } }),
+                  ).then((result) => setQuota(result.allowance.totalDays)),
+              nextSettings === undefined
+                ? Promise.resolve()
+                : unwrapResponse<{ settings: WfhSettings }>(
+                    client.wfh.settings.$patch({ json: nextSettings }),
+                  ).then((result) => setSettings(result.settings)),
+            ]);
+            const quotaSaved = nextQuota === undefined || saves[0].status === "fulfilled";
+            const settingsSaved = nextSettings === undefined || saves[1].status === "fulfilled";
+            if (quotaSaved && settingsSaved) {
+              setConfirmation(t("WFH settings saved.", "Đã lưu cài đặt WFH."));
+              return { quotaSaved: true, settingsSaved: true };
+            }
+            const failed = saves.find((save) => save.status === "rejected");
+            const message =
+              failed?.status === "rejected" && failed.reason instanceof Error
+                ? failed.reason.message
+                : t(
+                    "Some changes were not saved. Retry to continue.",
+                    "Một số thay đổi chưa được lưu. Hãy thử lại để tiếp tục.",
+                  );
+            setError(message);
+            return {
+              quotaSaved,
+              settingsSaved,
+              error: t(
+                "Some changes were not saved. Retry to continue.",
+                "Một số thay đổi chưa được lưu. Hãy thử lại để tiếp tục.",
+              ),
+            };
+          }}
+        />
+      )}
       <dialog
         ref={dialog}
         aria-labelledby="wfh-dialog-title"
