@@ -23,6 +23,7 @@ import {
 } from "@/components/dashboard/workout-api";
 import { StatsCards } from "@/components/StatsCards";
 import { Loading } from "@/components/shared/Loading";
+import { WfhTracker } from "@/components/wfh/WfhTracker";
 import { getTodayInTimezone } from "@/lib/date-utils";
 import { getApiErrorMessage, getClientApiClient } from "@/lib/http";
 import { translations } from "@/lib/i18n";
@@ -46,7 +47,7 @@ const WorkoutDialog = dynamic(() =>
 );
 
 type HopeDashboardProps = {
-  currentTab?: "overview" | "workouts";
+  currentTab?: "overview" | "workouts" | "wfh";
   isAuthenticated: boolean;
   isEditable: boolean;
   user: PublicAppUser;
@@ -254,6 +255,7 @@ export function HopeDashboard({
       />
 
       <ProfileNavigationTabs
+        isOwner={isEditable}
         username={user.username}
         workoutCount={workoutCount}
         currentTab={currentTab}
@@ -276,7 +278,9 @@ export function HopeDashboard({
 
           {socialSummary.canViewWorkouts ? (
             <div className="grid min-w-0 gap-6">
-              {currentTab === "workouts" ? (
+              {currentTab === "wfh" && isEditable ? (
+                <WfhTracker language={language} />
+              ) : currentTab === "workouts" ? (
                 <WorkoutActivityTimeline
                   copy={copy}
                   emptyMessage={copy.workoutsList.empty}

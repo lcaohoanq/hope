@@ -41,7 +41,9 @@ export function createApiClient(baseUrl: string, token?: string | null) {
  * @returns Parsed JSON body typed as `T` when `response.ok` is true.
  * @throws {@link ApiError} when the response status is not OK.
  */
-export async function unwrapResponse<T>(response: Response): Promise<T> {
+export async function unwrapResponse<T>(
+  response: Pick<Response, "ok" | "status" | "json">,
+): Promise<T> {
   const data = await response.json();
   if (!response.ok) {
     const message =
