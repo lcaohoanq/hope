@@ -377,20 +377,28 @@ export function WfhTracker({ language }: { language: "en" | "vi" }) {
           quota={quota}
           year={year}
           today={today}
-          onClose={() => setEditor(null)}
+          onClose={() => setEditor(false)}
           onSave={async ({ quota: nextQuota, settings: nextSettings }) => {
             const client = getClientApiClient(await getToken());
             const saves = await Promise.allSettled([
               nextQuota === undefined
                 ? Promise.resolve()
-                : unwrapResponse<{ allowance: { totalDays: number } }>(
-                    client.wfh.allowance.$patch({ json: { year, totalDays: nextQuota } }),
-                  ).then((result) => setQuota(result.allowance.totalDays)),
+                : (async () => {
+                    const response = await client.wfh.allowance.$patch({
+                      json: { year, totalDays: nextQuota },
+                    });
+                    const result = await unwrapResponse<{ allowance: { totalDays: number } }>(
+                      response,
+                    );
+                    setQuota(result.allowance.totalDays);
+                  })(),
               nextSettings === undefined
                 ? Promise.resolve()
-                : unwrapResponse<{ settings: WfhSettings }>(
-                    client.wfh.settings.$patch({ json: nextSettings }),
-                  ).then((result) => setSettings(result.settings)),
+                : (async () => {
+                    const response = await client.wfh.settings.$patch({ json: nextSettings });
+                    const result = await unwrapResponse<{ settings: WfhSettings }>(response);
+                    setSettings(result.settings);
+                  })(),
             ]);
             const quotaSaved = nextQuota === undefined || saves[0].status === "fulfilled";
             const settingsSaved = nextSettings === undefined || saves[1].status === "fulfilled";
