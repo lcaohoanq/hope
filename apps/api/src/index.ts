@@ -23,6 +23,7 @@ import { profileRoutes } from "./routes/profiles";
 import { storageRoutes } from "./routes/storage";
 import { userRoutes } from "./routes/users";
 import { webhookRoutes } from "./routes/webhooks";
+import { wfhRoutes } from "./routes/wfh";
 import { workoutImageRoutes } from "./routes/workout-images";
 import { workoutRoutes } from "./routes/workouts";
 
@@ -100,6 +101,7 @@ const routes = app
     (c) => c.json({ ok: true as const }),
   )
   .route("/", feedRoutes)
+  .route("/", wfhRoutes)
   .route("/", galleryRoutes)
   .route("/", notificationRoutes)
   .route("/", workoutRoutes)

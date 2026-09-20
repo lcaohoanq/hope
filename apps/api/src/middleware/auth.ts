@@ -10,7 +10,7 @@ export type OwnerResolution =
   | { status: "onboarding"; clerkUserId: string }
   | { status: "ready"; clerkUserId: string; profile: Profile };
 
-async function getClerkUserId(c: Context<AppEnv>): Promise<string | null> {
+async function getClerkUserId(c: Pick<Context<AppEnv>, "req" | "env">): Promise<string | null> {
   const header = c.req.header("Authorization");
   const token = header?.startsWith("Bearer ") ? header.slice("Bearer ".length).trim() : null;
   if (!token) return null;
@@ -33,7 +33,9 @@ async function getClerkUserId(c: Context<AppEnv>): Promise<string | null> {
   }
 }
 
-export async function resolveOwner(c: Context<AppEnv>): Promise<OwnerResolution> {
+export async function resolveOwner(
+  c: Pick<Context<AppEnv>, "req" | "env">,
+): Promise<OwnerResolution> {
   const clerkUserId = await getClerkUserId(c);
   if (!clerkUserId) return { status: "signed-out" };
 

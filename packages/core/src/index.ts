@@ -5,6 +5,7 @@ export * from "./repositories/activity-types";
 export * from "./repositories/leaderboard";
 export * from "./repositories/profiles";
 export * from "./repositories/social";
+export * from "./repositories/wfh";
 export * from "./repositories/workouts";
 export * from "./storage/index";
 export * from "./workout-image-assets";

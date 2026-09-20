@@ -1,0 +1,38 @@
+name: Weekday WFH reminder
+
+on:
+  schedule:
+    - cron: "30 10 * * 1-5"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Preview eligible reminders without sending
+        type: boolean
+        default: true
+
+concurrency:
+  group: wfh-reminders
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  remind:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @hope/cron reminder:wfh
+        env:
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          RESEND_FROM: ${{ secrets.RESEND_FROM }}
+          APP_URL: ${{ vars.APP_URL }}
+          REMINDER_DRY_RUN: ${{ inputs.dry_run && '1' || '0' }}

@@ -57,6 +57,20 @@
       "when": 1786281032692,
       "tag": "0007_add_work_activity",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1789864398802,
+      "tag": "0008_worthless_darkstar",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1789864508998,
+      "tag": "0009_equal_the_santerians",
+      "breakpoints": true
     }
   ]
 }

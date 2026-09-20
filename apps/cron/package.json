@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "reminder": "tsx src/send-reminder.ts",
+    "reminder:wfh": "tsx src/send-wfh-reminder.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
