@@ -5,7 +5,7 @@ import {
   recomputeAllWorkoutPoints,
   updateActivityType,
 } from "@hope/core";
-import { Hono } from "hono";
+import { type Context, Hono } from "hono";
 import { describeRoute } from "hono-openapi";
 import { z } from "zod";
 import type { AppEnv } from "../env";
@@ -73,7 +73,7 @@ const listQuerySchema = z.object({
   includeInactive: z.enum(["true", "false"]).optional(),
 });
 
-async function requireAdmin(c: Parameters<typeof resolveOwner>[0]) {
+async function requireAdmin(c: Context<AppEnv>) {
   const owner = await resolveOwner(c);
   if (owner.status === "signed-out") return { error: unauthorized(c) as Response };
   if (owner.status === "onboarding") return { error: onboardingRequired(c) as Response };

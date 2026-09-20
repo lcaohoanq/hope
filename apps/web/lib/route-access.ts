@@ -16,7 +16,10 @@ export function isProfileRoute(pathname: string) {
   const isProfilePage = segments.length === 1;
   const isProfileSubpage =
     segments.length === 2 &&
-    (segments[1] === "followers" || segments[1] === "following" || segments[1] === "workouts");
+    (segments[1] === "followers" ||
+      segments[1] === "following" ||
+      segments[1] === "workouts" ||
+      segments[1] === "wfh");
 
   return isProfilePage || isProfileSubpage;
 }

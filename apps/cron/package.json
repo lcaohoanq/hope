@@ -5,22 +5,23 @@
   "type": "module",
   "scripts": {
     "reminder": "tsx src/send-reminder.ts",
+    "reminder:wfh": "tsx src/send-wfh-reminder.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@clerk/backend": "^3.15.1",
+    "@clerk/backend": "^3.17.2",
     "@hope/core": "workspace:*",
     "@hope/db": "workspace:*",
     "@hope/shared": "workspace:*",
     "@react-email/components": "^1.0.12",
     "@react-email/render": "^2.1.0",
-    "resend": "^6.18.1"
+    "resend": "^6.28.0"
   },
   "devDependencies": {
-    "@next/env": "16.3.0",
-    "@types/node": "^26.1.2",
-    "@types/react": "^19.2.18",
-    "tsx": "^4.23.8",
+    "@next/env": "16.3.5",
+    "@types/node": "^26.5.1",
+    "@types/react": "^19.3.0",
+    "tsx": "^4.23.13",
     "typescript": "^6.0.3"
   }
 }

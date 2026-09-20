@@ -29,6 +29,69 @@ export type { FollowStatus, NotificationType };
 
 export const userRole = pgEnum("user_role", ["user", "admin"]);
 
+export const wfhSettings = pgTable(
+  "wfh_settings",
+  {
+    profileId: text("profile_id")
+      .primaryKey()
+      .references(() => profiles.id, { onDelete: "cascade" }),
+    startDate: date("start_date", { mode: "string" }).notNull(),
+    endDate: date("end_date", { mode: "string" }),
+    reminderEnabled: boolean("reminder_enabled").notNull().default(false),
+  },
+  (table) => [
+    check(
+      "wfh_employment_dates",
+      sql`${table.endDate} is null or ${table.endDate} >= ${table.startDate}`,
+    ),
+  ],
+).enableRLS();
+
+export const wfhAllowances = pgTable(
+  "wfh_allowances",
+  {
+    profileId: text("profile_id")
+      .notNull()
+      .references(() => profiles.id, { onDelete: "cascade" }),
+    year: integer("year").notNull(),
+    totalDays: integer("total_days").notNull().default(45),
+  },
+  (table) => [
+    uniqueIndex("wfh_allowance_owner_year").on(table.profileId, table.year),
+    check("wfh_quota_range", sql`${table.totalDays} between 0 and 366`),
+  ],
+).enableRLS();
+
+export const wfhRecords = pgTable(
+  "wfh_records",
+  {
+    profileId: text("profile_id")
+      .notNull()
+      .references(() => profiles.id, { onDelete: "cascade" }),
+    date: date("date", { mode: "string" }).notNull(),
+    status: text("status").$type<"WFH" | "OFFICE">().notNull(),
+    note: text("note").notNull().default(""),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("wfh_record_owner_date").on(table.profileId, table.date),
+    check("wfh_record_status", sql`${table.status} in ('WFH', 'OFFICE')`),
+  ],
+).enableRLS();
+
+export const wfhReminderDeliveries = pgTable(
+  "wfh_reminder_deliveries",
+  {
+    profileId: text("profile_id")
+      .notNull()
+      .references(() => profiles.id, { onDelete: "cascade" }),
+    date: date("date", { mode: "string" }).notNull(),
+    sentAt: timestamp("sent_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [uniqueIndex("wfh_reminder_owner_date").on(table.profileId, table.date)],
+).enableRLS();
+
 export const profiles = pgTable(
   "profiles",
   {

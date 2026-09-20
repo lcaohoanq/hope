@@ -123,6 +123,29 @@ For workout and avatar writes, the server uploads processed files first, commits
 
 ## Reminders
 
+### Private WFH tracker
+
+Owners have a WFH tab at `/{username}/wfh`. Set employment dates there and optionally enable weekday email reminders. Each calendar year defaults to 45 days, without prorating or carryover; the annual quota is editable. Office and unrecorded days do not consume allowance. WFH rate counts only recorded workdays. All dates use Asia/Ho_Chi_Minh.
+
+Click a past or current weekday in the calendar to open the backfill dialog, choose WFH or Office, add an optional note, and save. Existing records can be edited or cleared in the same dialog. Check-ins are limited to Monday–Friday within employment dates; weekends are disabled and excluded from stats, including any legacy weekend records.
+
+Apply the additive database migration with `pnpm --filter @hope/db db:migrate` before deploying the updated API and web app. WFH tables have RLS enabled with no browser-facing policies; the existing server database role needs access.
+
+The separate `wfh-reminder.yml` workflow targets 17:30 Vietnam time Monday–Friday (GitHub scheduling may run late). Set repository variable `APP_URL` to the deployed web origin and reuse the Clerk, database, and Resend secrets listed below. Reminders default off and stop after the last working day. Daily delivery records and Resend idempotency keys suppress retries; the workflow serializes runs. Manual workflow runs default to dry-run.
+
+```bash
+REMINDER_DRY_RUN=1 pnpm --filter @hope/cron reminder:wfh
+```
+
+WFH records stay private and do not contribute to workout points, feeds, or leaderboards.
+
+WFH domain tests run with `pnpm --filter @hope/shared test`; API access tests run with `pnpm --filter @hope/api test`. The repository integration test requires a disposable local Postgres database named `hope_wfh_test`; it applies migrations and inserts/deletes test profiles:
+
+```bash
+WFH_TEST_DATABASE_URL=postgresql://postgres:password@127.0.0.1:5432/hope_wfh_test \
+  pnpm --filter @hope/core exec tsx --test src/repositories/wfh.integration.test.ts
+```
+
 `pnpm reminder` queries enabled profiles and today's workouts from Postgres, then retrieves each primary email from Clerk. New profiles default to reminders disabled.
 
 ```bash

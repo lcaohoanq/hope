@@ -9,6 +9,7 @@ export * from "./social-copy";
 export * from "./social-types";
 export * from "./social-validation";
 export * from "./users";
+export * from "./wfh";
 export * from "./workout-images";
 export * from "./workout-types";
 export * from "./workout-utils";

@@ -5,6 +5,7 @@ import { isProfileRoute, requiresClerk } from "../../lib/route-access";
 test("recognizes profile pages without performing an existence lookup", () => {
   assert.equal(isProfileRoute("/hope"), true);
   assert.equal(isProfileRoute("/hope/workouts"), true);
+  assert.equal(isProfileRoute("/hope/wfh"), true);
   assert.equal(isProfileRoute("/hope/followers"), true);
   assert.equal(isProfileRoute("/hope/following"), true);
   assert.equal(isProfileRoute("/hope/unknown"), false);
@@ -25,6 +26,7 @@ test("routes Clerk only by pathname shape", () => {
     "/workouts/workout-id",
     "/hope",
     "/hope/workouts",
+    "/hope/wfh",
   ]) {
     assert.equal(requiresClerk(pathname), true, pathname);
   }

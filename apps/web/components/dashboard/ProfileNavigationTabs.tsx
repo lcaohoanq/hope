@@ -6,7 +6,8 @@ import type { AppCopy } from "@/lib/i18n";
 type ProfileNavigationTabsProps = {
   username: string;
   workoutCount: number;
-  currentTab: "overview" | "workouts";
+  currentTab: "overview" | "workouts" | "wfh";
+  isOwner?: boolean;
   copy: AppCopy;
 };
 
@@ -15,6 +16,7 @@ export function ProfileNavigationTabs({
   workoutCount,
   currentTab,
   copy,
+  isOwner = false,
 }: ProfileNavigationTabsProps) {
   const tabs = [
     {
@@ -29,6 +31,9 @@ export function ProfileNavigationTabs({
       href: `/${username}/workouts`,
       badge: workoutCount,
     },
+    ...(isOwner
+      ? [{ id: "wfh" as const, label: "WFH", href: `/${username}/wfh`, badge: null }]
+      : []),
   ];
 
   return (
