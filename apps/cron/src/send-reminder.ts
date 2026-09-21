@@ -2,10 +2,10 @@ import { createClerkClient } from "@clerk/backend";
 import { listReminderProfiles, listWorkoutsByProfile } from "@hope/core";
 import { closeDatabase } from "@hope/db";
 import { getTodayInTimezone } from "@hope/shared";
-import { loadEnvConfig } from "@next/env";
+import nextEnv from "@next/env";
 import { sendReminderEmail } from "./resend";
 
-loadEnvConfig(process.cwd());
+nextEnv.loadEnvConfig(process.cwd());
 
 const DEFAULT_TIMEZONE = "Asia/Ho_Chi_Minh";
 const DEFAULT_FROM = "Hope <onboarding@resend.dev>";
