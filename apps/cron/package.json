@@ -15,7 +15,7 @@
     "@hope/shared": "workspace:*",
     "@react-email/components": "^1.0.12",
     "@react-email/render": "^2.1.0",
-    "resend": "^6.28.0"
+    "resend": "^6.28.1"
   },
   "devDependencies": {
     "@next/env": "16.3.5",
