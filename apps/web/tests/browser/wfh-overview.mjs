@@ -80,7 +80,7 @@ try {
             contentType: "text/html",
             body: `<html data-theme="${theme}" style="--font-geist-sans:Arial;--font-geist-mono:monospace"><body><main id="root" style="max-width:1100px;margin:auto;padding:16px"></main></body></html>`,
           });
-        const data = request.method() === "PATCH" ? request.postDataJSON() : null;
+        const data = ["PATCH", "POST"].includes(request.method()) ? request.postDataJSON() : null;
         if (data && holdSave)
           await new Promise((resolve) => {
             releaseSave = resolve;
@@ -104,6 +104,16 @@ try {
               totalDays: quotas.get(data?.year ?? Number(url.searchParams.get("year"))) ?? 45,
             },
           };
+        } else if (request.method() === "POST") {
+          const index = records.findIndex((record) => record.date === data.date);
+          if (index >= 0) records[index] = data;
+          else records.push(data);
+          body = { record: data };
+        } else if (request.method() === "DELETE") {
+          const date = url.pathname.split("/").at(-1);
+          const index = records.findIndex((record) => record.date === date);
+          if (index >= 0) records.splice(index, 1);
+          body = { success: true };
         } else
           body = {
             records: records.filter((record) =>
@@ -132,15 +142,42 @@ try {
       for (const date of ["2026-01-01", "2026-09-19", "2026-09-20", "2026-09-21"])
         await expect(page.getByRole("button", { name: new RegExp(`^${date}:`) })).toBeDisabled();
       await page.screenshot({ path: `/tmp/wfh-example-${theme}-${width}.png` });
+      const todayPrompt = page.getByRole("heading", { name: "Did you WFH today?" });
+      failNext = true;
+      await page.getByRole("button", { name: "Yes · WFH", exact: true }).click();
+      await expect(page.getByRole("alert")).toContainText("Temporary save failure");
+      await expect(todayPrompt).toBeVisible();
+      for (const location of ["WFH", "Office"]) {
+        await page
+          .getByRole("button", {
+            name: location === "WFH" ? "Yes · WFH" : "No · Office",
+            exact: true,
+          })
+          .click();
+        await expect(todayPrompt).toHaveCount(0);
+        await page.reload();
+        await page.addStyleTag({ content: css });
+        await page.addScriptTag({ content: bundle.outputFiles[0].text });
+        const recordedDay = page.getByRole("button", {
+          name: `2026-09-18: ${location}`,
+          exact: true,
+        });
+        await expect(recordedDay).toBeEnabled();
+        await expect(todayPrompt).toHaveCount(0);
+        await recordedDay.click();
+        await page.getByRole("button", { name: "Clear record", exact: true }).click();
+        await expect(page.getByRole("dialog", { name: "Record a workday" })).toBeHidden();
+        await expect(todayPrompt).toBeVisible();
+      }
       const editSettings = page.getByRole("button", { name: "Edit settings", exact: true });
       await editSettings.click();
       let dialog = page.getByRole("dialog", { name: "WFH settings · 2026" });
       await expect(dialog.getByRole("button", { name: "Save", exact: true })).toBeDisabled();
-      await page.getByLabel("Annual quota", { exact: true }).fill("50");
+      await page.getByLabel(/^Annual quota · /).fill("50");
       await dialog.getByRole("button", { name: "Cancel" }).click();
       await expect(editSettings).toBeFocused();
       await editSettings.click();
-      await expect(page.getByLabel("Annual quota", { exact: true })).toHaveValue("45");
+      await expect(page.getByLabel(/^Annual quota · /)).toHaveValue("45");
       for (let index = 0; index < 8; index++) {
         await page.keyboard.press(index < 4 ? "Tab" : "Shift+Tab");
         assert.equal(await dialog.evaluate((el) => el.contains(document.activeElement)), true);
@@ -148,11 +185,13 @@ try {
       await page.keyboard.press("Escape");
       await expect(editSettings).toBeFocused();
       await editSettings.click();
-      await page.getByLabel("Annual quota", { exact: true }).fill("0");
+      await page.getByLabel(/^Annual quota · /).fill("0");
       failNext = true;
       await dialog.getByRole("button", { name: "Save", exact: true }).click();
-      await expect(dialog.getByRole("alert")).toContainText("Temporary save failure");
-      await expect(page.getByLabel("Annual quota", { exact: true })).toHaveValue("0");
+      await expect(dialog.getByRole("alert")).toContainText(
+        "Some changes were not saved. Retry to continue.",
+      );
+      await expect(page.getByLabel(/^Annual quota · /)).toHaveValue("0");
       holdSave = true;
       await dialog.getByRole("button", { name: "Save", exact: true }).click();
       await expect(dialog.getByRole("button", { name: "Saving…" })).toBeDisabled();
@@ -168,7 +207,7 @@ try {
       await expect(page.getByRole("progressbar")).toHaveAttribute("aria-valuenow", "100");
       await expect(page.getByRole("status")).toHaveText("WFH settings saved.");
       await editSettings.click();
-      await page.getByLabel("Annual quota", { exact: true }).fill("8");
+      await page.getByLabel(/^Annual quota · /).fill("8");
       await dialog.getByRole("button", { name: "Save", exact: true }).click();
       await expect(dialog).toBeHidden();
       await expect(overview).toContainText("0 days left");
@@ -177,7 +216,7 @@ try {
       await expect(overview).toContainText("45 days left");
       await editSettings.click();
       dialog = page.getByRole("dialog", { name: "WFH settings · 2025" });
-      await page.getByLabel("Annual quota", { exact: true }).fill("0");
+      await page.getByLabel(/^Annual quota · /).fill("0");
       await dialog.getByRole("button", { name: "Save", exact: true }).click();
       await expect(dialog).toBeHidden();
       await expect(page.getByRole("progressbar")).toHaveAttribute("aria-valuenow", "0");
@@ -189,12 +228,12 @@ try {
       await page.getByLabel("First working day").fill("2026-01-05");
       await page.getByLabel("Last working day (optional)").fill("2026-09-17");
       await page.getByRole("checkbox").uncheck();
-      await page.getByLabel("Annual quota", { exact: true }).fill("9");
+      await page.getByLabel(/^Annual quota · /).fill("9");
       failNext = true;
       await dialog.getByRole("button", { name: "Save", exact: true }).click();
       await expect(dialog.getByRole("alert")).toBeVisible();
       await expect(page.getByLabel("First working day")).toHaveValue("2026-01-05");
-      await expect(page.getByLabel("Annual quota", { exact: true })).toHaveValue("9");
+      await expect(page.getByLabel(/^Annual quota · /)).toHaveValue("9");
       await dialog.getByRole("button", { name: "Save", exact: true }).click();
       await expect(dialog).toBeHidden();
       await expect(editSettings).toBeFocused();
