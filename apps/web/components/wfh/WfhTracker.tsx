@@ -281,7 +281,7 @@ export function WfhTracker({ language }: { language: "en" | "vi" }) {
           )}
           {settings && (
             <>
-              {year === Number(today.slice(0, 4)) && canEdit(today) && (
+              {year === Number(today.slice(0, 4)) && canEdit(today) && !byDate.has(today) && (
                 <section className={panel}>
                   <h2 className="font-semibold">
                     {t("Did you WFH today?", "Hôm nay bạn có WFH không?")}

@@ -3,10 +3,10 @@ import { createClerkClient } from "@clerk/backend";
 import { listWfhReminderCandidates, markWfhReminderSent } from "@hope/core";
 import { closeDatabase } from "@hope/db";
 import { getTodayInTimezone } from "@hope/shared";
-import { loadEnvConfig } from "@next/env";
+import nextEnv from "@next/env";
 import { Resend } from "resend";
 
-loadEnvConfig(resolve(process.cwd(), "../.."));
+nextEnv.loadEnvConfig(resolve(process.cwd(), "../.."));
 
 async function main() {
   const today = getTodayInTimezone();
