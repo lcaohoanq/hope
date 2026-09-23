@@ -20,8 +20,8 @@
     "cf-typegen": "wrangler types"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.1131.0",
-    "@clerk/backend": "^3.17.2",
+    "@aws-sdk/client-s3": "^3.1136.0",
+    "@clerk/backend": "^3.18.1",
     "@hono/node-server": "^2.1.1",
     "@hono/standard-validator": "^0.4.0",
     "@hope/core": "workspace:*",
@@ -38,10 +38,10 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^5.20260911.1",
-    "@types/node": "^26.5.1",
+    "@cloudflare/workers-types": "^5.20260920.1",
+    "@types/node": "^26.6.2",
     "tsx": "^4.23.13",
     "typescript": "^6.0.3",
-    "wrangler": "^4.131.2"
+    "wrangler": "^4.135.0"
   }
 }
