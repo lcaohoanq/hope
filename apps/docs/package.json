@@ -19,7 +19,7 @@
     "@docusaurus/faster": "3.10.2",
     "@docusaurus/preset-classic": "3.10.2",
     "@mdx-js/react": "^3.0.0",
-    "@scalar/api-reference-react": "^0.9.67",
+    "@scalar/api-reference-react": "^0.9.72",
     "clsx": "^2.0.0",
     "prism-react-renderer": "^2.3.0",
     "react": "^19.3.0",
@@ -34,7 +34,7 @@
     "@types/react": "^19.3.0",
     "docusaurus-plugin-typedoc": "^1.4.3",
     "typedoc": "^0.28.14",
-    "typedoc-plugin-markdown": "^4.13.0",
+    "typedoc-plugin-markdown": "^4.13.1",
     "typescript": "~6.0.2"
   },
   "browserslist": {
