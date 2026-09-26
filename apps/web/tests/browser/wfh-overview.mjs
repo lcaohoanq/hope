@@ -70,6 +70,7 @@ try {
         note: "",
       }));
       let failNext = false;
+      let failAtDate = "";
       let releaseSave;
       let holdSave = false;
       await page.route("http://wfh.test/**", async (route) => {
@@ -85,7 +86,8 @@ try {
           await new Promise((resolve) => {
             releaseSave = resolve;
           });
-        if (data && failNext) {
+        if (data && (failNext || data.date === failAtDate)) {
+          failAtDate = "";
           failNext = false;
           return route.fulfill({
             status: 500,
@@ -165,10 +167,55 @@ try {
         await expect(recordedDay).toBeEnabled();
         await expect(todayPrompt).toHaveCount(0);
         await recordedDay.click();
+        await page
+          .getByRole("dialog")
+          .getByRole("button", { name: "Work from home", exact: true })
+          .click();
         await page.getByRole("button", { name: "Clear record", exact: true }).click();
-        await expect(page.getByRole("dialog", { name: "Record a workday" })).toBeHidden();
+        await expect(page.getByRole("dialog", { name: "Work from home" })).toBeHidden();
         await expect(todayPrompt).toBeVisible();
       }
+      const calendarDay = page.getByRole("button", { name: /^2026-09-17:/ });
+      await calendarDay.click();
+      const choice = page.getByRole("dialog", { name: "Where did you work?", exact: true });
+      await expect(choice).toBeVisible();
+      await expect(choice.getByRole("textbox")).toHaveCount(0);
+      await choice.getByRole("button", { name: "Cancel", exact: true }).click();
+      await expect(calendarDay).toHaveAttribute("aria-label", "2026-09-17: Not recorded");
+      await calendarDay.click();
+      failNext = true;
+      await choice.getByRole("button", { name: "At the office", exact: true }).click();
+      await expect(choice.getByRole("alert")).toContainText("Temporary save failure");
+      await choice.getByRole("button", { name: "At the office", exact: true }).click();
+      await expect(choice).toBeHidden();
+      await expect(calendarDay).toHaveAttribute("aria-label", "2026-09-17: Office");
+      await expect(calendarDay).toHaveClass(/bg-blue-600/);
+      await calendarDay.click();
+      await expect(
+        choice.getByRole("button", { name: "At the office", exact: true }),
+      ).toContainText("Current");
+      await page.screenshot({ path: `/tmp/wfh-choice-${theme}-${width}.png` });
+      await choice.getByRole("button", { name: "Work from home", exact: true }).click();
+      const workdayForm = page.getByRole("dialog", { name: "Work from home", exact: true });
+      await expect(workdayForm.getByRole("combobox")).toHaveCount(0);
+      await expect(workdayForm.getByRole("textbox")).toBeFocused();
+      await expect(calendarDay).toHaveAttribute("aria-label", "2026-09-17: Office");
+      await workdayForm.getByRole("textbox").fill("Working from home");
+      await workdayForm.getByRole("button", { name: "Back", exact: true }).click();
+      await expect(
+        choice.getByRole("button", { name: "Work from home", exact: true }),
+      ).toBeFocused();
+      await choice.getByRole("button", { name: "Work from home", exact: true }).click();
+      await expect(workdayForm.getByRole("textbox")).toHaveValue("Working from home");
+      await page.screenshot({ path: `/tmp/wfh-form-${theme}-${width}.png` });
+      await workdayForm.getByRole("button", { name: "Save WFH", exact: true }).click();
+      await expect(workdayForm).toBeHidden();
+      await expect(calendarDay).toHaveClass(/bg-emerald-600/);
+      await calendarDay.click();
+      await choice.getByRole("button", { name: "Work from home", exact: true }).click();
+      await expect(workdayForm.getByRole("textbox")).toHaveValue("Working from home");
+      await workdayForm.getByRole("button", { name: "Clear record", exact: true }).click();
+      await expect(workdayForm).toBeHidden();
       const editSettings = page.getByRole("button", { name: "Edit settings", exact: true });
       await editSettings.click();
       let dialog = page.getByRole("dialog", { name: "WFH settings · 2026" });
@@ -248,7 +295,9 @@ try {
         page.getByRole("button", { name: "2026-09-18: Not recorded", exact: true }),
       ).toBeDisabled();
       await page.getByRole("button", { name: "2026-09-17: Not recorded", exact: true }).click();
-      await expect(page.getByRole("dialog", { name: "Record a workday" })).toBeVisible();
+      await expect(
+        page.getByRole("dialog", { name: "Where did you work?", exact: true }),
+      ).toBeVisible();
       await page.keyboard.press("Escape");
       assert.equal(
         await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
@@ -259,6 +308,74 @@ try {
       assert.equal(await dialog.evaluate((el) => el.scrollWidth <= el.clientWidth), true);
       await page.screenshot({ path: `/tmp/wfh-settings-${theme}-${width}.png` });
       await page.keyboard.press("Escape");
+      const rangeStart = page.getByRole("button", { name: /^2026-08-06:/, includeHidden: true });
+      const rangeEnd = page.getByRole("button", { name: /^2026-08-21:/, includeHidden: true });
+      async function dragDates(from, to) {
+        await from.scrollIntoViewIfNeeded();
+        await to.scrollIntoViewIfNeeded();
+        const a = await from.boundingBox(),
+          b = await to.boundingBox();
+        await page.mouse.move(a.x + a.width / 2, a.y + a.height / 2);
+        await page.mouse.down();
+        await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2, { steps: 12 });
+        await page.mouse.up();
+      }
+      await dragDates(rangeStart, rangeEnd);
+      const rangePanel = page.getByRole("dialog", { name: "Selected date range", exact: true });
+      await expect(rangePanel).toContainText("12 eligible workdays selected.");
+      await expect(page.locator('button[data-wfh-date][aria-pressed="true"]')).toHaveCount(12);
+      await expect(rangePanel).toBeVisible();
+      const modalBox = await rangePanel.boundingBox();
+      assert.ok(Math.abs(modalBox.x + modalBox.width / 2 - width / 2) < 2);
+      assert.ok(Math.abs(modalBox.y + modalBox.height / 2 - 450) < 2);
+      assert.equal(await page.evaluate(() => document.body.style.overflow), "hidden");
+      await page.screenshot({ path: `/tmp/wfh-range-drag-${theme}-${width}.png` });
+      await page.keyboard.press("Escape");
+      await expect(rangePanel).toBeHidden();
+      await expect.poll(() => page.evaluate(() => document.body.style.overflow)).toBe("");
+      await expect(rangeStart).toHaveAttribute("aria-label", "2026-08-06: Not recorded");
+      await dragDates(rangeEnd, rangeStart);
+      await expect(rangePanel).toContainText("12 eligible workdays selected.");
+      failAtDate = "2026-08-07";
+      await rangePanel.getByRole("button", { name: "Record office days", exact: true }).click();
+      await expect(rangePanel.getByRole("alert")).toContainText("Saved 1 of 12 days");
+      await expect(rangeStart).toHaveAttribute("aria-label", "2026-08-06: Office");
+      await rangePanel.getByRole("button", { name: "Record office days", exact: true }).click();
+      await expect(rangePanel).toBeHidden();
+      await expect(rangeEnd).toHaveAttribute("aria-label", "2026-08-21: Office");
+      await expect(page.getByRole("status")).toHaveText("Recorded 12 office days.");
+      assert.equal(
+        records.filter(
+          (record) =>
+            record.date >= "2026-08-06" &&
+            record.date <= "2026-08-21" &&
+            record.status === "OFFICE",
+        ).length,
+        12,
+      );
+      await page.getByRole("button", { name: "Select date range", exact: true }).click();
+      await rangePanel.getByLabel("From date", { exact: true }).fill("2026-08-06");
+      await rangePanel.getByLabel("To date", { exact: true }).fill("2026-08-21");
+      await expect(rangePanel).toContainText("12 eligible workdays selected.");
+      await expect(rangePanel).toContainText("Choosing WFH will change 12 office days.");
+      await page.screenshot({ path: `/tmp/wfh-range-${theme}-${width}.png` });
+      failAtDate = "2026-08-07";
+      await rangePanel.getByRole("button", { name: "Record WFH days", exact: true }).click();
+      await expect(rangePanel.getByRole("alert")).toContainText("Saved 1 of 12 days");
+      await expect(rangeStart).toHaveAttribute("aria-label", "2026-08-06: WFH");
+      await rangePanel.getByRole("button", { name: "Record WFH days", exact: true }).click();
+      await expect(rangePanel).toBeHidden();
+      await expect(rangeEnd).toHaveAttribute("aria-label", "2026-08-21: WFH");
+      await expect(rangeEnd).toHaveClass(/bg-emerald-600/);
+      await expect(page.getByRole("status")).toHaveText("Recorded 12 WFH days.");
+      assert.equal(
+        records.filter(
+          (record) =>
+            record.date >= "2026-08-06" && record.date <= "2026-08-21" && record.status === "WFH",
+        ).length,
+        12,
+      );
+      await expect(overview).toContainText("20 of 9 used");
       settings = null;
       await page.reload();
       await page.addStyleTag({ content: css });
