@@ -9,7 +9,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@clerk/backend": "^3.18.1",
+    "@clerk/backend": "^3.20.1",
     "@hope/core": "workspace:*",
     "@hope/db": "workspace:*",
     "@hope/shared": "workspace:*",
@@ -17,7 +17,7 @@
     "@react-email/render": "^2.1.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
-    "resend": "^6.28.1"
+    "resend": "^6.30.0"
   },
   "devDependencies": {
     "@next/env": "16.3.6",
