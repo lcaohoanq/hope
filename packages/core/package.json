@@ -17,10 +17,10 @@
     "@hope/db": "workspace:*",
     "@hope/shared": "workspace:*",
     "drizzle-orm": "^0.45.3",
-    "sharp": "^0.35.4"
+    "sharp": "^0.35.5"
   },
   "devDependencies": {
-    "@types/node": "^26.6.3",
+    "@types/node": "^26.6.4",
     "typescript": "^6.0.3"
   }
 }
