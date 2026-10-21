@@ -31,10 +31,10 @@
     "@types/inquirer": "^9.0.10",
     "chalk": "^5.6.2",
     "commander": "^15.0.0",
-    "inquirer": "^14.2.2",
+    "inquirer": "^14.2.3",
     "lefthook": "2.2.2",
     "ora": "^9.4.1",
     "tsx": "^4.23.15",
-    "turbo": "^2.11.7"
+    "turbo": "^2.11.9"
   }
 }
