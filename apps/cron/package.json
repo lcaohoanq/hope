@@ -9,7 +9,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@clerk/backend": "^3.25.0",
+    "@clerk/backend": "^3.26.1",
     "@hope/core": "workspace:*",
     "@hope/db": "workspace:*",
     "@hope/shared": "workspace:*",
