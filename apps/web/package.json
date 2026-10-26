@@ -14,7 +14,7 @@
     "migrate:legacy": "tsx scripts/migrate-legacy.ts"
   },
   "dependencies": {
-    "@clerk/nextjs": "^7.9.17",
+    "@clerk/nextjs": "^7.9.19",
     "@hope/api-client": "workspace:*",
     "@hope/core": "workspace:*",
     "@hope/db": "workspace:*",
@@ -50,7 +50,7 @@
   },
   "devDependencies": {
     "@clerk/backend": "^3.25.0",
-    "@clerk/testing": "^2.2.47",
+    "@clerk/testing": "^2.2.49",
     "@cloudflare/workers-types": "^5.20261018.1",
     "@next/env": "^16.4.2",
     "@playwright/test": "^1.64.1",
