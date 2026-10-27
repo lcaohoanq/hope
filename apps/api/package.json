@@ -27,7 +27,7 @@
     "@hope/core": "workspace:*",
     "@hope/db": "workspace:*",
     "@hope/shared": "workspace:*",
-    "@scalar/hono-api-reference": "^0.12.13",
+    "@scalar/hono-api-reference": "^0.12.14",
     "@standard-community/standard-json": "^0.3.7",
     "@standard-community/standard-openapi": "^0.2.11",
     "@types/json-schema": "^7.0.15",
