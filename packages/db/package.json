@@ -20,7 +20,7 @@
     "postgres": "^3.4.9"
   },
   "devDependencies": {
-    "@next/env": "16.4.2",
+    "@next/env": "16.4.3",
     "@types/node": "^26.6.5",
     "drizzle-kit": "^0.31.11",
     "typescript": "^6.0.3"
