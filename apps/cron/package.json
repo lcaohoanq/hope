@@ -14,10 +14,10 @@
     "@hope/db": "workspace:*",
     "@hope/shared": "workspace:*",
     "@react-email/components": "^1.0.12",
-    "@react-email/render": "^2.1.1",
+    "@react-email/render": "^2.2.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
-    "resend": "^6.34.1"
+    "resend": "^6.37.0"
   },
   "devDependencies": {
     "@next/env": "16.4.3",
