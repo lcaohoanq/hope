@@ -9,15 +9,15 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@clerk/backend": "^3.27.0",
+    "@clerk/backend": "^3.29.0",
     "@hope/core": "workspace:*",
     "@hope/db": "workspace:*",
     "@hope/shared": "workspace:*",
     "@react-email/components": "^1.0.12",
-    "@react-email/render": "^2.2.0",
+    "@react-email/render": "^2.3.1",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
-    "resend": "^6.37.0"
+    "resend": "^6.38.1"
   },
   "devDependencies": {
     "@next/env": "16.4.6",
